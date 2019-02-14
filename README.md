@@ -27,5 +27,6 @@ See implementations and conformance in this repo below:
 ## Copyright and License
 
 Copyright 2012-2018 Twitter, Inc and other contributors
+Copyright 2019 Robert Sayre
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
