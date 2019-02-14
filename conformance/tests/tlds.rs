@@ -34,7 +34,6 @@ fn tld_check(assertions: Vec<Assertion>) {
     let extractor = Extractor::new();
     for assertion in assertions {
         let url_text = extractor.extract_urls(&assertion.text);
-        println!("{}", assertion.description);
         assert_eq!(url_text[0], assertion.expected[0].as_str().unwrap(), "{}", assertion.description);
     }
 }

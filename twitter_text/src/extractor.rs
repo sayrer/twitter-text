@@ -364,7 +364,6 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
     }
 
     fn create_result(&self, s: &'a str, count: usize, scanned: &mut Vec<UnprocessedEntity<'a>>) -> ExtractResult<'a> {
-        println!("scanned: {}", scanned.len());
         let mut iter = s.char_indices().peekable();
         let mut metrics = TextMetrics::new(self.config, self.ld.normalized_length);
         let mut entities = Vec::with_capacity(count);
