@@ -3,6 +3,12 @@ twitter-text in Rust
 
 This repo is a Rust implementation of twitter-text. All aspects of tweet text are parsed by a [Pest](https://github.com/pest-parser/pest) [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) grammar, with the exception of URL length and character weighting. See the [parser](parser/src) directory for the grammar. Procedural validation for URL lengths and  character weights is performed by the [Extractor](twitter_text/src/extractor.rs) code.
 
+To run the tests, try this in the terminal:
+```
+> cargo build
+> cargo test
+```
+
 The original Twitter README content is below.
 
 twitter-text
