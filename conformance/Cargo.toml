@@ -8,6 +8,6 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_yaml = "0.7"
 pest = "2.1.0"
-twitter_text = { path = "../twitter_text" }
+twitter-text = { path = "../twitter-text" }
 twitter_text_config = { path = "../config" }
 twitter_text_parser = { path = "../parser" }
