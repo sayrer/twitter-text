@@ -48,10 +48,10 @@ impl<'a> HitHighlighter<'a> {
             let rule = pair.as_rule();
             match rule {
                 Rule::element => start += self.walk(pair.into_inner(), &hits[start..], builder),
-                Rule::start_tag => builder.append_tag(pair.into_span().as_str()),
-                Rule::end_tag => builder.append_tag(pair.into_span().as_str()),
+                Rule::start_tag => builder.append_tag(pair.as_span().as_str()),
+                Rule::end_tag => builder.append_tag(pair.as_span().as_str()),
                 Rule::text => {
-                    let span = pair.into_span();
+                    let span = pair.as_span();
                     for c in span.as_str().chars() {
                         if builder.count() == hits.get(start).unwrap_or(&(0, 0)).0 {
                             builder.append_open();
