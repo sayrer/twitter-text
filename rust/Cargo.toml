@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "twitter-text",
+    "config",
+    "conformance",
+    "parser",
+]
