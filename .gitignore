@@ -7,6 +7,6 @@ twitter-text.iml
 .DS_Store
 *.sw?
 **/*.DS_Store
-/target
+**/target
 **/*.rs.bk
 Cargo.lock
