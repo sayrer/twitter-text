@@ -5,7 +5,6 @@ authors = ["Robert Sayre <sayrer@gmail.com>"]
 readme = "README.md"
 description = "An implementation of twitter-text in Rust."
 license = "Apache-2.0"
-license-file = "LICENSE"
 repository = "https://github.com/sayrer/twitter-text"
 
 [dependencies]
