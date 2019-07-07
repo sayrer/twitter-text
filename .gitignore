@@ -10,3 +10,9 @@ twitter-text.iml
 **/target
 **/*.rs.bk
 Cargo.lock
+/bazel-genfiles
+/bazel-testlogs
+/bazel-bin
+/bazel-out
+/bazel-twitter_text
+/.vscode
