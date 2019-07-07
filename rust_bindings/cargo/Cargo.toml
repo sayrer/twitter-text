@@ -1,0 +1,36 @@
+[package]
+name = "twitter_text_bindings_cargo"
+version = "0.1.0"
+authors = ["Robert Sayre <sayrer@gmail.com>"]
+
+[dependencies]
+cbindgen = "0.9.0"
+
+[lib]
+path = "fake_lib.rs"
+
+[raze]
+workspace_path = "//rust_bindings/cargo"
+target = "x86_64-apple-darwin"
+output_buildfile_suffix = "BUILD.bazel"
+
+[raze.crates.proc-macro2.'0.4.30']
+additional_flags = [
+    "--cfg", "u128",
+    "--cfg", "use_proc_macro",
+    "--cfg", "wrap_proc_macro",
+]
+
+[raze.crates.syn.'0.15.39']
+additional_flags = [
+    "--cfg", "syn_can_match_trailing_dollar",
+    "--cfg", "syn_can_use_thread_id",
+    "--cfg", "syn_can_use_associated_constants",
+    "--cfg", "syn_can_call_macro_by_path",
+    "--cfg", "syn_disable_nightly_tests",
+]
+
+[raze.crates.cbindgen.'0.9.0']
+extra_aliased_targets = [
+    "cargo_bin_cbindgen"
+]

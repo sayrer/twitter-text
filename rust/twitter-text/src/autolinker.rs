@@ -62,6 +62,7 @@ pub const DEFAULT_INVISIBLE_TAG_ATTRS: &str = "style='position:absolute;left:-99
 /**
  * Adds HTML links to hashtag, username and list references in Tweet text.
  */
+#[repr(C)]
 pub struct Autolinker<'a> {
     pub no_follow: bool,
     pub url_class: &'a str,

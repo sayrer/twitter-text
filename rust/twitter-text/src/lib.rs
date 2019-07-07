@@ -23,6 +23,7 @@ use extractor::ValidatingExtractor;
  * A struct that represents a parsed tweet containing the length of the tweet,
  * its validity, display ranges etc. The name mirrors Twitter's Java implementation.
  */
+#[repr(C)]
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct TwitterTextParseResults {
     /// The weighted length is the number used to determine the tweet's length for the purposes of Twitter's limit of 280. Most characters count
@@ -82,7 +83,8 @@ impl TwitterTextParseResults {
  * This function will allocate an NFC-normalized copy of the input string. If the text is already
  * NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
  */
-pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
+#[no_mangle]
+pub extern fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
     let mut extractor = ValidatingExtractor::new(config);
     let input = extractor.prep_input(text);
     if extract_urls {

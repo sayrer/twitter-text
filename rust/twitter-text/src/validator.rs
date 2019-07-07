@@ -9,8 +9,10 @@ use twitter_text_parser::twitter_text::TwitterTextParser;
 use twitter_text_parser::twitter_text::Rule;
 use pest::Parser;
 
-const MAX_TWEET_LENGTH: i32 = 280;
+#[repr(C)]
+pub const MAX_TWEET_LENGTH: i32 = 280;
 
+#[repr(C)]
 pub struct Validator {
     short_url_length: i32,
     short_url_length_https: i32,

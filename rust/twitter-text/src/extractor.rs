@@ -189,6 +189,7 @@ pub trait Extract<'a> {
 /**
  * An [Extract] implementation that does no validation (length checks, validity, etc).
  */
+ #[repr(C)]
 pub struct Extractor {
     extract_url_without_protocol: bool,
 }
@@ -289,6 +290,7 @@ impl<'a> Extract<'a> for Extractor {
 /**
  * An [Extract] implementation that extracts entities and provides [TwitterTextParseResults] validation data.
  */
+#[repr(C)]
 pub struct ValidatingExtractor<'a> {
     extract_url_without_protocol: bool,
     config: &'a Configuration,
@@ -423,6 +425,7 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 }
 
 /// Entities and validation data returned by [ValidatingExtractor].
+#[repr(C)]
 pub struct ExtractResult<'a> {
     pub parse_results: TwitterTextParseResults,
     pub entities: Vec<Entity<'a>>
@@ -438,6 +441,7 @@ impl<'a> ExtractResult<'a> {
 }
 
 /// A mention entity and validation data returned by [ValidatingExtractor].
+#[repr(C)]
 pub struct MentionResult<'a> {
     pub parse_results: TwitterTextParseResults,
     pub mention: Option<Entity<'a>>

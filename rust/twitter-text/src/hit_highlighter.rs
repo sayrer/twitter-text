@@ -11,6 +11,7 @@ use twitter_text_parser::highlighter::Rule;
 type Hit = (usize, usize);
 const DEFAULT_HIGHLIGHT_TAG: &str = "em";
 
+#[repr(C)]
 pub struct HitHighlighter<'a> {
     highlight_tag: &'a str,
 }
@@ -78,6 +79,7 @@ impl<'a> HitHighlighter<'a> {
     }
 }
 
+#[repr(C)]
 struct HighlightBuilder {
     buffer: String,
     char_count: usize,
