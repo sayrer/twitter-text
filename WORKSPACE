@@ -54,3 +54,24 @@ http_archive(
 load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
 gmaven_rules()
+
+#
+# SWIG
+#
+http_archive(
+    name = "rules_foreign_cc",
+    strip_prefix = "rules_foreign_cc-8ccd83504b2221b670fc0b83d78fcee5642f4cb1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/8ccd83504b2221b670fc0b83d78fcee5642f4cb1.tar.gz",
+)
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+rules_foreign_cc_dependencies()
+
+# A BUILD that grabs everything in an archive.
+ALL_CONTENT = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
+
+http_archive(
+    name = "pcre",
+    build_file_content = ALL_CONTENT,
+    strip_prefix = "pcre-8.43",
+    urls = ["https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz"],
+)
