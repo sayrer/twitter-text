@@ -10,11 +10,19 @@ licenses([
 ])
 alias(
     name = "cbindgen",
-    actual = "//rust_bindings/cargo/vendor/cbindgen-0.9.0:cbindgen",
+    actual = "//rust_bindings/cargo/vendor/cbindgen-0.12.2:cbindgen",
 )
 alias(
     # Extra aliased target, from raze configuration
     # N.B.: The exact form of this is subject to change.
     name = "cargo_bin_cbindgen",
-    actual = "//rust_bindings/cargo/vendor/cbindgen-0.9.0:cargo_bin_cbindgen",
+    actual = "//rust_bindings/cargo/vendor/cbindgen-0.12.2:cargo_bin_cbindgen",
+)
+alias(
+    name = "clap",
+    actual = "//rust_bindings/cargo/vendor/clap-2.33.0:clap",
+)
+alias(
+    name = "log",
+    actual = "//rust_bindings/cargo/vendor/log-0.4.0:log",
 )

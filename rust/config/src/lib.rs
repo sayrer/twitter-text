@@ -18,14 +18,14 @@ use std::io::Read;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde::de::{self, Deserialize, Deserializer, Visitor, MapAccess};
 
-const DEFAULT_VERSION: i32 = 2;
-const DEFAULT_WEIGHTED_LENGTH: i32 = 280;
-const DEFAULT_SCALE: i32 = 100;
-const DEFAULT_WEIGHT: i32 = 200;
-const DEFAULT_TRANSFORMED_URL_LENGTH: i32 = 23;
-const V1_JSON: &str = include_str!("v1.json");
-const V2_JSON: &str = include_str!("v2.json");
-const V3_JSON: &str = include_str!("v3.json");
+pub const DEFAULT_VERSION: i32 = 3;
+pub const DEFAULT_WEIGHTED_LENGTH: i32 = 280;
+pub const DEFAULT_SCALE: i32 = 100;
+pub const DEFAULT_WEIGHT: i32 = 200;
+pub const DEFAULT_TRANSFORMED_URL_LENGTH: i32 = 23;
+pub const V1_JSON: &str = include_str!("v1.json");
+pub const V2_JSON: &str = include_str!("v2.json");
+pub const V3_JSON: &str = include_str!("v3.json");
 
 lazy_static! {
     static ref CONFIG_V1: Configuration = Configuration::configuration_from_str(V1_JSON);
@@ -33,22 +33,27 @@ lazy_static! {
     static ref CONFIG_V3: Configuration = Configuration::configuration_from_str(V3_JSON);
 }
 
-pub fn config_v1() -> &'static Configuration {
+#[no_mangle]
+pub extern fn config_v1() -> &'static Configuration {
     &CONFIG_V1
 }
 
-pub fn config_v2() -> &'static Configuration {
+#[no_mangle]
+pub extern fn config_v2() -> &'static Configuration {
     &CONFIG_V2
 }
 
-pub fn config_v3() -> &'static Configuration {
+#[no_mangle]
+pub extern fn config_v3() -> &'static Configuration {
     &CONFIG_V3
 }
 
-pub fn default() -> &'static Configuration {
+#[no_mangle]
+pub extern fn default() -> &'static Configuration {
     &CONFIG_V3
 }
 
+#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
@@ -104,6 +109,7 @@ impl Configuration {
     }
 }
 
+#[repr(C)]
 #[derive(Debug, PartialEq, Hash, Clone, Copy)]
 pub struct WeightedRange {
     pub range: Range,
@@ -194,6 +200,7 @@ impl<'de> Deserialize<'de> for WeightedRange {
     }
 }
 
+#[repr(C)]
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Copy)]
 pub struct Range {
     start: i32,

@@ -64,7 +64,7 @@ bitflags = false
 ############## Options for How Your Rust library Should Be Parsed ##############
 
 [parse]
-parse_deps = true
+parse_deps = false
 include = ["twitter-text", "twitter_text_config", "pest"]
 #exclude = []
 clean = true

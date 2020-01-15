@@ -34,9 +34,9 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/cfg-if-0.1.9:cfg_if",
-        "//rust_bindings/cargo/vendor/libc-0.2.58:libc",
-        "//rust_bindings/cargo/vendor/rand-0.7.0:rand",
+        "//rust_bindings/cargo/vendor/cfg-if-0.1.10:cfg_if",
+        "//rust_bindings/cargo/vendor/libc-0.2.66:libc",
+        "//rust_bindings/cargo/vendor/rand-0.7.3:rand",
         "//rust_bindings/cargo/vendor/remove_dir_all-0.5.2:remove_dir_all",
     ],
     rustc_flags = [

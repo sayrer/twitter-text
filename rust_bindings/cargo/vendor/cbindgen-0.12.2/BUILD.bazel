@@ -1,0 +1,85 @@
+"""
+cargo-raze crate build file.
+
+DO NOT EDIT! Replaced on runs of cargo-raze
+"""
+package(default_visibility = [
+  # Public for visibility by "@raze__crate__version//" targets.
+  #
+  # Prefer access through "//rust_bindings/cargo", which limits external
+  # visibility to explicit Cargo.toml dependencies.
+  "//visibility:public",
+])
+
+licenses([
+  "reciprocal", # "MPL-2.0"
+])
+
+load(
+    "@io_bazel_rules_rust//rust:rust.bzl",
+    "rust_library",
+    "rust_binary",
+    "rust_test",
+)
+
+
+# Unsupported target "build-script-build" with type "custom-build" omitted
+rust_binary(
+    # Prefix bin name to disambiguate from (probable) collision with lib name
+    # N.B.: The exact form of this is subject to change.
+    name = "cargo_bin_cbindgen",
+    crate_root = "src/main.rs",
+    edition = "2018",
+    srcs = glob(["**/*.rs"]),
+    deps = [
+        # Binaries get an implicit dependency on their crate's lib
+        ":cbindgen",
+        "//rust_bindings/cargo/vendor/clap-2.33.0:clap",
+        "//rust_bindings/cargo/vendor/log-0.4.0:log",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.7:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.2:quote",
+        "//rust_bindings/cargo/vendor/serde-1.0.104:serde",
+        "//rust_bindings/cargo/vendor/serde_json-1.0.44:serde_json",
+        "//rust_bindings/cargo/vendor/syn-1.0.13:syn",
+        "//rust_bindings/cargo/vendor/tempfile-3.1.0:tempfile",
+        "//rust_bindings/cargo/vendor/toml-0.5.5:toml",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    version = "0.12.2",
+    crate_features = [
+        "clap",
+        "default",
+    ],
+)
+
+
+rust_library(
+    name = "cbindgen",
+    crate_root = "src/lib.rs",
+    crate_type = "lib",
+    edition = "2018",
+    srcs = glob(["**/*.rs"]),
+    deps = [
+        "//rust_bindings/cargo/vendor/clap-2.33.0:clap",
+        "//rust_bindings/cargo/vendor/log-0.4.0:log",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.7:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.2:quote",
+        "//rust_bindings/cargo/vendor/serde-1.0.104:serde",
+        "//rust_bindings/cargo/vendor/serde_json-1.0.44:serde_json",
+        "//rust_bindings/cargo/vendor/syn-1.0.13:syn",
+        "//rust_bindings/cargo/vendor/tempfile-3.1.0:tempfile",
+        "//rust_bindings/cargo/vendor/toml-0.5.5:toml",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    version = "0.12.2",
+    crate_features = [
+        "clap",
+        "default",
+    ],
+)
+
+# Unsupported target "tests" with type "test" omitted

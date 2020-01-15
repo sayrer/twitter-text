@@ -32,11 +32,11 @@ rust_library(
     srcs = glob(["**/*.rs"]),
     deps = [
         "//rust_bindings/cargo/vendor/ansi_term-0.11.0:ansi_term",
-        "//rust_bindings/cargo/vendor/atty-0.2.11:atty",
-        "//rust_bindings/cargo/vendor/bitflags-1.1.0:bitflags",
+        "//rust_bindings/cargo/vendor/atty-0.2.14:atty",
+        "//rust_bindings/cargo/vendor/bitflags-1.2.1:bitflags",
         "//rust_bindings/cargo/vendor/strsim-0.8.0:strsim",
         "//rust_bindings/cargo/vendor/textwrap-0.11.0:textwrap",
-        "//rust_bindings/cargo/vendor/unicode-width-0.1.5:unicode_width",
+        "//rust_bindings/cargo/vendor/unicode-width-0.1.7:unicode_width",
         "//rust_bindings/cargo/vendor/vec_map-0.8.1:vec_map",
     ],
     rustc_flags = [

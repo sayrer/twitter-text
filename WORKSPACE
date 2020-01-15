@@ -4,32 +4,28 @@
 #
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
 http_archive(
     name = "bazel_skylib",
-    sha256 = "2c62d8cd4ab1e65c08647eb4afe38f51591f43f7f0885e7769832fa137633dcb",
-    strip_prefix = "bazel-skylib-0.7.0",
-    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.7.0.tar.gz",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+    ],
+    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
 )
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
 
 #
 # Rust
 #
 http_archive(
     name = "io_bazel_rules_rust",
-    sha256 = "299108772020c103eefacb4de30873d45224e8e0e6c11df7b56ffd11d959e212",
-    strip_prefix = "rules_rust-3fac9fe0001d2a829d8ddaf3033b5171c049abdb",
+    sha256 = "f33bffd6b779ae5a4f57944e86307f876872b9dbfc07b3d10d0e7f0041f29d5f",
+    strip_prefix = "rules_rust-959ba5692cc4e6b803b20018c9eeeadedaa4b637",
     urls = [
-        "https://github.com/bazelbuild/rules_rust/archive/3fac9fe0001d2a829d8ddaf3033b5171c049abdb.tar.gz",
+        "https://github.com/bazelbuild/rules_rust/archive/959ba5692cc4e6b803b20018c9eeeadedaa4b637.tar.gz",
     ],
 )
-
-#git_repository(
-#    name = "io_bazel_rules_rust",
-#    remote = "https://github.com/sayrer/rules_rust",
-#    branch = "rust_proc_macro"
-#)
-
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
 rust_repositories()
 load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
@@ -50,6 +46,7 @@ http_archive(
     name = "gmaven_rules",
     strip_prefix = "gmaven_rules-%s" % GMAVEN_TAG,
     url = "https://github.com/bazelbuild/gmaven_rules/archive/%s.tar.gz" % GMAVEN_TAG,
+    sha256 = "33027de68db6a49a352f83808fa9898c4930d39aa6fb0edc6bb3d3eec6e2bc7d",
 )
 load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
 
@@ -58,20 +55,3 @@ gmaven_rules()
 #
 # SWIG
 #
-http_archive(
-    name = "rules_foreign_cc",
-    strip_prefix = "rules_foreign_cc-8ccd83504b2221b670fc0b83d78fcee5642f4cb1",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/8ccd83504b2221b670fc0b83d78fcee5642f4cb1.tar.gz",
-)
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
-rules_foreign_cc_dependencies()
-
-# A BUILD that grabs everything in an archive.
-ALL_CONTENT = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//visibility:public"])"""
-
-http_archive(
-    name = "pcre",
-    build_file_content = ALL_CONTENT,
-    strip_prefix = "pcre-8.43",
-    urls = ["https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz"],
-)

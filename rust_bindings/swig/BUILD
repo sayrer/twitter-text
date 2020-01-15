@@ -8,7 +8,7 @@ configure_make(
 )
 
 configure_make(
-    name = "swig",
+    name = "swig_cmd",
     lib_source = "@swig//:all",
     binaries = [
         "swig",
