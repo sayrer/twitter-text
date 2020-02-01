@@ -1,9 +1,19 @@
+package(default_visibility = ["//visibility:public"])
+
 genrule(
-    name = "make_cbindgen_config",
+	name = "swig_input",
+	srcs = [
+		"twitter-text-template.i",
+		":twitter-text.h"
+	],
+	outs = ["twitter-text.i"],
+	cmd = "cp $(location twitter-text-template.i) $$(dirname $(location :twitter-text.h))/twitter-text.i"
+)
+
+genrule(
+    name = "twitter_text_header",
     srcs = [
     	"//rust:twitter_text",
-    	"//rust:twitter_text_crate",
- 	    	"//rust:highlighter",
     	":cbindgen.toml"
     ],
     outs = ["twitter-text.h"],

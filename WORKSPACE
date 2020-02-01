@@ -18,13 +18,17 @@ bazel_skylib_workspace()
 #
 # Rust
 #
-http_archive(
+#http_archive(
+#    name = "io_bazel_rules_rust",
+#    sha256 = "f33bffd6b779ae5a4f57944e86307f876872b9dbfc07b3d10d0e7f0041f29d5f",
+#    strip_prefix = "rules_rust-959ba5692cc4e6b803b20018c9eeeadedaa4b637",
+#    urls = [
+#        "https://github.com/bazelbuild/rules_rust/archive/959ba5692cc4e6b803b20018c9eeeadedaa4b637.tar.gz",
+#    ],
+#)
+local_repository(
     name = "io_bazel_rules_rust",
-    sha256 = "f33bffd6b779ae5a4f57944e86307f876872b9dbfc07b3d10d0e7f0041f29d5f",
-    strip_prefix = "rules_rust-959ba5692cc4e6b803b20018c9eeeadedaa4b637",
-    urls = [
-        "https://github.com/bazelbuild/rules_rust/archive/959ba5692cc4e6b803b20018c9eeeadedaa4b637.tar.gz",
-    ],
+    path = "/Users/sayrer/github/sayrer/rules_rust",
 )
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
 rust_repositories()
@@ -49,9 +53,43 @@ http_archive(
     sha256 = "33027de68db6a49a352f83808fa9898c4930d39aa6fb0edc6bb3d3eec6e2bc7d",
 )
 load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
-
 gmaven_rules()
 
 #
 # SWIG
 #
+http_archive(
+    name = "io_tweag_rules_nixpkgs",
+    #sha256 = "f5af641e16fcff5b24f1a9ba5d93cab5ad26500271df59ede344f1a56fc3b17d",
+    strip_prefix = "rules_nixpkgs-adfe991ad7fd41fcdbeaeabf33ea061d9b435c97",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/adfe991ad7fd41fcdbeaeabf33ea061d9b435c97.tar.gz"],
+)
+load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
+rules_nixpkgs_dependencies()
+
+load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package", "nixpkgs_cc_configure")
+
+nixpkgs_git_repository(
+    name = "nixpkgs",
+    revision = "19.09",
+    sha256 = "ac23e3fad10035dc9fc2882997cd12e316785438c15cf103db0fe0e267ab7f84"
+)
+
+#nixpkgs_cc_configure(repository = "@nixpkgs//:default.nix")
+
+nixpkgs_package(
+    name = "swig",
+    repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
+)
+
+#
+# Python
+#
+http_archive(
+    name = "rules_python",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.0.1/rules_python-0.0.1.tar.gz",
+    sha256 = "aa96a691d3a8177f3215b14b0edc9641787abaaa30363a080165d06ab65e1161",
+)
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+

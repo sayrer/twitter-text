@@ -189,7 +189,6 @@ pub trait Extract<'a> {
 /**
  * An [Extract] implementation that does no validation (length checks, validity, etc).
  */
- #[repr(C)]
 pub struct Extractor {
     extract_url_without_protocol: bool,
 }
@@ -290,7 +289,6 @@ impl<'a> Extract<'a> for Extractor {
 /**
  * An [Extract] implementation that extracts entities and provides [TwitterTextParseResults] validation data.
  */
-#[repr(C)]
 pub struct ValidatingExtractor<'a> {
     extract_url_without_protocol: bool,
     config: &'a Configuration,
@@ -324,7 +322,6 @@ impl<'a> ValidatingExtractor<'a> {
     /// Create a new Extractor from text that is already nfc-normalized. There's no need to call
     /// [ValidatingExtractor::prep_input] for this text.
     pub fn new_with_nfc_input(configuration: &'a Configuration, s: &str) -> ValidatingExtractor<'a> {
-        let (original_length, original_length_utf8) = calculate_length(s);
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,

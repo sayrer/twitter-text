@@ -31,9 +31,9 @@ rust_library(
     edition = "2015",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.7:proc_macro2",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.8:proc_macro2",
         "//rust_bindings/cargo/vendor/quote-1.0.2:quote",
-        "//rust_bindings/cargo/vendor/syn-1.0.13:syn",
+        "//rust_bindings/cargo/vendor/syn-1.0.14:syn",
     ],
     rustc_flags = [
         "--cap-lints=allow",

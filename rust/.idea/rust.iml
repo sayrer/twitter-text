@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/conformance/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/conformance/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/conformance/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/conformance/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/twitter-text/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/twitter-text/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/twitter-text/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/twitter-text/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/parser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/parser/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/parser/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/parser/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/config/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/config/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/config/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/config/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/ffi/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ffi/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ffi/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/ffi/benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/config/target" />
+      <excludeFolder url="file://$MODULE_DIR$/conformance/target" />
+      <excludeFolder url="file://$MODULE_DIR$/ffi/target" />
+      <excludeFolder url="file://$MODULE_DIR$/parser/target" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/twitter-text/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

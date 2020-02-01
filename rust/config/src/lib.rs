@@ -33,27 +33,22 @@ lazy_static! {
     static ref CONFIG_V3: Configuration = Configuration::configuration_from_str(V3_JSON);
 }
 
-#[no_mangle]
 pub extern fn config_v1() -> &'static Configuration {
     &CONFIG_V1
 }
 
-#[no_mangle]
 pub extern fn config_v2() -> &'static Configuration {
     &CONFIG_V2
 }
 
-#[no_mangle]
 pub extern fn config_v3() -> &'static Configuration {
     &CONFIG_V3
 }
 
-#[no_mangle]
 pub extern fn default() -> &'static Configuration {
     &CONFIG_V3
 }
 
-#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Configuration {
@@ -109,7 +104,6 @@ impl Configuration {
     }
 }
 
-#[repr(C)]
 #[derive(Debug, PartialEq, Hash, Clone, Copy)]
 pub struct WeightedRange {
     pub range: Range,
@@ -200,7 +194,6 @@ impl<'de> Deserialize<'de> for WeightedRange {
     }
 }
 
-#[repr(C)]
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Copy)]
 pub struct Range {
     start: i32,

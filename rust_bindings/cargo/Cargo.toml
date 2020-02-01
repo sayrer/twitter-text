@@ -8,7 +8,10 @@ features = ["std"]
 [dependencies]
 cbindgen = "0.12.2"
 clap = "2.33.0"
+proc-macro-error = {version = "=0.4.3" }
 log = {version = "=0.4.0", features = ["std"]}
+cxx = { git = "https://github.com/dtolnay/cxx" }
+cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "./cmd" }
 
 [lib]
 path = "fake_lib.rs"
@@ -23,23 +26,37 @@ additional_flags = [
     "--cfg", "std",
 ]
 
-[raze.crates.proc-macro2.'1.0.7']
+[raze.crates.proc-macro2.'1.0.8']
 additional_flags = [
-    "--cfg", "u128",
+#    "--cfg", "u128",
     "--cfg", "use_proc_macro",
-    "--cfg", "wrap_proc_macro",
+#    "--cfg", "wrap_proc_macro",
+"--cfg=span_locations",
+#    "--cfg", "'span-locations'",
 ]
 
-[raze.crates.syn.'1.0.13']
-additional_flags = [
-    "--cfg", "syn_can_match_trailing_dollar",
-    "--cfg", "syn_can_use_thread_id",
-    "--cfg", "syn_can_use_associated_constants",
-    "--cfg", "syn_can_call_macro_by_path",
-    "--cfg", "syn_disable_nightly_tests",
-]
+#[raze.crates.syn.'1.0.14']
+#additional_flags = [
+#    "--cfg", "syn_can_match_trailing_dollar",
+#    "--cfg", "syn_can_use_thread_id",
+#    "--cfg", "syn_can_use_associated_constants",
+#    "--cfg", "syn_can_call_macro_by_path",
+#    "--cfg", "syn_disable_nightly_tests",
+#]
+
+[raze.crates.rustversion.'1.0.2']
+gen_buildrs = true
 
 [raze.crates.cbindgen.'0.12.2']
 extra_aliased_targets = [
-    "cargo_bin_cbindgen"
+    "cargo_bin_cbindgen",
+]
+
+[raze.crates.cxxbridge-cmd.'0.1.2']
+additional_flags = [
+    "--cfg", "procmacro2_semver_exempt",
+]
+data_attr = 'glob(["**/*.h"])'
+extra_aliased_targets = [
+    "cargo_bin_cxxbridge"
 ]

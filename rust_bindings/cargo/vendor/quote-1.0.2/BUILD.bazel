@@ -32,7 +32,7 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.7:proc_macro2",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.8:proc_macro2",
     ],
     rustc_flags = [
         "--cap-lints=allow",
@@ -41,7 +41,6 @@ rust_library(
     crate_features = [
         "default",
         "proc-macro",
-        "proc-macro2",
     ],
 )
 

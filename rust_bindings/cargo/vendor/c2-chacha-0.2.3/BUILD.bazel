@@ -38,7 +38,6 @@ rust_library(
     ],
     version = "0.2.3",
     crate_features = [
-        "ppv-lite86",
         "simd",
         "std",
     ],

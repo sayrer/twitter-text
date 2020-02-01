@@ -9,11 +9,10 @@ use twitter_text_parser::highlighter::HighlightParser;
 use twitter_text_parser::highlighter::Rule;
 
 type Hit = (usize, usize);
-const DEFAULT_HIGHLIGHT_TAG: &str = "em";
+pub const DEFAULT_HIGHLIGHT_TAG: &str = "em";
 
-#[repr(C)]
 pub struct HitHighlighter<'a> {
-    highlight_tag: &'a str,
+    pub highlight_tag: &'a str,
 }
 
 impl<'a> HitHighlighter<'a> {
@@ -41,7 +40,7 @@ impl<'a> HitHighlighter<'a> {
         builder.buffer()
     }
 
-    fn walk(&self, pairs: Pairs<Rule>, hits: &[(Hit)], builder: &mut HighlightBuilder) -> usize {
+    fn walk(&self, pairs: Pairs<Rule>, hits: &[Hit], builder: &mut HighlightBuilder) -> usize {
         let mut start = 0;
         let mut tag_open = false;
 
@@ -79,7 +78,6 @@ impl<'a> HitHighlighter<'a> {
     }
 }
 
-#[repr(C)]
 struct HighlightBuilder {
     buffer: String,
     char_count: usize,
@@ -88,7 +86,7 @@ struct HighlightBuilder {
 }
 
 impl HighlightBuilder {
-    fn new(text: &str, tag: &str, hits: &Vec<(Hit)>) -> HighlightBuilder {
+    fn new(text: &str, tag: &str, hits: &Vec<Hit>) -> HighlightBuilder {
         let capacity = text.len() + (hits.len() * (tag.len() + 2 + tag.len() + 3));
         HighlightBuilder {
             buffer: String::with_capacity(capacity),

@@ -6,11 +6,6 @@ filegroup(
 )
 
 filegroup(
-    name = "twitter_text_crate",
-    srcs = ["twitter-text/Cargo.toml"],
-)
-
-filegroup(
-    name = "highlighter",
+    name = "twitter_text_main",
     srcs = ["twitter-text/src/lib.rs"],
 )

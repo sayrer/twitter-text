@@ -7,6 +7,7 @@ use entity::Entity;
 use entity;
 use extractor::Extract;
 use extractor::Extractor;
+use ffi;
 
 type Attributes = Vec<(String, String)>;
 const HREF: &'static str = "href";
@@ -62,7 +63,6 @@ pub const DEFAULT_INVISIBLE_TAG_ATTRS: &str = "style='position:absolute;left:-99
 /**
  * Adds HTML links to hashtag, username and list references in Tweet text.
  */
-#[repr(C)]
 pub struct Autolinker<'a> {
     pub no_follow: bool,
     pub url_class: &'a str,
@@ -107,8 +107,51 @@ impl<'a> Autolinker<'a> {
         }
     }
 
+    pub fn new_with_config(config: &'a ffi::AutolinkerConfig) -> Autolinker<'a> {
+        let mut extractor = Extractor::new();
+        extractor.set_extract_url_without_protocol(false);
+        Autolinker {
+            no_follow: config.no_follow,
+            url_class: &config.url_class,
+            url_target: &config.url_target,
+            symbol_tag: &config.symbol_tag,
+            text_with_symbol_tag: &config.text_with_symbol_tag,
+            list_class: &config.list_class,
+            username_class: &config.username_class,
+            hashtag_class: &config.hashtag_class,
+            cashtag_class: &config.cashtag_class,
+            username_url_base: &config.username_url_base,
+            list_url_base: &config.list_url_base,
+            hashtag_url_base: &config.hashtag_url_base,
+            cashtag_url_base: &config.cashtag_url_base,
+            invisible_tag_attrs: &config.invisible_tag_attrs,
+            username_include_symbol: config.username_include_symbol,
+            extractor,
+        }
+    }
+
+    pub fn default_config() -> ffi::AutolinkerConfig {
+        ffi::AutolinkerConfig {
+            no_follow: false,
+            url_class: "".to_string(),
+            url_target: "".to_string(),
+            symbol_tag: "".to_string(),
+            text_with_symbol_tag: "".to_string(),
+            list_class: DEFAULT_LIST_CLASS.to_string(),
+            username_class: DEFAULT_USERNAME_CLASS.to_string(),
+            hashtag_class: DEFAULT_HASHTAG_CLASS.to_string(),
+            cashtag_class: DEFAULT_CASHTAG_CLASS.to_string(),
+            username_url_base: DEFAULT_USERNAME_URL_BASE.to_string(),
+            list_url_base: DEFAULT_LIST_URL_BASE.to_string(),
+            hashtag_url_base: DEFAULT_HASHTAG_URL_BASE.to_string(),
+            cashtag_url_base: DEFAULT_CASHTAG_URL_BASE.to_string(),
+            invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
+            username_include_symbol: false,
+        }
+    }
+
     fn link_to_text(&self, entity: &Entity, original_text: &str,
-                        attributes: &mut Attributes, buf: &mut String) {
+                    attributes: &mut Attributes, buf: &mut String) {
         if self.no_follow {
             attributes.push((String::from("rel"), String::from("nofollow")));
         }

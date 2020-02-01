@@ -1,0 +1,15 @@
+[package]
+name = "twitter_text_ffi"
+version = "0.1.0"
+authors = ["Robert Sayre <sayrer@gmail.com>"]
+readme = "README.md"
+description = "Configuration for twitter-text in Rust."
+license = "Apache-2.0"
+repository = "https://github.com/sayrer/twitter-text"
+edition = "2018"
+
+[dependencies]
+cxx = "0.1.2"
+libc = "0.2"
+twitter-text = { path = "../twitter-text" }
+twitter_text_config = { path = "../config" }

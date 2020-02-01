@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[repr(C)]
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Type {
     URL,
@@ -11,7 +10,6 @@ pub enum Type {
     CASHTAG
 }
 
-#[repr(C)]
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Entity<'a> {
     pub t: Type,

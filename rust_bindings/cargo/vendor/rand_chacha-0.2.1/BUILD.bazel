@@ -39,7 +39,6 @@ rust_library(
     ],
     version = "0.2.1",
     crate_features = [
-        "c2-chacha",
         "std",
     ],
 )

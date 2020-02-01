@@ -50,8 +50,6 @@ rust_library(
         "getrandom",
         "getrandom_package",
         "libc",
-        "rand_chacha",
-        "rand_core",
         "std",
     ],
 )

@@ -8,6 +8,7 @@ license = "Apache-2.0"
 repository = "https://github.com/sayrer/twitter-text"
 
 [dependencies]
+cxx = "0.1.2"
 unicode-normalization = "0.1.7"
 idna = "0.1.5"
 pest = "2.1.0"

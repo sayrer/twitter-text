@@ -23,6 +23,20 @@ alias(
     actual = "//rust_bindings/cargo/vendor/clap-2.33.0:clap",
 )
 alias(
+    name = "cxx",
+    actual = "//rust_bindings/cargo/vendor/cxx-0.1.2:cxx",
+)
+alias(
+    # Extra aliased target, from raze configuration
+    # N.B.: The exact form of this is subject to change.
+    name = "cargo_bin_cxxbridge",
+    actual = "//rust_bindings/cargo/vendor/cxxbridge-cmd-0.1.2:cargo_bin_cxxbridge",
+)
+alias(
     name = "log",
     actual = "//rust_bindings/cargo/vendor/log-0.4.0:log",
+)
+alias(
+    name = "proc_macro_error",
+    actual = "//rust_bindings/cargo/vendor/proc-macro-error-0.4.3:proc_macro_error",
 )

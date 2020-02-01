@@ -47,7 +47,9 @@ rust_library(
         "processenv",
         "std",
         "winbase",
+        "wincon",
         "winerror",
+        "winnt",
     ],
 )
 
