@@ -2,6 +2,8 @@
 name = "twitter_text_conformance"
 version = "0.2.0"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
+description = "An implementation of twitter-text in Rust."
+license = "Apache-2.0"
 
 [dependencies]
 serde = "1.0"
