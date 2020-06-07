@@ -31,10 +31,10 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.8:proc_macro2",
-        "//rust_bindings/cargo/vendor/quote-1.0.2:quote",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.18:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
         "//rust_bindings/cargo/vendor/rustversion-1.0.2:rustversion",
-        "//rust_bindings/cargo/vendor/syn-1.0.14:syn",
+        "//rust_bindings/cargo/vendor/syn-1.0.30:syn",
         "//rust_bindings/cargo/vendor/syn-mid-0.5.0:syn_mid",
     ],
     rustc_flags = [

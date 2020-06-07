@@ -51,7 +51,7 @@ genrule(
         + " (export CARGO_MANIFEST_DIR=\"$$PWD/$$(dirname $(location :Cargo.toml))\";"
         # TODO(acmcarther): This needs to be revisited as part of the cross compilation story.
         #                   See also: https://github.com/google/cargo-raze/pull/54
-        + " export TARGET='x86_64-apple-darwin';"
+        + " export TARGET='x86_64-unknown-linux-gnu';"
         + " export RUST_BACKTRACE=1;"
         + " export OUT_DIR=$$PWD/$$(dirname $@)/rustversion_out_dir_outputs;"
         + " export BINARY_PATH=\"$$PWD/$(location :rustversion_build_script)\";"
@@ -67,9 +67,9 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.8:proc_macro2",
-        "//rust_bindings/cargo/vendor/quote-1.0.2:quote",
-        "//rust_bindings/cargo/vendor/syn-1.0.14:syn",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.18:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
+        "//rust_bindings/cargo/vendor/syn-1.0.30:syn",
     ],
     rustc_flags = [
         "--cap-lints=allow",

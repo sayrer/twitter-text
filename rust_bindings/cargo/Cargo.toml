@@ -6,36 +6,42 @@ edition = "2018"
 features = ["std"]
 
 [dependencies]
-cbindgen = "0.12.2"
 clap = "2.33.0"
-proc-macro-error = {version = "=0.4.3" }
+proc-macro-error = {version = "=0.4.8" }
 log = {version = "=0.4.0", features = ["std"]}
 cxx = { git = "https://github.com/dtolnay/cxx" }
-cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "./cmd" }
+cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "" }
+pest = "2.1.2"
+pest_derive = "2.1.0"
+unicode-normalization = "0.1.12"
+idna = "0.1.5"
+lazy_static = "1.4.0"
+serde = "1.0.104"
+serde_derive = "1.0.104"
+serde_json = "1.0.45"
+serde_yaml = "0.7"
 
 [lib]
 path = "fake_lib.rs"
 
 [raze]
 workspace_path = "//rust_bindings/cargo"
-target = "x86_64-apple-darwin"
 output_buildfile_suffix = "BUILD.bazel"
 
-[raze.crates.log.'0.4.8']
+[raze.crates.log.'0.4.0']
 additional_flags = [
     "--cfg", "std",
 ]
 
-[raze.crates.proc-macro2.'1.0.8']
+[raze.crates.proc-macro2.'1.0.18']
 additional_flags = [
 #    "--cfg", "u128",
-    "--cfg", "use_proc_macro",
-#    "--cfg", "wrap_proc_macro",
+    "--cfg=use_proc_macro",
+    "--cfg=wrap_proc_macro",
 "--cfg=span_locations",
-#    "--cfg", "'span-locations'",
 ]
 
-#[raze.crates.syn.'1.0.14']
+#[raze.crates.syn.'1.0.30']
 #additional_flags = [
 #    "--cfg", "syn_can_match_trailing_dollar",
 #    "--cfg", "syn_can_use_thread_id",
@@ -47,12 +53,36 @@ additional_flags = [
 [raze.crates.rustversion.'1.0.2']
 gen_buildrs = true
 
+[raze.crates.proc-macro-error.'1.0.2']
+gen_buildrs = true
+additional_flags = [
+	"--cfg=use_fallback"
+]
+
+[raze.crates.proc-macro-error-attr.'1.0.2']
+gen_buildrs = true
+additional_flags = [
+	"--cfg=use_fallback"
+]
+
 [raze.crates.cbindgen.'0.12.2']
 extra_aliased_targets = [
     "cargo_bin_cbindgen",
 ]
 
-[raze.crates.cxxbridge-cmd.'0.1.2']
+[raze.crates.cxx.'0.3.4']
+#gen_buildrs = true
+#buildrs_additional_environment_variables = [
+#	"OPT_LEVEL=3",
+#	"HOST=x86_64-apple-darwin",
+#]
+data_attr = 'glob(["**/*.h", "**/*.cc"])'
+extra_aliased_targets = [
+    "cxx_cc_library"
+]
+
+
+[raze.crates.cxxbridge-cmd.'0.3.4']
 additional_flags = [
     "--cfg", "procmacro2_semver_exempt",
 ]

@@ -41,7 +41,6 @@ rust_library(
         "consoleapi",
         "errhandlingapi",
         "fileapi",
-        "handleapi",
         "minwinbase",
         "minwindef",
         "processenv",
