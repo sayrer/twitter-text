@@ -1,0 +1,29 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+	name = "twitter_text",
+	hdrs = [
+		"twitter.h"
+	],
+	srcs = [
+		"twitter.cpp"
+	],
+	deps = [
+		"//rust/twitter-text:twitter_text_wrapper",
+	]
+)
+
+cc_test(
+	name = "hithighlighter_test",
+	srcs = [
+		"hithighlighter_test.cpp"
+	],
+    copts = ["-Iexternal/gtest/include"],
+	deps = [
+		"@gtest//:main",
+		":twitter_text",
+	]
+)
+

@@ -31,7 +31,7 @@ local_repository(
     path = "/Users/sayrer/github/sayrer/rules_rust_master/rules_rust",
 )
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
-rust_repositories()
+rust_repositories(edition = "2018")
 load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
 bazel_version(name = "bazel_version")
 
