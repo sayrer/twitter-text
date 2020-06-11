@@ -4,11 +4,10 @@
 
 use twitter_text_config::Configuration;
 use idna::uts46;
-use entity::Entity;
-use entity::Type;
+use crate::entity::{Entity, Type};
 use idna::uts46::Flags;
 use unicode_normalization::UnicodeNormalization;
-use TwitterTextParseResults;
+use crate::TwitterTextParseResults;
 use std::str::CharIndices;
 use std::iter::Peekable;
 use pest::Parser;

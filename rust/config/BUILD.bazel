@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+
+rust_library(
+    name = "twitter_text_config",
+    srcs = [
+        "src/lib.rs",
+    ],
+    data = [
+        "src/v1.json",
+        "src/v2.json",
+        "src/v3.json",
+    ],
+    deps = [
+        "//rust_bindings/cargo:lazy_static",
+        "//rust_bindings/cargo:serde",
+        "//rust_bindings/cargo:serde_derive",
+        "//rust_bindings/cargo:serde_json",
+    ]
+)

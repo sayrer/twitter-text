@@ -6,10 +6,11 @@ readme = "README.md"
 description = "An implementation of twitter-text in Rust."
 license = "Apache-2.0"
 repository = "https://github.com/sayrer/twitter-text"
+edition = "2018"
 
 [dependencies]
-cxx = "0.1.2"
-unicode-normalization = "0.1.7"
+cxx = "0.3.4"
+unicode-normalization = "0.1.12"
 idna = "0.1.5"
 pest = "2.1.0"
 twitter_text_config = { path = "../config" , version = "0.1.0" }

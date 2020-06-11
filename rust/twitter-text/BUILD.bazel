@@ -1,0 +1,89 @@
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "twitter_text_main",
+    srcs = ["src/lib.rs"],
+)
+
+load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library", "rust_test")
+
+rust_library(
+    name = "twitter_text",
+    srcs = [
+        "src/autolinker.rs",
+        "src/entity.rs",
+        "src/extractor.rs",
+        "src/hit_highlighter.rs",
+        "src/validator.rs",
+        "src/lib.rs",
+    ],
+    deps = [
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//rust_bindings/cargo:cxx",
+        "//rust_bindings/cargo:idna",
+        "//rust_bindings/cargo:pest",
+        "//rust_bindings/cargo:unicode_normalization",
+    ],
+    data = [
+        ":cxxbridge",
+        ":twitter_text_h",
+    ],
+    crate_type = "staticlib",
+)
+
+rust_test(
+    name = "twitter_text_test",
+    crate = ":twitter_text",
+)
+
+genrule(
+    name = "cxxbridge",
+    outs = ["cxx.h"],
+    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header > $(location cxx.h)",
+    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+)
+
+genrule(
+    name = "twitter_text_h",
+    srcs = [
+        "//rust/twitter-text:twitter_text_main",
+    ],
+    outs = ["twitter-text.h"],
+    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
+    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+)
+
+genrule(
+    name = "twitter_text_cpp",
+    srcs = [
+        "//rust/twitter-text:twitter_text_main",
+    ],
+    outs = ["twitter-text.cpp"],
+    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
+    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+)
+
+rust_library(
+    name = "cxx_wrapper",
+    srcs = ["cxx_wrapper.rs"],
+    deps = [
+        "//rust_bindings/cargo:cxx",
+    ],
+    crate_type = "staticlib",
+)
+
+cc_library(
+    name = "twitter_text_wrapper",
+    hdrs = [
+        ":cxxbridge",
+        ":twitter_text_h",
+    ],
+    srcs = [
+        ":twitter_text_cpp",
+        ":cxx_wrapper",
+        "//rust/twitter-text:twitter_text",
+        "//rust_bindings/cargo:cxx_cc_library",
+    ],
+    linkstatic = True,
+)

@@ -2,12 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-extern crate twitter_text_config;
-extern crate twitter_text_parser;
-extern crate unicode_normalization;
-extern crate idna;
-extern crate pest;
-
 pub mod extractor;
 pub mod hit_highlighter;
 pub mod autolinker;
@@ -91,7 +85,7 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
     }
 }
 
-#[cxx::bridge(namespace = twitter_text)]
+#[cxx::bridge(namespace = twitter_text_ffi)]
 pub mod ffi {
     pub struct Range {
         pub start: i32,
@@ -109,7 +103,7 @@ pub mod ffi {
         pub scale: i32,
         pub default_weight: i32,
         pub transformed_url_length: i32,
-        pub ranges: Box<WeightedRangeVec>,
+        pub ranges: Vec<WeightedRange>,
         pub emoji_parsing_enabled: bool,
     }
 
@@ -142,10 +136,13 @@ pub mod ffi {
         pub display_text_range: Range,
         pub valid_text_range: Range
     }
-    
+
+    extern "C" {
+        include!("cxx.h");
+    }
+
     extern "Rust" {
         // Configuration
-        type WeightedRangeVec;
         fn config_v1() -> Configuration;
         fn config_v2() -> Configuration;
         fn config_v3() -> Configuration;
@@ -191,6 +188,7 @@ impl ffi::Range {
     }
 }
 
+
 impl ffi::WeightedRange {
     fn from(wr: &WeightedRange) -> ffi::WeightedRange {
         ffi::WeightedRange {
@@ -207,9 +205,6 @@ impl ffi::WeightedRange {
     }
 }
 
-// TODO: cxx needs to support Vec
-type WeightedRangeVec = Vec<ffi::WeightedRange>;
-
 impl ffi::Configuration {
     pub fn from(config: &Configuration) -> ffi::Configuration {
         ffi::Configuration {
@@ -218,7 +213,7 @@ impl ffi::Configuration {
             scale: config.scale,
             default_weight: config.default_weight,
             transformed_url_length: config.transformed_url_length,
-            ranges: Box::new(config.ranges.iter().map(|r| { ffi::WeightedRange::from(r) }).collect()),
+            ranges: config.ranges.iter().map(|r| { ffi::WeightedRange::from(r) }).collect(),
             emoji_parsing_enabled: config.emoji_parsing_enabled
         }
     }

@@ -2,12 +2,10 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-extern crate pest;
-use entity::Entity;
-use entity;
-use extractor::Extract;
-use extractor::Extractor;
-use ffi;
+use crate::entity::Entity;
+use crate::entity;
+use crate::extractor::{Extract, Extractor};
+use crate::ffi;
 
 type Attributes = Vec<(String, String)>;
 const HREF: &'static str = "href";

@@ -8,7 +8,7 @@ repository = "https://github.com/sayrer/twitter-text"
 edition = "2018"
 
 [dependencies]
-pest = "2.1.0"
+pest = "2.1.2"
 pest_derive = "2.1.0"
 
 [lib]

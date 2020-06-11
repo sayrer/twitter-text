@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use twitter_text_config;
-use parse;
+use crate::parse;
 
 use twitter_text_parser::twitter_text::TwitterTextParser;
 use twitter_text_parser::twitter_text::Rule;

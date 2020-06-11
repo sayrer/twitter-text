@@ -2,19 +2,13 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate serde;
-
-#[macro_use]
-extern crate lazy_static;
-
+use lazy_static::lazy_static;
 use std::cmp::Ordering;
 use std::path::PathBuf;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
+use serde_derive::{Serialize, Deserialize};
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde::de::{self, Deserialize, Deserializer, Visitor, MapAccess};
 

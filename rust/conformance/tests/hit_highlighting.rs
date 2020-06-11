@@ -2,12 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_yaml;
-extern crate serde;
-extern crate twitter_text;
-
+use serde_derive::{Serialize, Deserialize};
 use twitter_text::hit_highlighter::HitHighlighter;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

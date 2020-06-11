@@ -1,0 +1,20 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+
+rust_library(
+    name = "twitter_text_parser",
+    srcs = [
+        "src/highlighter.rs",
+        "src/twitter_text.rs",
+        "src/lib.rs",
+    ],
+    data = [
+        "src/hit_highlighter.pest",
+        "src/twitter_text.pest",
+    ],
+    deps = [
+        "//rust_bindings/cargo:pest",
+        "//rust_bindings/cargo:pest_derive",
+    ]
+)

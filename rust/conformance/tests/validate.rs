@@ -2,13 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_yaml;
-extern crate serde;
-extern crate twitter_text;
-extern crate twitter_text_config;
-
+use serde_derive::{Serialize, Deserialize};
 use twitter_text::validator::Validator;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -60,7 +54,7 @@ pub struct Manifest {
 
 const MANIFEST_YML: &str = include_str!("validate.yml");
 
-type ValidationFn<'a> = std::ops::Fn(&str) -> bool + 'a;
+type ValidationFn<'a> = dyn std::ops::Fn(&str) -> bool + 'a;
 
 fn validate(assertions: Vec<Assertion>, vf: &ValidationFn) {
     for assertion in assertions {
