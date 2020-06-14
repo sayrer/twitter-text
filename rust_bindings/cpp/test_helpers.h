@@ -10,7 +10,7 @@ struct TestCase {
 namespace YAML {
 template<>
 struct convert<TestCase> {
-  static Node encode(const HighlightTestCase& rhs) {
+  static Node encode(const TestCase& rhs) {
     Node node;
     node["description"] = rhs.description;
     node["text"] = rhs.text;
@@ -19,7 +19,7 @@ struct convert<TestCase> {
     return node;
   }
 
-  static bool decode(const Node& node, HighlightTestCase& rhs) {
+  static bool decode(const Node& node, TestCase& rhs) {
     rhs.description = node["description"].as<std::string>();
     rhs.text = node["text"].as<std::string>();
     rhs.expected = node["expected"].as<std::string>();

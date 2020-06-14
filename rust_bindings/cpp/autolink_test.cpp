@@ -1,6 +1,6 @@
 #include "twitter.h"
 #include "gtest/gtest.h"
-#include "yaml-cpp/yaml.h"
+#include "test_helpers.h"
 
 namespace twitter_text {
 
@@ -72,6 +72,43 @@ TEST(AutolinkTest, CtorWithConfig) {
   ASSERT_EQ(autolinker->getUsernameIncludeSymbol(), false);
   autolinker->setUsernameIncludeSymbol(true);
   ASSERT_EQ(autolinker->getUsernameIncludeSymbol(), true);
+
+  delete autolinker;
+}
+
+TEST(AutolinkTest, Yaml) {
+  Autolinker *autolinker = new Autolinker();
+  YAML::Node map = YAML::LoadFile("rust/conformance/tests/autolink.yml");
+
+  auto usernames = readYaml(map["tests"]["usernames"]);
+  for (TestCase test : usernames) {
+    ASSERT_EQ(test.expected, autolinker->autolinkUsernamesAndLists(test.text));
+  }
+
+  auto lists = readYaml(map["tests"]["lists"]);
+  for (TestCase test : lists) {
+    ASSERT_EQ(test.expected, autolinker->autolinkUsernamesAndLists(test.text));
+  }
+
+  auto hashtags = readYaml(map["tests"]["hashtags"]);
+  for (TestCase test : hashtags) {
+    ASSERT_EQ(test.expected, autolinker->autolinkHashtags(test.text));
+  }
+
+  auto urls = readYaml(map["tests"]["urls"]);
+  for (TestCase test : urls) {
+    ASSERT_EQ(test.expected, autolinker->autolinkUrls(test.text));
+  }
+
+  auto cashtags = readYaml(map["tests"]["cashtags"]);
+  for (TestCase test : cashtags) {
+    ASSERT_EQ(test.expected, autolinker->autolinkCashtags(test.text));
+  }
+
+  auto all = readYaml(map["tests"]["all"]);
+  for (TestCase test : all) {
+    ASSERT_EQ(test.expected, autolinker->autolink(test.text));
+  }
 
   delete autolinker;
 }
