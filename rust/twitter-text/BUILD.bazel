@@ -57,6 +57,7 @@ genrule(
 genrule(
     name = "twitter_text_cpp",
     srcs = [
+        ":twitter_text",
         "//rust/twitter-text:twitter_text_main",
     ],
     outs = ["twitter-text.cpp"],

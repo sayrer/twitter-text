@@ -22,9 +22,9 @@ pub const V2_JSON: &str = include_str!("v2.json");
 pub const V3_JSON: &str = include_str!("v3.json");
 
 lazy_static! {
-    static ref CONFIG_V1: Configuration = Configuration::configuration_from_str(V1_JSON);
-    static ref CONFIG_V2: Configuration = Configuration::configuration_from_str(V2_JSON);
-    static ref CONFIG_V3: Configuration = Configuration::configuration_from_str(V3_JSON);
+    static ref CONFIG_V1: Configuration = Configuration::configuration_from_json(V1_JSON);
+    static ref CONFIG_V2: Configuration = Configuration::configuration_from_json(V2_JSON);
+    static ref CONFIG_V3: Configuration = Configuration::configuration_from_json(V3_JSON);
 }
 
 pub extern fn config_v1() -> &'static Configuration {
@@ -79,21 +79,14 @@ impl Configuration {
         )
     }
 
-    pub fn configuration_from_json(config_file: &str) -> Configuration {
-        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("config");
-        path.push(config_file);
-        Configuration::configuration_from_file(&path)
-    }
-
-    pub fn configuration_from_file(path: &PathBuf) -> Configuration {
+    pub fn configuration_from_path(path: &PathBuf) -> Configuration {
         let mut f = File::open(path).expect("Config file not found");
         let mut contents = String::new();
         f.read_to_string(&mut contents).expect("Error reading config file");
-        Configuration::configuration_from_str(&contents)
+        Configuration::configuration_from_json(&contents)
     }
 
-    pub fn configuration_from_str(json: &str) -> Configuration {
+    pub fn configuration_from_json(json: &str) -> Configuration {
         serde_json::from_str(&json).expect("Error parsing json")
     }
 }

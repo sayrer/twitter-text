@@ -15,6 +15,8 @@ use autolinker::Autolinker;
 use extractor::Extract;
 use extractor::ValidatingExtractor;
 use hit_highlighter::HitHighlighter;
+use cxx::{CxxVector, UniquePtr};
+use std::path::PathBuf;
 
 /// A struct that represents a parsed tweet containing the length of the tweet,
 /// its validity, display ranges etc. The name mirrors Twitter's Java implementation.
@@ -87,11 +89,13 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
 
 #[cxx::bridge(namespace = twitter_text_ffi)]
 pub mod ffi {
+    #[derive(Copy, Clone)]
     pub struct Range {
         pub start: i32,
         pub end: i32,
     }
 
+    #[derive(Copy, Clone)]
     pub struct WeightedRange {
         pub range: Range,
         pub weight: i32
@@ -125,8 +129,9 @@ pub mod ffi {
         pub username_include_symbol: bool,
     }
 
-    pub struct HitHighlighter {
-        pub highlight_tag: String,
+    pub struct Hit { 
+        start: usize, 
+        end: usize
     }
 
     pub struct TwitterTextParseResults {
@@ -143,13 +148,16 @@ pub mod ffi {
 
     extern "Rust" {
         // Configuration
-        fn config_v1() -> Configuration;
-        fn config_v2() -> Configuration;
-        fn config_v3() -> Configuration;
-        fn default_config() -> Configuration;
+        fn config_v1() -> UniquePtr<Configuration>;
+        fn config_v2() -> UniquePtr<Configuration>;
+        fn config_v3() -> UniquePtr<Configuration>;
+        fn default_config() -> UniquePtr<Configuration>;
+        fn get_config_weighted_ranges(config: &Configuration) -> Vec<WeightedRange>;
+        fn configuration_from_path(path: &str) -> UniquePtr<Configuration>;
+        fn configuration_from_json(json: &str) -> UniquePtr<Configuration>;
 
         // Autolinker
-        fn autolink_default_config() -> AutolinkerConfig;
+        fn autolink_default_config() -> UniquePtr<AutolinkerConfig>;
         fn autolink(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_usernames_and_lists(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_hashtags(text: &str, config: &AutolinkerConfig) -> String;
@@ -157,7 +165,10 @@ pub mod ffi {
         fn autolink_cashtags(text: &str, config: &AutolinkerConfig) -> String;
 
         // HitHighlighter
-        fn hit_highlight(text: &str, config: &HitHighlighter) -> String;
+        type FFIHitHighlighter;
+        fn make_highlighter(highlight_tag: &str) -> Box<FFIHitHighlighter>;
+        fn make_default_highlighter() -> Box<FFIHitHighlighter>;
+        fn hit_highlight(text: &str, hits: &CxxVector<Hit>, fhh: &FFIHitHighlighter) -> String;
 
         fn parse_ffi(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults;
     }
@@ -232,25 +243,37 @@ impl ffi::Configuration {
     }
 }
 
-pub fn config_v1() -> ffi::Configuration {
-    ffi::Configuration::from(twitter_text_config::config_v1())
+pub fn config_v1() -> UniquePtr<ffi::Configuration> {
+    UniquePtr::new(ffi::Configuration::from(twitter_text_config::config_v1()))
 }
 
-pub fn config_v2() -> ffi::Configuration {
-    ffi::Configuration::from(twitter_text_config::config_v2())
+pub fn config_v2() -> UniquePtr<ffi::Configuration> {
+    UniquePtr::new(ffi::Configuration::from(twitter_text_config::config_v2()))
 }
 
-pub fn config_v3() -> ffi::Configuration {
-    ffi::Configuration::from(twitter_text_config::config_v3())
+pub fn config_v3() -> UniquePtr<ffi::Configuration> {
+    UniquePtr::new(ffi::Configuration::from(twitter_text_config::config_v3()))
 }
 
-pub fn default_config() -> ffi::Configuration {
-    ffi::Configuration::from(twitter_text_config::default())
+pub fn default_config() -> UniquePtr<ffi::Configuration> {
+    UniquePtr::new(ffi::Configuration::from(twitter_text_config::default()))
 }
 
-// Autolinker
-pub fn autolink_default_config() -> ffi::AutolinkerConfig {
-    Autolinker::default_config()
+pub fn get_config_weighted_ranges(config: &ffi::Configuration) -> Vec<ffi::WeightedRange> {
+    config.ranges.to_vec()
+}
+
+pub fn configuration_from_path(path: &str) -> UniquePtr<ffi::Configuration> {
+    let pathbuf = PathBuf::from(path);
+    UniquePtr::new(ffi::Configuration::from(&Configuration::configuration_from_path(&pathbuf)))
+}
+
+pub fn configuration_from_json(json: &str) -> UniquePtr<ffi::Configuration> {
+    UniquePtr::new(ffi::Configuration::from(&Configuration::configuration_from_json(json)))
+}
+
+pub fn autolink_default_config() -> UniquePtr<ffi::AutolinkerConfig> {
+    UniquePtr::new(Autolinker::default_config())
 }
 
 pub fn autolink(text: &str, config: &ffi::AutolinkerConfig) -> String {
@@ -273,12 +296,25 @@ pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
     Autolinker::new_with_config(config).autolink_cashtags(text)
 }
 
-pub fn hit_highlight(text: &str, config: &ffi::HitHighlighter) -> String {
-    let highlighter = HitHighlighter {
-        highlight_tag: &config.highlight_tag,
-    };
-    // TODO
-    highlighter.highlight(text, vec![])
+// HitHighlighter
+pub struct FFIHitHighlighter {
+    highlighter: HitHighlighter
+}
+
+pub fn make_default_highlighter() -> Box<FFIHitHighlighter> {
+    Box::new(FFIHitHighlighter { highlighter: HitHighlighter::new() })
+}
+
+pub fn make_highlighter(highlight_tag: &str) -> Box<FFIHitHighlighter> {
+    Box::new(FFIHitHighlighter { highlighter: HitHighlighter::new_with_tag(highlight_tag) })
+}
+
+pub fn hit_highlight(text: &str, hits: &CxxVector<ffi::Hit>, fhh: &FFIHitHighlighter) -> String {
+    let mut rust_hits: Vec<(usize, usize)> = Vec::with_capacity(hits.len());
+    for hit in hits {
+        rust_hits.push((hit.start, hit.end));
+    }
+    fhh.highlighter.highlight(text, rust_hits)
 }
 
 pub fn parse_ffi(text: &str, config: &ffi::Configuration, extract_urls: bool) -> ffi::TwitterTextParseResults {

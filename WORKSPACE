@@ -104,4 +104,11 @@ http_archive(
     strip_prefix = "googletest-release-1.7.0",
 )
 
-
+http_archive(
+    name = "com_github_jbeder_yaml_cpp",
+    sha256 = "bf991eb70c1005cf34d38e60f66392f4461c5519d594a9790263eb62518f133c",
+    strip_prefix = "yaml-cpp-33316d531bd9032d66f5bcc3ba1fd114a4ab0e1c",
+    urls = [
+        "https://github.com/jbeder/yaml-cpp/archive/33316d531bd9032d66f5bcc3ba1fd114a4ab0e1c.tar.gz",
+    ],
+)

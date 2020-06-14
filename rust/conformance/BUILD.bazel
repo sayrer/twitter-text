@@ -115,3 +115,8 @@ rust_test(
         "tests/validate.yml",
     ],
 )
+
+filegroup(
+    name = "yaml",
+    srcs = glob(["tests/*.yml"])
+)

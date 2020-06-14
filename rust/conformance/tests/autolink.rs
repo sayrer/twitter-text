@@ -20,6 +20,7 @@ pub struct JsonAssertion {
     pub expected: String,
 }
 
+// TODO: json
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Tests {
     pub usernames: Vec<Assertion>,

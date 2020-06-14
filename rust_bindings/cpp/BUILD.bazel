@@ -16,14 +16,48 @@ cc_library(
 )
 
 cc_test(
+	name = "config_test",
+	srcs = [
+		"config_test.cpp"
+	],
+	data = ["test_data/test_config.json"],
+    copts = ["-Iexternal/gtest/include"],
+	deps = [
+		":twitter_text",
+		"@gtest//:main",
+	]
+)
+
+cc_test(
+	name = "autolink_test",
+	srcs = [
+		"autolink_test.cpp"
+	],
+    copts = ["-Iexternal/gtest/include"],
+	deps = [
+		":twitter_text",
+		"@gtest//:main",
+		"@com_github_jbeder_yaml_cpp//:yaml-cpp"
+	],
+	data = [
+		"//rust/conformance:yaml"
+	],
+	linkstatic = True,
+)
+
+cc_test(
 	name = "hithighlighter_test",
 	srcs = [
 		"hithighlighter_test.cpp"
 	],
     copts = ["-Iexternal/gtest/include"],
 	deps = [
-		"@gtest//:main",
 		":twitter_text",
-	]
+		"@gtest//:main",
+		"@com_github_jbeder_yaml_cpp//:yaml-cpp"
+	],
+	data = [
+		"//rust/conformance:yaml"
+	],
+	linkstatic = True,
 )
-

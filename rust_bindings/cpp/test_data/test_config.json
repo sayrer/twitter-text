@@ -1,0 +1,15 @@
+{
+  "version": 42,
+  "maxWeightedTweetLength": 400,
+  "scale": 43,
+  "defaultWeight": 213,
+  "emojiParsingEnabled": true,
+  "transformedURLLength": 32,
+  "ranges": [
+    {
+      "start": 0,
+      "end": 4351,
+      "weight": 200
+    }
+  ]
+}

@@ -10,14 +10,20 @@ use twitter_text_parser::highlighter::Rule;
 type Hit = (usize, usize);
 pub const DEFAULT_HIGHLIGHT_TAG: &str = "em";
 
-pub struct HitHighlighter<'a> {
-    pub highlight_tag: &'a str,
+pub struct HitHighlighter {
+    pub highlight_tag: String,
 }
 
-impl<'a> HitHighlighter<'a> {
-    pub fn new() -> HitHighlighter<'a> {
+impl HitHighlighter {
+    pub fn new() -> HitHighlighter {
         HitHighlighter {
-            highlight_tag: DEFAULT_HIGHLIGHT_TAG,
+            highlight_tag: DEFAULT_HIGHLIGHT_TAG.to_string(),
+        }
+    }
+
+    pub fn new_with_tag(highlight_tag: &str) -> HitHighlighter {
+        HitHighlighter {
+            highlight_tag: highlight_tag.to_string(),
         }
     }
 
@@ -26,7 +32,7 @@ impl<'a> HitHighlighter<'a> {
             return String::from(text);
         }
 
-        let mut builder = HighlightBuilder::new(text, self.highlight_tag, &hits);
+        let mut builder = HighlightBuilder::new(text, &self.highlight_tag, &hits);
         match HighlightParser::parse(Rule::hit_text, text) {
             Ok(pairs) => {
                 self.walk(pairs, &hits[..], &mut builder);
