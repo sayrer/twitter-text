@@ -263,57 +263,57 @@ HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
 
 // Validator
 bool 
-Validator::is_valid_tweet(std::string &text) {
+Validator::isValidTweet(std::string &text) {
   return twitter_text_ffi::is_valid_tweet(*validator, text);
 }
 
 bool 
-Validator::is_valid_username(std::string &text) {
+Validator::isValidUsername(std::string &text) {
   return twitter_text_ffi::is_valid_username(*validator, text);
 }
 
 bool 
-Validator::is_valid_list(std::string &text) {
+Validator::isValidList(std::string &text) {
   return twitter_text_ffi::is_valid_list(*validator, text);
 }
 
 bool
-Validator::is_valid_hashtag(std::string &text) {
+Validator::isValidHashtag(std::string &text) {
   return twitter_text_ffi::is_valid_hashtag(*validator, text);
 }
 
 bool
-Validator::is_valid_url(std::string &text) {
+Validator::isValidUrl(std::string &text) {
   return twitter_text_ffi::is_valid_url(*validator, text);
 }
 
 bool
-Validator::is_valid_url_without_protocol(std::string &text) {
+Validator::isValidUrlWithoutProtocol(std::string &text) {
   return twitter_text_ffi::is_valid_url_without_protocol(*validator, text);
 }
 
 int32_t
-Validator::get_max_tweet_length() {
+Validator::getMaxTweetLength() {
   return twitter_text_ffi::get_max_tweet_length();
 }
 
 int32_t
-Validator::get_short_url_length() {
+Validator::getShortUrlLength() {
   return twitter_text_ffi::get_short_url_length(*validator);
 }
 
 void
-Validator::set_short_url_length(int32_t i) {
+Validator::setShortUrlLength(int32_t i) {
   return twitter_text_ffi::set_short_url_length(*validator, i);
 }
 
 int32_t
-Validator::get_short_url_length_https() {
+Validator::getShortUrlLengthHttps() {
   return twitter_text_ffi::get_short_url_length_https(*validator);
 }
 
 void
-Validator::set_short_url_length_https(int32_t i) {
+Validator::setShortUrlLengthHttps(int32_t i) {
   return twitter_text_ffi::set_short_url_length_https(*validator, i);
 }
 

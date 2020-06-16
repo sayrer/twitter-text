@@ -82,19 +82,19 @@ TEST(ValidatorTest, Accessors) {
   Validator *validator = new Validator();
   ASSERT_NE(validator, nullptr);
 
-  int32_t mtl = validator->get_max_tweet_length();
+  int32_t mtl = validator->getMaxTweetLength();
   ASSERT_EQ(mtl, 280);
 
-  int32_t sul = validator->get_short_url_length();
+  int32_t sul = validator->getShortUrlLength();
   ASSERT_EQ(sul, 23);
-  validator->set_short_url_length(42);
-  sul = validator->get_short_url_length();
+  validator->setShortUrlLength(42);
+  sul = validator->getShortUrlLength();
   ASSERT_EQ(sul, 42);
 
-  int32_t sul_https = validator->get_short_url_length_https();
+  int32_t sul_https = validator->getShortUrlLengthHttps();
   ASSERT_EQ(sul_https, 23);
-  validator->set_short_url_length_https(42);
-  sul_https = validator->get_short_url_length_https();
+  validator->setShortUrlLengthHttps(42);
+  sul_https = validator->getShortUrlLengthHttps();
   ASSERT_EQ(sul_https, 42);
 
   delete validator;
@@ -116,27 +116,27 @@ TEST(ValidatorTest, Yaml) {
   auto urls_without_protocol = readYaml(map["tests"]["urls_without_protocol"]);
 
   for (TestCase test : tweets) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_tweet(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidTweet(test.text)));
   }
 
   for (TestCase test : usernames) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_username(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidUsername(test.text)));
   }
 
   for (TestCase test : lists) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_list(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidList(test.text)));
   }
 
   for (TestCase test : hashtags) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_hashtag(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidHashtag(test.text)));
   }
 
   for (TestCase test : urls) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_url(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidUrl(test.text)));
   }
 
   for (TestCase test : urls_without_protocol) {
-    ASSERT_EQ(test.expected, boolToString(validator->is_valid_url_without_protocol(test.text)));
+    ASSERT_EQ(test.expected, boolToString(validator->isValidUrlWithoutProtocol(test.text)));
   }
 }
 

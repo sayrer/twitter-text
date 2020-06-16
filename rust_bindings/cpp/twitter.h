@@ -125,18 +125,18 @@ public:
     validator(twitter_text_ffi::make_default_validator()) 
   {}
 
-  bool is_valid_tweet(std::string &text);
-  bool is_valid_username(std::string &text);
-  bool is_valid_list(std::string &text);
-  bool is_valid_hashtag(std::string &text);
-  bool is_valid_url(std::string &text);
-  bool is_valid_url_without_protocol(std::string &text);
+  bool isValidTweet(std::string &text);
+  bool isValidUsername(std::string &text);
+  bool isValidList(std::string &text);
+  bool isValidHashtag(std::string &text);
+  bool isValidUrl(std::string &text);
+  bool isValidUrlWithoutProtocol(std::string &text);
 
-  int32_t get_max_tweet_length();
-  int32_t get_short_url_length();
-  void set_short_url_length(int32_t i);
-  int32_t get_short_url_length_https();
-  void set_short_url_length_https(int32_t i);
+  int32_t getMaxTweetLength();
+  int32_t getShortUrlLength();
+  void setShortUrlLength(int32_t i);
+  int32_t getShortUrlLengthHttps();
+  void setShortUrlLengthHttps(int32_t i);
 
 private:
   ::rust::Box<twitter_text_ffi::FFIValidator> validator;
