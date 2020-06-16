@@ -15,6 +15,7 @@ use autolinker::Autolinker;
 use extractor::Extract;
 use extractor::ValidatingExtractor;
 use hit_highlighter::HitHighlighter;
+use validator::Validator;
 use cxx::{CxxVector, UniquePtr};
 use std::path::PathBuf;
 
@@ -170,6 +171,21 @@ pub mod ffi {
         fn make_default_highlighter() -> Box<FFIHitHighlighter>;
         fn hit_highlight(text: &str, hits: &CxxVector<Hit>, fhh: &FFIHitHighlighter) -> String;
 
+        // Validator
+        type FFIValidator;
+        fn make_default_validator() -> Box<FFIValidator>;
+        fn is_valid_tweet(ffiv: &FFIValidator, s: &str) -> bool;
+        fn is_valid_username(ffiv: &FFIValidator, s: &str) -> bool;
+        fn is_valid_list(ffiv: &FFIValidator, s: &str) -> bool;
+        fn is_valid_hashtag(ffiv: &FFIValidator, s: &str) -> bool;
+        fn is_valid_url(ffiv: &FFIValidator, s: &str) -> bool;
+        fn is_valid_url_without_protocol(ffiv: &FFIValidator, s: &str) -> bool;
+        fn get_max_tweet_length() -> i32;
+        fn get_short_url_length(ffiv: &FFIValidator) -> i32;
+        fn set_short_url_length(ffiv: &mut FFIValidator, short_url_length: i32);
+        fn get_short_url_length_https(ffiv: &FFIValidator) -> i32;
+        fn set_short_url_length_https(ffiv: &mut FFIValidator, short_url_length_https: i32);
+
         fn parse_ffi(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults;
     }
 }
@@ -315,6 +331,57 @@ pub fn hit_highlight(text: &str, hits: &CxxVector<ffi::Hit>, fhh: &FFIHitHighlig
         rust_hits.push((hit.start, hit.end));
     }
     fhh.highlighter.highlight(text, rust_hits)
+}
+
+// HitHighlighter
+pub struct FFIValidator {
+    validator: Validator
+}
+
+pub fn make_default_validator() -> Box<FFIValidator> {
+    Box::new(FFIValidator { validator: Validator::new() })
+}
+
+pub fn is_valid_tweet(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_tweet(s)
+}
+
+pub fn is_valid_username(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_username(s)
+}
+
+pub fn is_valid_list(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_list(s)
+}
+
+pub fn is_valid_hashtag(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_hashtag(s)
+}
+
+pub fn is_valid_url(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_url(s)
+}
+
+pub fn is_valid_url_without_protocol(ffiv: &FFIValidator, s: &str) -> bool {
+    ffiv.validator.is_valid_url_without_protocol(s)
+}
+
+pub fn get_max_tweet_length() -> i32 { validator::MAX_TWEET_LENGTH }
+
+pub fn get_short_url_length(ffiv: &FFIValidator) -> i32 {
+    ffiv.validator.get_short_url_length()
+}
+
+pub fn set_short_url_length(ffiv: &mut FFIValidator, short_url_length: i32) {
+    ffiv.validator.set_short_url_length(short_url_length);
+}
+
+pub fn get_short_url_length_https(ffiv: &FFIValidator) -> i32 {
+    ffiv.validator.get_short_url_length_https()
+}
+
+pub fn set_short_url_length_https(ffiv: &mut FFIValidator, short_url_length_https: i32) {
+    ffiv.validator.set_short_url_length_https(short_url_length_https);
 }
 
 pub fn parse_ffi(text: &str, config: &ffi::Configuration, extract_urls: bool) -> ffi::TwitterTextParseResults {

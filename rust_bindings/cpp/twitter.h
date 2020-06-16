@@ -117,6 +117,29 @@ public:
 
 private:
   ::rust::Box<twitter_text_ffi::FFIHitHighlighter> highlighter;
+};
+
+class Validator {
+public:
+  Validator():
+    validator(twitter_text_ffi::make_default_validator()) 
+  {}
+
+  bool is_valid_tweet(std::string &text);
+  bool is_valid_username(std::string &text);
+  bool is_valid_list(std::string &text);
+  bool is_valid_hashtag(std::string &text);
+  bool is_valid_url(std::string &text);
+  bool is_valid_url_without_protocol(std::string &text);
+
+  int32_t get_max_tweet_length();
+  int32_t get_short_url_length();
+  void set_short_url_length(int32_t i);
+  int32_t get_short_url_length_https();
+  void set_short_url_length_https(int32_t i);
+
+private:
+  ::rust::Box<twitter_text_ffi::FFIValidator> validator;
 }; 
 
 } // twitter_text

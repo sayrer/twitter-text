@@ -261,4 +261,86 @@ HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
     return std::string(twitter_text_ffi::hit_highlight(text, hits, *highlighter));
 }
 
+// Validator
+bool 
+Validator::is_valid_tweet(std::string &text) {
+  return twitter_text_ffi::is_valid_tweet(*validator, text);
+}
+
+bool 
+Validator::is_valid_username(std::string &text) {
+  return twitter_text_ffi::is_valid_username(*validator, text);
+}
+
+bool 
+Validator::is_valid_list(std::string &text) {
+  return twitter_text_ffi::is_valid_list(*validator, text);
+}
+
+bool
+Validator::is_valid_hashtag(std::string &text) {
+  return twitter_text_ffi::is_valid_hashtag(*validator, text);
+}
+
+bool
+Validator::is_valid_url(std::string &text) {
+  return twitter_text_ffi::is_valid_url(*validator, text);
+}
+
+bool
+Validator::is_valid_url_without_protocol(std::string &text) {
+  return twitter_text_ffi::is_valid_url_without_protocol(*validator, text);
+}
+
+int32_t
+Validator::get_max_tweet_length() {
+  return twitter_text_ffi::get_max_tweet_length();
+}
+
+int32_t
+Validator::get_short_url_length() {
+  return twitter_text_ffi::get_short_url_length(*validator);
+}
+
+void
+Validator::set_short_url_length(int32_t i) {
+  return twitter_text_ffi::set_short_url_length(*validator, i);
+}
+
+int32_t
+Validator::get_short_url_length_https() {
+  return twitter_text_ffi::get_short_url_length_https(*validator);
+}
+
+void
+Validator::set_short_url_length_https(int32_t i) {
+  return twitter_text_ffi::set_short_url_length_https(*validator, i);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 } // twitter_text
