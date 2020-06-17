@@ -377,7 +377,7 @@ impl<'a> Autolinker<'a> {
     /// hashtag_class CSS class added.
     ///
     pub fn autolink_hashtags(&self, text: &str) -> String {
-        let entities = self.extractor.extract_hashtags(text);
+        let entities = self.extractor.extract_hashtags_with_indices(text);
         self.autolink_entities(text, &entities)
     }
 
@@ -393,7 +393,7 @@ impl<'a> Autolinker<'a> {
     /// cashtag_class CSS class added.
     ///
     pub fn autolink_cashtags(&self, text: &str) -> String {
-        let entities = self.extractor.extract_cashtags(text);
+        let entities = self.extractor.extract_cashtags_with_indices(text);
         self.autolink_entities(text, &entities)
     }
 }

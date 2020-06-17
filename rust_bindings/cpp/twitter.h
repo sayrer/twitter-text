@@ -101,6 +101,15 @@ private:
   std::unique_ptr<twitter_text_ffi::AutolinkerConfig> config;
 };
 
+class Extractor {
+public:
+  Extractor():
+    extractor(twitter_text_ffi::make_extractor()) 
+  {}
+private:
+  ::rust::Box<twitter_text_ffi::Extractor> extractor;
+};
+
 typedef twitter_text_ffi::Hit Hit;
 
 class HitHighlighter {
@@ -116,7 +125,7 @@ public:
   std::string highlight(std::string &text, std::vector<Hit> &hits);
 
 private:
-  ::rust::Box<twitter_text_ffi::FFIHitHighlighter> highlighter;
+  ::rust::Box<twitter_text_ffi::HitHighlighter> highlighter;
 };
 
 class Validator {
@@ -139,7 +148,7 @@ public:
   void setShortUrlLengthHttps(int32_t i);
 
 private:
-  ::rust::Box<twitter_text_ffi::FFIValidator> validator;
+  ::rust::Box<twitter_text_ffi::Validator> validator;
 }; 
 
 } // twitter_text

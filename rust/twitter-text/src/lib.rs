@@ -12,8 +12,7 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_config::WeightedRange;
 use autolinker::Autolinker;
-use extractor::Extract;
-use extractor::ValidatingExtractor;
+use extractor::{Extract, Extractor, ValidatingExtractor};
 use hit_highlighter::HitHighlighter;
 use validator::Validator;
 use cxx::{CxxVector, UniquePtr};
@@ -165,26 +164,59 @@ pub mod ffi {
         fn autolink_urls(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_cashtags(text: &str, config: &AutolinkerConfig) -> String;
 
+/*
+        // Extractor
+        type Extractor;
+        fn make_extractor() -> Box<Extractor>;
+        fn get_extract_url_without_protocol(e: &Extractor) -> bool;
+        fn set_extract_url_without_protocol(e: &Extractor, extract_url_without_protocol: bool);
+        fn extract_entities_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str)  -> Vec<Entity>;
+        fn extract_reply_username(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_urls(e: &Extractor, text: &str) -> Vec<String>;
+        fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_hashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+
+        // ValidatingExtractor
+        type ValidatingExtractor;
+        fn make_validating_extractor() -> Box<ValidatingExtractor>;
+        fn get_extract_url_without_protocol(e: &Extractor) -> bool;
+        fn set_extract_url_without_protocol(e: &Extractor, extract_url_without_protocol: bool);
+        fn extract_entities_with_indices(e: &Extractor, text: &str);
+        fn extract_mentioned_screennames(e: &Extractor, text: &str);
+        fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str);
+        fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str);
+        fn extract_reply_username(e: &Extractor, text: &str);
+        fn extract_urls(e: &Extractor, text: &str) -> Vec<String>;
+        fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+*/
         // HitHighlighter
-        type FFIHitHighlighter;
-        fn make_highlighter(highlight_tag: &str) -> Box<FFIHitHighlighter>;
-        fn make_default_highlighter() -> Box<FFIHitHighlighter>;
-        fn hit_highlight(text: &str, hits: &CxxVector<Hit>, fhh: &FFIHitHighlighter) -> String;
+        type HitHighlighter;
+        fn make_highlighter(highlight_tag: &str) -> Box<HitHighlighter>;
+        fn make_default_highlighter() -> Box<HitHighlighter>;
+        fn hit_highlight(hh: &HitHighlighter, text: &str, hits: &CxxVector<Hit>) -> String;
 
         // Validator
-        type FFIValidator;
-        fn make_default_validator() -> Box<FFIValidator>;
-        fn is_valid_tweet(ffiv: &FFIValidator, s: &str) -> bool;
-        fn is_valid_username(ffiv: &FFIValidator, s: &str) -> bool;
-        fn is_valid_list(ffiv: &FFIValidator, s: &str) -> bool;
-        fn is_valid_hashtag(ffiv: &FFIValidator, s: &str) -> bool;
-        fn is_valid_url(ffiv: &FFIValidator, s: &str) -> bool;
-        fn is_valid_url_without_protocol(ffiv: &FFIValidator, s: &str) -> bool;
+        type Validator;
+        fn make_default_validator() -> Box<Validator>;
+        fn is_valid_tweet(validator: &Validator, s: &str) -> bool;
+        fn is_valid_username(validator: &Validator, s: &str) -> bool;
+        fn is_valid_list(validator: &Validator, s: &str) -> bool;
+        fn is_valid_hashtag(validator: &Validator, s: &str) -> bool;
+        fn is_valid_url(validator: &Validator, s: &str) -> bool;
+        fn is_valid_url_without_protocol(validator: &Validator, s: &str) -> bool;
         fn get_max_tweet_length() -> i32;
-        fn get_short_url_length(ffiv: &FFIValidator) -> i32;
-        fn set_short_url_length(ffiv: &mut FFIValidator, short_url_length: i32);
-        fn get_short_url_length_https(ffiv: &FFIValidator) -> i32;
-        fn set_short_url_length_https(ffiv: &mut FFIValidator, short_url_length_https: i32);
+        fn get_short_url_length(validator: &Validator) -> i32;
+        fn set_short_url_length(validator: &mut Validator, short_url_length: i32);
+        fn get_short_url_length_https(validator: &Validator) -> i32;
+        fn set_short_url_length_https(validator: &mut Validator, short_url_length_https: i32);
 
         fn parse_ffi(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults;
     }
@@ -312,76 +344,73 @@ pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
     Autolinker::new_with_config(config).autolink_cashtags(text)
 }
 
+// Extractor
+pub fn make_extractor() -> Box<Extractor> {
+    Box::new(Extractor::new())
+}
+
 // HitHighlighter
-pub struct FFIHitHighlighter {
-    highlighter: HitHighlighter
+pub fn make_default_highlighter() -> Box<HitHighlighter> {
+    Box::new(HitHighlighter::new())
 }
 
-pub fn make_default_highlighter() -> Box<FFIHitHighlighter> {
-    Box::new(FFIHitHighlighter { highlighter: HitHighlighter::new() })
+pub fn make_highlighter(highlight_tag: &str) -> Box<HitHighlighter> {
+    Box::new(HitHighlighter::new_with_tag(highlight_tag))
 }
 
-pub fn make_highlighter(highlight_tag: &str) -> Box<FFIHitHighlighter> {
-    Box::new(FFIHitHighlighter { highlighter: HitHighlighter::new_with_tag(highlight_tag) })
-}
-
-pub fn hit_highlight(text: &str, hits: &CxxVector<ffi::Hit>, fhh: &FFIHitHighlighter) -> String {
+pub fn hit_highlight(hh: &HitHighlighter, text: &str, hits: &CxxVector<ffi::Hit>) -> String {
     let mut rust_hits: Vec<(usize, usize)> = Vec::with_capacity(hits.len());
     for hit in hits {
         rust_hits.push((hit.start, hit.end));
     }
-    fhh.highlighter.highlight(text, rust_hits)
+    hh.highlight(text, rust_hits)
 }
 
-// HitHighlighter
-pub struct FFIValidator {
-    validator: Validator
+// Validator
+pub fn make_default_validator() -> Box<Validator> {
+    Box::new(Validator::new())
 }
 
-pub fn make_default_validator() -> Box<FFIValidator> {
-    Box::new(FFIValidator { validator: Validator::new() })
+pub fn is_valid_tweet(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_tweet(s)
 }
 
-pub fn is_valid_tweet(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_tweet(s)
+pub fn is_valid_username(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_username(s)
 }
 
-pub fn is_valid_username(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_username(s)
+pub fn is_valid_list(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_list(s)
 }
 
-pub fn is_valid_list(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_list(s)
+pub fn is_valid_hashtag(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_hashtag(s)
 }
 
-pub fn is_valid_hashtag(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_hashtag(s)
+pub fn is_valid_url(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_url(s)
 }
 
-pub fn is_valid_url(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_url(s)
-}
-
-pub fn is_valid_url_without_protocol(ffiv: &FFIValidator, s: &str) -> bool {
-    ffiv.validator.is_valid_url_without_protocol(s)
+pub fn is_valid_url_without_protocol(validator: &Validator, s: &str) -> bool {
+    validator.is_valid_url_without_protocol(s)
 }
 
 pub fn get_max_tweet_length() -> i32 { validator::MAX_TWEET_LENGTH }
 
-pub fn get_short_url_length(ffiv: &FFIValidator) -> i32 {
-    ffiv.validator.get_short_url_length()
+pub fn get_short_url_length(validator: &Validator) -> i32 {
+    validator.get_short_url_length()
 }
 
-pub fn set_short_url_length(ffiv: &mut FFIValidator, short_url_length: i32) {
-    ffiv.validator.set_short_url_length(short_url_length);
+pub fn set_short_url_length(validator: &mut Validator, short_url_length: i32) {
+    validator.set_short_url_length(short_url_length);
 }
 
-pub fn get_short_url_length_https(ffiv: &FFIValidator) -> i32 {
-    ffiv.validator.get_short_url_length_https()
+pub fn get_short_url_length_https(validator: &Validator) -> i32 {
+    validator.get_short_url_length_https()
 }
 
-pub fn set_short_url_length_https(ffiv: &mut FFIValidator, short_url_length_https: i32) {
-    ffiv.validator.set_short_url_length_https(short_url_length_https);
+pub fn set_short_url_length_https(validator: &mut Validator, short_url_length_https: i32) {
+    validator.set_short_url_length_https(short_url_length_https);
 }
 
 pub fn parse_ffi(text: &str, config: &ffi::Configuration, extract_urls: bool) -> ffi::TwitterTextParseResults {

@@ -227,16 +227,16 @@ fn extract() {
 
     for hashtag_assertion in manifest.tests.hashtags {
         let extractor = Extractor::new();
-        let entities = extractor.extract_hashtags(&hashtag_assertion.text);
-        assert_eq!(entities.len(), hashtag_assertion.expected.len(), "{}", hashtag_assertion.description);
-        for (idx, entity) in entities.iter().enumerate() {
-            assert_eq!(entity.get_value(), hashtag_assertion.expected[idx].as_str(), "{}", hashtag_assertion.description);
+        let strings = extractor.extract_hashtags(&hashtag_assertion.text);
+        assert_eq!(strings.len(), hashtag_assertion.expected.len(), "{}", hashtag_assertion.description);
+        for (idx, s) in strings.iter().enumerate() {
+            assert_eq!(s, hashtag_assertion.expected[idx].as_str(), "{}", hashtag_assertion.description);
         }
     }
 
     for hashtag_assertion in manifest.tests.hashtags_from_astral {
         let extractor = Extractor::new();
-        let entities = extractor.extract_hashtags(&hashtag_assertion.text);
+        let entities = extractor.extract_hashtags_with_indices(&hashtag_assertion.text);
         assert_eq!(entities.len(), hashtag_assertion.expected.len(), "{}", hashtag_assertion.description);
         for (idx, entity) in entities.iter().enumerate() {
             assert_eq!(entity.get_value(), hashtag_assertion.expected[idx].as_str(), "{}", hashtag_assertion.description);
@@ -245,7 +245,7 @@ fn extract() {
 
     for hashtag_assertion in manifest.tests.hashtags_with_indices {
         let extractor = Extractor::new();
-        let entities = extractor.extract_hashtags(&hashtag_assertion.text);
+        let entities = extractor.extract_hashtags_with_indices(&hashtag_assertion.text);
         assert_eq!(entities.len(), hashtag_assertion.expected.len(), "{}", hashtag_assertion.description);
         for (idx, entity) in entities.iter().enumerate() {
             assert_eq!(entity.get_value(), hashtag_assertion.expected[idx].hashtag.as_str(), "{}", hashtag_assertion.description);
@@ -256,16 +256,16 @@ fn extract() {
 
     for cashtag_assertion in manifest.tests.cashtags {
         let extractor = Extractor::new();
-        let entities = extractor.extract_cashtags(&cashtag_assertion.text);
-        assert_eq!(entities.len(), cashtag_assertion.expected.len(), "{}", cashtag_assertion.description);
-        for (idx, entity) in entities.iter().enumerate() {
-            assert_eq!(entity.get_value(), cashtag_assertion.expected[idx].as_str(), "{}", cashtag_assertion.description);
+        let strings = extractor.extract_cashtags(&cashtag_assertion.text);
+        assert_eq!(strings.len(), cashtag_assertion.expected.len(), "{}", cashtag_assertion.description);
+        for (idx, s) in strings.iter().enumerate() {
+            assert_eq!(s, cashtag_assertion.expected[idx].as_str(), "{}", cashtag_assertion.description);
         }
     }
 
     for cashtag_assertion in manifest.tests.cashtags_with_indices {
         let extractor = Extractor::new();
-        let entities = extractor.extract_cashtags(&cashtag_assertion.text);
+        let entities = extractor.extract_cashtags_with_indices(&cashtag_assertion.text);
         assert_eq!(entities.len(), cashtag_assertion.expected.len(), "{}", cashtag_assertion.description);
         for (idx, entity) in entities.iter().enumerate() {
             assert_eq!(entity.get_value(), cashtag_assertion.expected[idx].cashtag.as_str(), "{}", cashtag_assertion.description);

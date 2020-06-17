@@ -94,12 +94,12 @@ pub trait Extract<'a> {
     }
 
     /// Extract all Hashtags from the text
-    fn extract_hashtags(&self, s: &'a str) -> Self::T {
+    fn extract_hashtags_with_indices(&self, s: &'a str) -> Self::T {
         self.extract(s, |r| { r == Rule::hashtag })
     }
 
     /// Extract all Cashtags from the text
-    fn extract_cashtags(&self, s: &'a str) -> Self::T {
+    fn extract_cashtags_with_indices(&self, s: &'a str) -> Self::T {
         self.extract(s, |r| { r == Rule::cashtag })
     }
 
@@ -206,6 +206,21 @@ impl Extractor {
             String::from(entity.get_value())
         }).collect()
     }
+
+    /// Extract a vector of Hashtags as [String] objects.
+    pub fn extract_hashtags(&self, s: &str) -> Vec<String> {
+        self.extract_hashtags_with_indices(s).iter().map(|entity| {
+            String::from(entity.get_value())
+        }).collect()
+    }
+
+    /// Extract a vector of Cashtags as [String] objects.
+    pub fn extract_cashtags(&self, s: &str) -> Vec<String> {
+        self.extract_cashtags_with_indices(s).iter().map(|entity| {
+            String::from(entity.get_value())
+        }).collect()
+    }
+
 
     // Internal UTF-8 to UTF-32 offset calculation.
     fn scan(&self, iter: &mut Peekable<CharIndices>, limit: usize) -> i32 {
@@ -421,7 +436,6 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 }
 
 /// Entities and validation data returned by [ValidatingExtractor].
-#[repr(C)]
 pub struct ExtractResult<'a> {
     pub parse_results: TwitterTextParseResults,
     pub entities: Vec<Entity<'a>>
@@ -437,7 +451,6 @@ impl<'a> ExtractResult<'a> {
 }
 
 /// A mention entity and validation data returned by [ValidatingExtractor].
-#[repr(C)]
 pub struct MentionResult<'a> {
     pub parse_results: TwitterTextParseResults,
     pub mention: Option<Entity<'a>>

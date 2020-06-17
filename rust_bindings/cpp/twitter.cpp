@@ -258,7 +258,7 @@ Autolinker::autolinkCashtags(std::string &text) {
 // HitHighlighter
 std::string
 HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
-    return std::string(twitter_text_ffi::hit_highlight(text, hits, *highlighter));
+    return std::string(twitter_text_ffi::hit_highlight(*highlighter, text, hits));
 }
 
 // Validator
