@@ -103,12 +103,6 @@ pub trait Extract<'a> {
         self.extract(s, |r| { r == Rule::cashtag })
     }
 
-    /// Extract all usernames from the text. The same
-    /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
-    fn extract_mentioned_screennames(&self, s: &'a str) -> Self::T {
-        self.extract_mentioned_screennames_with_indices(s)
-    }
-
     /// Extract all usernames from the text.
     fn extract_mentioned_screennames_with_indices(&self, s: &'a str) -> Self::T {
         self.extract(s, |r| { r == Rule::username })
@@ -221,6 +215,13 @@ impl Extractor {
         }).collect()
     }
 
+    /// Extract all usernames from the text. The same
+    /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
+    pub fn extract_mentioned_screennames(&self, s: &str) -> Vec<String> {
+        self.extract_mentioned_screennames_with_indices(s).iter().map(|entity| {
+            String::from(entity.get_value())
+        }).collect()
+    }
 
     // Internal UTF-8 to UTF-32 offset calculation.
     fn scan(&self, iter: &mut Peekable<CharIndices>, limit: usize) -> i32 {

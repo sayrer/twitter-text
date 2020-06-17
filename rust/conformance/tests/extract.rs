@@ -144,10 +144,10 @@ fn extract() {
     let manifest: Manifest = serde_yaml::from_str(MANIFEST_YML).expect("Error parsing yaml");
     for mention_assertion in manifest.tests.mentions {
         let extractor = Extractor::new();
-        let entities = extractor.extract_mentioned_screennames(&mention_assertion.text);
-        assert_eq!(entities.len(), mention_assertion.expected.len(), "{}", mention_assertion.description);
-        for (idx, entity) in entities.iter().enumerate() {
-            assert_eq!(entity.get_value(), mention_assertion.expected[idx].as_str().unwrap(), "{}", mention_assertion.description);
+        let strings = extractor.extract_mentioned_screennames(&mention_assertion.text);
+        assert_eq!(strings.len(), mention_assertion.expected.len(), "{}", mention_assertion.description);
+        for (idx, s) in strings.iter().enumerate() {
+            assert_eq!(s, mention_assertion.expected[idx].as_str().unwrap(), "{}", mention_assertion.description);
         }
     }
 

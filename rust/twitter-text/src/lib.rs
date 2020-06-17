@@ -12,6 +12,7 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_config::WeightedRange;
 use autolinker::Autolinker;
+use entity::Entity;
 use extractor::{Extract, Extractor, ValidatingExtractor};
 use hit_highlighter::HitHighlighter;
 use validator::Validator;
@@ -87,7 +88,7 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
     }
 }
 
-#[cxx::bridge(namespace = twitter_text_ffi)]
+#[cxx::bridge(namespace = twitter_text::ffi)]
 pub mod ffi {
     #[derive(Copy, Clone)]
     pub struct Range {
@@ -134,12 +135,38 @@ pub mod ffi {
         end: usize
     }
 
+    pub struct Entity {
+        pub entity_type: i32, // This is an enum in Rust
+        pub start: i32,
+        pub end: i32,
+        pub value: String,
+        pub list_slug: String,
+        pub display_url: String,
+        pub expanded_url: String
+    }
+
+    pub struct ExtractorString {
+        s: String
+    }
+
     pub struct TwitterTextParseResults {
         pub weighted_length: i32,
         pub permillage: i32,
         pub is_valid: bool,
         pub display_text_range: Range,
         pub valid_text_range: Range
+    }
+
+    // Entities and validation data returned by [ValidatingExtractor].
+    pub struct ExtractResult {
+        pub parse_results: TwitterTextParseResults,
+        pub entities: Vec<Entity>
+    }
+
+    // A mention entity and validation data returned by [ValidatingExtractor].
+    pub struct MentionResult {
+        pub parse_results: TwitterTextParseResults,
+        pub mention: Vec<Entity>,
     }
 
     extern "C" {
@@ -164,39 +191,38 @@ pub mod ffi {
         fn autolink_urls(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_cashtags(text: &str, config: &AutolinkerConfig) -> String;
 
-/*
         // Extractor
         type Extractor;
         fn make_extractor() -> Box<Extractor>;
         fn get_extract_url_without_protocol(e: &Extractor) -> bool;
-        fn set_extract_url_without_protocol(e: &Extractor, extract_url_without_protocol: bool);
+        fn set_extract_url_without_protocol(e: &mut Extractor, extract_url_without_protocol: bool);
         fn extract_entities_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
         fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str)  -> Vec<Entity>;
         fn extract_reply_username(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_urls(e: &Extractor, text: &str) -> Vec<String>;
+        fn extract_urls(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_hashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
 
+/*
         // ValidatingExtractor
         type ValidatingExtractor;
         fn make_validating_extractor() -> Box<ValidatingExtractor>;
-        fn get_extract_url_without_protocol(e: &Extractor) -> bool;
-        fn set_extract_url_without_protocol(e: &Extractor, extract_url_without_protocol: bool);
-        fn extract_entities_with_indices(e: &Extractor, text: &str);
-        fn extract_mentioned_screennames(e: &Extractor, text: &str);
-        fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str);
-        fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str);
-        fn extract_reply_username(e: &Extractor, text: &str);
-        fn extract_urls(e: &Extractor, text: &str) -> Vec<String>;
-        fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn get_extract_url_without_protocol(e: &ValidatingExtractor) -> bool;
+        fn set_extract_url_without_protocol(e: &ValidatingExtractor, extract_url_without_protocol: bool);
+        fn extract_entities_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_mentioned_screennames_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_mentions_or_lists_with_indices(e: &ValidatingExtractor, text: &str)  -> ExtractResult;
+        fn extract_reply_username(e: &ValidatingExtractor, text: &str) -> MentionResult;
+        fn extract_urls_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_hashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_cashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
 */
+
         // HitHighlighter
         type HitHighlighter;
         fn make_highlighter(highlight_tag: &str) -> Box<HitHighlighter>;
@@ -291,6 +317,26 @@ impl ffi::Configuration {
     }
 }
 
+impl ffi::Entity {
+    pub fn from(entity: &Entity) -> ffi::Entity {
+        ffi::Entity {
+            entity_type: entity.t as i32,
+            start: entity.start,
+            end: entity.end,
+            value: String::from(entity.value),
+            list_slug: String::from(entity.list_slug),
+            display_url: String::from(entity.display_url),
+            expanded_url: String::from(entity.expanded_url)
+        }
+    }
+}
+
+impl ffi::ExtractorString {
+    pub fn new(s: &String) -> ffi::ExtractorString {
+        ffi::ExtractorString { s: s.to_string() }
+    }
+}
+
 pub fn config_v1() -> UniquePtr<ffi::Configuration> {
     UniquePtr::new(ffi::Configuration::from(twitter_text_config::config_v1()))
 }
@@ -348,6 +394,74 @@ pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
 pub fn make_extractor() -> Box<Extractor> {
     Box::new(Extractor::new())
 }
+
+pub fn get_extract_url_without_protocol(e: &Extractor) -> bool {
+    e.get_extract_url_without_protocol()
+}
+
+pub fn set_extract_url_without_protocol(e: &mut Extractor, extract_url_without_protocol: bool) {
+    e.set_extract_url_without_protocol(extract_url_without_protocol);
+}
+
+pub fn extract_entities_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_entities_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
+    e.extract_mentioned_screennames(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+}
+
+pub fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_mentioned_screennames_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_mentions_or_lists_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_reply_username(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_reply_username(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_urls(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
+    e.extract_urls(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+}
+
+pub fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_urls_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_hashtags(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
+    e.extract_hashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+}
+
+pub fn extract_hashtags_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_hashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+pub fn extract_cashtags(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
+    e.extract_cashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+}
+
+pub fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
+    e.extract_cashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+}
+
+/*
+// ValidatingExtractor
+pub fn make_validating_extractor() -> Box<ValidatingExtractor>;
+pub fn get_extract_url_without_protocol(e: &ValidatingExtractor) -> bool;
+pub fn set_extract_url_without_protocol(e: &ValidatingExtractor, extract_url_without_protocol: bool);
+pub fn extract_entities_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_mentioned_screennames(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_mentioned_screennames_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_mentions_or_lists_with_indices(e: &ValidatingExtractor, text: &str)  -> ExtractResult;
+pub fn extract_reply_username(e: &ValidatingExtractor, text: &str) -> MentionResult;
+pub fn extract_urls(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_urls_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_hashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+pub fn extract_cashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
+*/
 
 // HitHighlighter
 pub fn make_default_highlighter() -> Box<HitHighlighter> {

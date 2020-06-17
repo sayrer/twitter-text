@@ -4,12 +4,12 @@ namespace twitter_text {
 
 std::unique_ptr<TwitterTextConfiguration>
 TwitterTextConfiguration::configuration_from_path(std::string path) {
-  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(twitter_text_ffi::configuration_from_path(path)));
+  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_path(path)));
 }
 
 std::unique_ptr<TwitterTextConfiguration>
 TwitterTextConfiguration::configuration_from_json(std::string json) {
-  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(twitter_text_ffi::configuration_from_json(json)));
+  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_json(json)));
 }
 
 int32_t
@@ -72,9 +72,9 @@ TwitterTextConfiguration::setEmojiParsingEnabled(bool enabled) {
   config->emoji_parsing_enabled = enabled;
 }
 
-std::vector<twitter_text_ffi::WeightedRange> 
+std::vector<ffi::WeightedRange> 
 TwitterTextConfiguration::getRanges() {
-  std::vector<twitter_text_ffi::WeightedRange> stdv;
+  std::vector<ffi::WeightedRange> stdv;
   std::copy(config->ranges.begin(), config->ranges.end(), std::back_inserter(stdv));
   return stdv;
 }
@@ -232,89 +232,89 @@ Autolinker::setUsernameIncludeSymbol(bool usernameIncludeSymbol) {
 
 std::string
 Autolinker::autolink(std::string &text) {
-  return std::string(twitter_text_ffi::autolink(text, *config));
+  return std::string(ffi::autolink(text, *config));
 }
 
 std::string
 Autolinker::autolinkUsernamesAndLists(std::string &text) {
-  return std::string(twitter_text_ffi::autolink_usernames_and_lists(text, *config));
+  return std::string(ffi::autolink_usernames_and_lists(text, *config));
 }
 
 std::string
 Autolinker::autolinkHashtags(std::string &text) {
-  return std::string(twitter_text_ffi::autolink_hashtags(text, *config));
+  return std::string(ffi::autolink_hashtags(text, *config));
 }
 
 std::string
 Autolinker::autolinkUrls(std::string &text) {
-  return std::string(twitter_text_ffi::autolink_urls(text, *config));
+  return std::string(ffi::autolink_urls(text, *config));
 }
 
 std::string
 Autolinker::autolinkCashtags(std::string &text) { 
-  return std::string(twitter_text_ffi::autolink_cashtags(text, *config));
+  return std::string(ffi::autolink_cashtags(text, *config));
 }
 
 // HitHighlighter
 std::string
 HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
-    return std::string(twitter_text_ffi::hit_highlight(*highlighter, text, hits));
+    return std::string(ffi::hit_highlight(*highlighter, text, hits));
 }
 
 // Validator
 bool 
 Validator::isValidTweet(std::string &text) {
-  return twitter_text_ffi::is_valid_tweet(*validator, text);
+  return ffi::is_valid_tweet(*validator, text);
 }
 
 bool 
 Validator::isValidUsername(std::string &text) {
-  return twitter_text_ffi::is_valid_username(*validator, text);
+  return ffi::is_valid_username(*validator, text);
 }
 
 bool 
 Validator::isValidList(std::string &text) {
-  return twitter_text_ffi::is_valid_list(*validator, text);
+  return ffi::is_valid_list(*validator, text);
 }
 
 bool
 Validator::isValidHashtag(std::string &text) {
-  return twitter_text_ffi::is_valid_hashtag(*validator, text);
+  return ffi::is_valid_hashtag(*validator, text);
 }
 
 bool
 Validator::isValidUrl(std::string &text) {
-  return twitter_text_ffi::is_valid_url(*validator, text);
+  return ffi::is_valid_url(*validator, text);
 }
 
 bool
 Validator::isValidUrlWithoutProtocol(std::string &text) {
-  return twitter_text_ffi::is_valid_url_without_protocol(*validator, text);
+  return ffi::is_valid_url_without_protocol(*validator, text);
 }
 
 int32_t
 Validator::getMaxTweetLength() {
-  return twitter_text_ffi::get_max_tweet_length();
+  return ffi::get_max_tweet_length();
 }
 
 int32_t
 Validator::getShortUrlLength() {
-  return twitter_text_ffi::get_short_url_length(*validator);
+  return ffi::get_short_url_length(*validator);
 }
 
 void
 Validator::setShortUrlLength(int32_t i) {
-  return twitter_text_ffi::set_short_url_length(*validator, i);
+  return ffi::set_short_url_length(*validator, i);
 }
 
 int32_t
 Validator::getShortUrlLengthHttps() {
-  return twitter_text_ffi::get_short_url_length_https(*validator);
+  return ffi::get_short_url_length_https(*validator);
 }
 
 void
 Validator::setShortUrlLengthHttps(int32_t i) {
-  return twitter_text_ffi::set_short_url_length_https(*validator, i);
+  return ffi::set_short_url_length_https(*validator, i);
 }
 
 

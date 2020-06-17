@@ -5,10 +5,10 @@ namespace twitter_text {
 
 class TwitterTextConfiguration {
 public:
-  TwitterTextConfiguration(): TwitterTextConfiguration(twitter_text_ffi::default_config())
+  TwitterTextConfiguration(): TwitterTextConfiguration(ffi::default_config())
   {}
 
-  TwitterTextConfiguration(std::unique_ptr<twitter_text_ffi::Configuration> config):
+  TwitterTextConfiguration(std::unique_ptr<ffi::Configuration> config):
     config(std::move(config))
   {}
 
@@ -34,16 +34,16 @@ public:
   bool getEmojiParsingEnabled();
   void setEmojiParsingEnabled(bool enabled);
 
-  std::vector<twitter_text_ffi::WeightedRange> getRanges();
+  std::vector<ffi::WeightedRange> getRanges();
 
 private:
-  std::unique_ptr<twitter_text_ffi::Configuration> config;
+  std::unique_ptr<ffi::Configuration> config;
 };
 
 class Autolinker {
 public:
   Autolinker(): 
-    config(twitter_text_ffi::autolink_default_config()) 
+    config(ffi::autolink_default_config()) 
   {}
 
   bool getNoFollow();
@@ -98,40 +98,57 @@ public:
   std::string autolinkCashtags(std::string &text);
 
 private:
-  std::unique_ptr<twitter_text_ffi::AutolinkerConfig> config;
+  std::unique_ptr<ffi::AutolinkerConfig> config;
 };
+
+typedef ffi::Entity Entity;
 
 class Extractor {
 public:
   Extractor():
-    extractor(twitter_text_ffi::make_extractor()) 
+    extractor(ffi::make_extractor()) 
   {}
+
+  bool get_extract_url_without_protocol();
+  void set_extract_url_without_protocol(bool extractUrlwp);
+  std::vector<Entity> extractEntitiesWithIndices(std::string &text);
+  std::vector<std::string> extractMentionedScreennames(std::string &text);
+  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text);
+  std::vector<Entity> extractMentionsOrListsWithIndices(std::string &text);
+  std::vector<Entity> extractReplyScreenname(std::string &text);
+  std::vector<std::string> extractURLs(std::string &text);
+  std::vector<Entity> extractURLsWithIndices(std::string &text);
+  std::vector<std::string> extractHashtags(std::string &text);
+  std::vector<Entity> extractHashtagsWithIndices(std::string &text);
+  std::vector<std::string> extractCashtags(std::string &text);
+  std::vector<Entity> extractCashtagsWithIndices(std::string &text);
+
 private:
-  ::rust::Box<twitter_text_ffi::Extractor> extractor;
+  ::rust::Box<ffi::Extractor> extractor;
 };
 
-typedef twitter_text_ffi::Hit Hit;
+typedef ffi::Hit Hit;
 
 class HitHighlighter {
 public:
   HitHighlighter():
-    highlighter(twitter_text_ffi::make_default_highlighter()) 
+    highlighter(ffi::make_default_highlighter()) 
   {}   
   
   HitHighlighter(std::string tag_str):
-    highlighter(twitter_text_ffi::make_highlighter(tag_str)) 
+    highlighter(ffi::make_highlighter(tag_str)) 
   {}
 
   std::string highlight(std::string &text, std::vector<Hit> &hits);
 
 private:
-  ::rust::Box<twitter_text_ffi::HitHighlighter> highlighter;
+  ::rust::Box<ffi::HitHighlighter> highlighter;
 };
 
 class Validator {
 public:
   Validator():
-    validator(twitter_text_ffi::make_default_validator()) 
+    validator(ffi::make_default_validator()) 
   {}
 
   bool isValidTweet(std::string &text);
@@ -148,7 +165,7 @@ public:
   void setShortUrlLengthHttps(int32_t i);
 
 private:
-  ::rust::Box<twitter_text_ffi::Validator> validator;
+  ::rust::Box<ffi::Validator> validator;
 }; 
 
 } // twitter_text

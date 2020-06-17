@@ -20,9 +20,9 @@ TEST(TwitterTextConfigurationTest, Path) {
   ASSERT_EQ(config->getScale(), 43);
   ASSERT_EQ(config->getDefaultWeight(), 213);
   ASSERT_EQ(config->getTransformedUrlLength(), 32);
-  std::vector<twitter_text_ffi::WeightedRange> stdv = config->getRanges();
+  std::vector<ffi::WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 1);
-  twitter_text_ffi::WeightedRange wr = stdv[0];
+  ffi::WeightedRange wr = stdv[0];
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
@@ -39,9 +39,9 @@ TEST(TwitterTextConfigurationTest, Json) {
   ASSERT_EQ(config->getScale(), 43);
   ASSERT_EQ(config->getDefaultWeight(), 213);
   ASSERT_EQ(config->getTransformedUrlLength(), 32);
-  std::vector<twitter_text_ffi::WeightedRange> stdv = config->getRanges();
+  std::vector<ffi::WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 1);
-  twitter_text_ffi::WeightedRange wr = stdv[0];
+  ffi::WeightedRange wr = stdv[0];
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
@@ -91,9 +91,9 @@ TEST(TwitterTextConfigurationTest, EmojiParsingEnabled) {
 
 TEST(TwitterTextConfigurationTest, Ranges) {
   TwitterTextConfiguration *config = new TwitterTextConfiguration();
-  std::vector<twitter_text_ffi::WeightedRange> stdv = config->getRanges();
+  std::vector<ffi::WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 4);
-  twitter_text_ffi::WeightedRange wr = stdv[0];
+  ffi::WeightedRange wr = stdv[0];
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 100);
@@ -112,18 +112,18 @@ TEST(TwitterTextConfigurationTest, Ranges) {
 }
 
 TEST(TwitterTextConfigurationTest, V2) {
-  TwitterTextConfiguration *config = new TwitterTextConfiguration(twitter_text_ffi::config_v2());
+  TwitterTextConfiguration *config = new TwitterTextConfiguration(ffi::config_v2());
   ASSERT_EQ(config->getVersion(), 2);
   ASSERT_EQ(config->getEmojiParsingEnabled(), false);
-  std::vector<twitter_text_ffi::WeightedRange> stdv = config->getRanges();
+  std::vector<ffi::WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 4);
 }
 
 TEST(TwitterTextConfigurationTest, V1) {
-  TwitterTextConfiguration *config = new TwitterTextConfiguration(twitter_text_ffi::config_v1());
+  TwitterTextConfiguration *config = new TwitterTextConfiguration(ffi::config_v1());
   ASSERT_EQ(config->getVersion(), 1);
   ASSERT_EQ(config->getEmojiParsingEnabled(), false);
-  std::vector<twitter_text_ffi::WeightedRange> stdv = config->getRanges();
+  std::vector<ffi::WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 0);
 }
 
