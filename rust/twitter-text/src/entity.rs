@@ -7,7 +7,7 @@ pub enum Type {
     URL,
     HASHTAG,
     MENTION,
-    CASHTAG
+    CASHTAG,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]

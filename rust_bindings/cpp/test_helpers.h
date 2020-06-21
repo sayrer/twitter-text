@@ -1,10 +1,11 @@
 #pragma once
 #include "yaml-cpp/yaml.h"
+#include <iostream>
 
 struct TestCase {
-	std::string description;
-	std::string text;
-	std::string expected;
+  std::string description;
+  std::string text;
+  std::string expected;
 };
 
 namespace YAML {
@@ -29,12 +30,13 @@ struct convert<TestCase> {
 };
 } // namespace YAML
 
-std::vector<TestCase>
+template<typename T>
+std::vector<T>
 readYaml(YAML::Node node) {
-	std::vector<TestCase> testcases;
-	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
-    	const YAML::Node& test = *it;
-		testcases.push_back(test.as<TestCase>());
-	}
-	return testcases;
+  std::vector<T> testcases;
+  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+    const YAML::Node& test = *it;
+    testcases.push_back(test.as<T>());
+  }
+  return testcases;
 }

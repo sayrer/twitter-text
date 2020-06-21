@@ -108,12 +108,12 @@ const char * const boolToString(bool b)
 TEST(ValidatorTest, Yaml) {
   Validator *validator = new Validator();
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/validate.yml");
-  auto tweets = readYaml(map["tweets"]["plain_text"]);
-  auto usernames = readYaml(map["tests"]["usernames"]);
-  auto lists = readYaml(map["tests"]["lists"]);
-  auto hashtags = readYaml(map["tests"]["hashtags"]);
-  auto urls = readYaml(map["tests"]["urls"]);
-  auto urls_without_protocol = readYaml(map["tests"]["urls_without_protocol"]);
+  auto tweets = readYaml<TestCase>(map["tweets"]["plain_text"]);
+  auto usernames = readYaml<TestCase>(map["tests"]["usernames"]);
+  auto lists = readYaml<TestCase>(map["tests"]["lists"]);
+  auto hashtags = readYaml<TestCase>(map["tests"]["hashtags"]);
+  auto urls = readYaml<TestCase>(map["tests"]["urls"]);
+  auto urls_without_protocol = readYaml<TestCase>(map["tests"]["urls_without_protocol"]);
 
   for (TestCase test : tweets) {
     ASSERT_EQ(test.expected, boolToString(validator->isValidTweet(test.text)));
@@ -138,6 +138,8 @@ TEST(ValidatorTest, Yaml) {
   for (TestCase test : urls_without_protocol) {
     ASSERT_EQ(test.expected, boolToString(validator->isValidUrlWithoutProtocol(test.text)));
   }
+
+  delete validator;
 }
 
 } // twitter_text

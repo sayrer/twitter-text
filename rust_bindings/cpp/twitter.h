@@ -115,9 +115,9 @@ public:
   std::vector<std::string> extractMentionedScreennames(std::string &text);
   std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text);
   std::vector<Entity> extractMentionsOrListsWithIndices(std::string &text);
-  std::vector<Entity> extractReplyScreenname(std::string &text);
-  std::vector<std::string> extractURLs(std::string &text);
-  std::vector<Entity> extractURLsWithIndices(std::string &text);
+  std::unique_ptr<Entity> extractReplyScreenname(std::string &text);
+  std::vector<std::string> extractUrls(std::string &text);
+  std::vector<Entity> extractUrlsWithIndices(std::string &text);
   std::vector<std::string> extractHashtags(std::string &text);
   std::vector<Entity> extractHashtagsWithIndices(std::string &text);
   std::vector<std::string> extractCashtags(std::string &text);

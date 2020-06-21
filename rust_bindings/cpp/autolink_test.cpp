@@ -80,32 +80,32 @@ TEST(AutolinkTest, Yaml) {
   Autolinker *autolinker = new Autolinker();
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/autolink.yml");
 
-  auto usernames = readYaml(map["tests"]["usernames"]);
+  auto usernames = readYaml<TestCase>(map["tests"]["usernames"]);
   for (TestCase test : usernames) {
     ASSERT_EQ(test.expected, autolinker->autolinkUsernamesAndLists(test.text));
   }
 
-  auto lists = readYaml(map["tests"]["lists"]);
+  auto lists = readYaml<TestCase>(map["tests"]["lists"]);
   for (TestCase test : lists) {
     ASSERT_EQ(test.expected, autolinker->autolinkUsernamesAndLists(test.text));
   }
 
-  auto hashtags = readYaml(map["tests"]["hashtags"]);
+  auto hashtags = readYaml<TestCase>(map["tests"]["hashtags"]);
   for (TestCase test : hashtags) {
     ASSERT_EQ(test.expected, autolinker->autolinkHashtags(test.text));
   }
 
-  auto urls = readYaml(map["tests"]["urls"]);
+  auto urls = readYaml<TestCase>(map["tests"]["urls"]);
   for (TestCase test : urls) {
     ASSERT_EQ(test.expected, autolinker->autolinkUrls(test.text));
   }
 
-  auto cashtags = readYaml(map["tests"]["cashtags"]);
+  auto cashtags = readYaml<TestCase>(map["tests"]["cashtags"]);
   for (TestCase test : cashtags) {
     ASSERT_EQ(test.expected, autolinker->autolinkCashtags(test.text));
   }
 
-  auto all = readYaml(map["tests"]["all"]);
+  auto all = readYaml<TestCase>(map["tests"]["all"]);
   for (TestCase test : all) {
     ASSERT_EQ(test.expected, autolinker->autolink(test.text));
   }

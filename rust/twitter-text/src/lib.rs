@@ -200,7 +200,7 @@ pub mod ffi {
         fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
         fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str)  -> Vec<Entity>;
-        fn extract_reply_username(e: &Extractor, text: &str) -> Vec<Entity>;
+        fn extract_reply_username(e: &Extractor, text: &str) -> UniquePtr<Entity>;
         fn extract_urls(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
         fn extract_hashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
@@ -419,8 +419,12 @@ pub fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str) -> Vec<
     e.extract_mentions_or_lists_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_reply_username(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_reply_username(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_reply_username(e: &Extractor, text: &str) -> UniquePtr<ffi::Entity> {
+    if let Some(entity) = e.extract_reply_username(text) {
+        return UniquePtr::new(ffi::Entity::from(&entity));
+    }
+
+    UniquePtr::null()
 }
 
 pub fn extract_urls(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
