@@ -426,9 +426,14 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
         self.extract_reply_username_impl(s)
     }
 
-    fn mention_result(&self, s: &'a str, pair: Option<Pair<'a>>)
-        -> MentionResult<'a> {
-        MentionResult::new(TwitterTextParseResults::empty(), None)
+    fn mention_result(&self, s: &'a str, entity: Option<Pair<'a>>) -> MentionResult<'a> {
+        match entity {
+            Some(e) => {
+                let results = self.extract_entities_with_indices(s);
+                MentionResult::new(results.parse_results, Some(results.entities[0].clone()))
+            },
+            None => MentionResult::new(TwitterTextParseResults::empty(), None)
+        }
     }
 
     fn empty_result(&self) -> ExtractResult<'a> {
@@ -452,6 +457,7 @@ impl<'a> ExtractResult<'a> {
 }
 
 /// A mention entity and validation data returned by [ValidatingExtractor].
+#[derive(Debug)]
 pub struct MentionResult<'a> {
     pub parse_results: TwitterTextParseResults,
     pub mention: Option<Entity<'a>>

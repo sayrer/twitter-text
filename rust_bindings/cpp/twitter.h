@@ -38,6 +38,7 @@ public:
 
 private:
   std::unique_ptr<ffi::Configuration> config;
+  friend class ValidatingExtractor;
 };
 
 class Autolinker {
@@ -109,8 +110,8 @@ public:
     extractor(ffi::make_extractor()) 
   {}
 
-  bool get_extract_url_without_protocol();
-  void set_extract_url_without_protocol(bool extractUrlwp);
+  bool getExtractUrlWithoutProtocol();
+  void setExtractUrlWithoutProtocol(bool extractUrlwp);
   std::vector<Entity> extractEntitiesWithIndices(std::string &text);
   std::vector<std::string> extractMentionedScreennames(std::string &text);
   std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text);
@@ -126,6 +127,38 @@ public:
 private:
   ::rust::Box<ffi::Extractor> extractor;
 };
+
+typedef ffi::TwitterTextParseResults TwitterTextParseResults;
+
+struct ExtractResult final {
+  TwitterTextParseResults parseResults;
+  std::vector<Entity> entities;
+};
+
+typedef ffi::MentionResult MentionResult;
+
+class ValidatingExtractor {
+public:
+  ValidatingExtractor(TwitterTextConfiguration &ttc):
+    extractor(ffi::make_validating_extractor(*ttc.config)) 
+  {}
+
+  bool getExtractUrlWithoutProtocol();
+  void setExtractUrlWithoutProtocol(bool extractUrlwp);
+  bool getNormalize();
+  void setNormalize(bool normalize);
+  std::unique_ptr<ExtractResult> extractEntitiesWithIndices(std::string &text);
+  std::unique_ptr<ExtractResult> extractMentionedScreennamesWithIndices(std::string &text);
+  std::unique_ptr<ExtractResult> extractMentionsOrListsWithIndices(std::string &text);
+  std::unique_ptr<MentionResult> extractReplyScreenname(std::string &text);
+  std::unique_ptr<ExtractResult> extractUrlsWithIndices(std::string &text);
+  std::unique_ptr<ExtractResult> extractHashtagsWithIndices(std::string &text);
+  std::unique_ptr<ExtractResult> extractCashtagsWithIndices(std::string &text);
+
+private:
+  ::rust::Box<ffi::FFIValidatingExtractor> extractor;
+};
+
 
 typedef ffi::Hit Hit;
 

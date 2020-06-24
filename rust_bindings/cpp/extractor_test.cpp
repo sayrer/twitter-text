@@ -321,6 +321,11 @@ TEST(ExtractorTest, Ctor) {
 TEST(ExtractorTest, Accessors) {
   Extractor *extractor = new Extractor();
   ASSERT_NE(extractor, nullptr);
+
+  ASSERT_EQ(extractor->getExtractUrlWithoutProtocol(), true);
+  extractor->setExtractUrlWithoutProtocol(false);
+  ASSERT_EQ(extractor->getExtractUrlWithoutProtocol(), false);
+
   delete extractor;
 }
 
@@ -410,6 +415,11 @@ TEST(ExtractorTest, Yaml) {
     }
   }
 
+  ASSERT_TRUE(tco_urls_with_params.size() > 0);
+  for (ExtractTestCase test : tco_urls_with_params) {
+    ASSERT_EQ(test.expected, extractor->extractUrls(test.text));
+  }
+
   ASSERT_TRUE(hashtags.size() > 0);
   for (ExtractTestCase test : hashtags) {
     ASSERT_EQ(test.expected, extractor->extractHashtags(test.text));
@@ -452,4 +462,127 @@ TEST(ExtractorTest, Yaml) {
   delete extractor;
 }
 
+TEST(ValidatingExtractorTest, Ctor) {
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  ASSERT_NE(extractor, nullptr);
+  delete extractor;
 }
+
+TEST(ValidatingExtractorTest, Accessors) {
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  ASSERT_NE(extractor, nullptr);
+
+  ASSERT_EQ(extractor->getNormalize(), true);
+  extractor->setNormalize(false);
+  ASSERT_EQ(extractor->getNormalize(), false);
+
+  ASSERT_EQ(extractor->getExtractUrlWithoutProtocol(), true);
+  extractor->setExtractUrlWithoutProtocol(false);
+  ASSERT_EQ(extractor->getExtractUrlWithoutProtocol(), false);
+
+  delete extractor;
+}
+
+TEST(ValidatingExtractorTest, Yaml) {
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  YAML::Node map = YAML::LoadFile("rust/conformance/tests/extract.yml");
+  auto mentions_with_indices = readYaml<MentionIndexTestCase>(map["tests"]["mentions_with_indices"]);
+  auto mentions_or_lists_with_indices = readYaml<MentionOrListIndexTestCase>(map["tests"]["mentions_or_lists_with_indices"]);
+  auto replies = readYaml<ReplyTestCase>(map["tests"]["replies"]);
+  auto urls_with_indices = readYaml<UrlIndexTestCase>(map["tests"]["urls_with_indices"]);
+  auto urls_with_directional_markers = readYaml<UrlIndexTestCase>(map["tests"]["urls_with_directional_markers"]);
+  auto hashtags_with_indices = readYaml<HashtagIndexTestCase>(map["tests"]["hashtags_with_indices"]);
+  auto cashtags_with_indices = readYaml<CashtagIndexTestCase>(map["tests"]["cashtags_with_indices"]);
+
+
+  ASSERT_TRUE(mentions_with_indices.size() > 0);
+  for (MentionIndexTestCase test : mentions_with_indices) {
+    std::unique_ptr<ExtractResult> result = extractor->extractMentionedScreennamesWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].screen_name);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  ASSERT_TRUE(mentions_or_lists_with_indices.size() > 0);
+  for (MentionOrListIndexTestCase test : mentions_or_lists_with_indices) {
+    std::unique_ptr<ExtractResult> result = extractor->extractMentionsOrListsWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].screen_name);
+      ASSERT_EQ(std::string(result->entities[index].list_slug), test.expected[index].list_slug);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  ASSERT_TRUE(replies.size() > 0);
+  for (ReplyTestCase test : replies) {
+    std::unique_ptr<MentionResult> result = extractor->extractReplyScreenname(test.text);
+    if (test.expected) {
+      std::cout << result->mention << std::endl;
+      ASSERT_EQ(*test.expected, std::string(result->mention->value));
+    } else {
+      ASSERT_TRUE(!result->mention);
+    }
+  }
+
+  ASSERT_TRUE(urls_with_indices.size() > 0);
+  for (UrlIndexTestCase test : urls_with_indices) {
+    std::unique_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].url);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  ASSERT_TRUE(urls_with_directional_markers.size() > 0);
+  for (UrlIndexTestCase test : urls_with_directional_markers) {
+    std::unique_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].url);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  ASSERT_TRUE(hashtags_with_indices.size() > 0);
+  for (HashtagIndexTestCase test : hashtags_with_indices) {
+    std::unique_ptr<ExtractResult> result = extractor->extractHashtagsWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].hashtag);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  ASSERT_TRUE(cashtags_with_indices.size() > 0);
+  for (CashtagIndexTestCase test : cashtags_with_indices) {
+    std::unique_ptr<ExtractResult> result = extractor->extractCashtagsWithIndices(test.text);
+    ASSERT_EQ(test.expected.size(), result->entities.size());
+    for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      size_t index = std::distance(result->entities.begin(), it);
+      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].cashtag);
+      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
+      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+    }
+  }
+
+  delete extractor;
+}
+
+} // twitter_text

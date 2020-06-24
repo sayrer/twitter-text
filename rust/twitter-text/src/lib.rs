@@ -13,7 +13,7 @@ use twitter_text_config::Range;
 use twitter_text_config::WeightedRange;
 use autolinker::Autolinker;
 use entity::Entity;
-use extractor::{Extract, Extractor, ValidatingExtractor};
+use extractor::{Extract, Extractor, ExtractResult, MentionResult, ValidatingExtractor};
 use hit_highlighter::HitHighlighter;
 use validator::Validator;
 use cxx::{CxxVector, UniquePtr};
@@ -166,7 +166,7 @@ pub mod ffi {
     // A mention entity and validation data returned by [ValidatingExtractor].
     pub struct MentionResult {
         pub parse_results: TwitterTextParseResults,
-        pub mention: Vec<Entity>,
+        pub mention: UniquePtr<Entity>,
     }
 
     extern "C" {
@@ -208,20 +208,20 @@ pub mod ffi {
         fn extract_cashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
         fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
 
-/*
         // ValidatingExtractor
-        type ValidatingExtractor;
-        fn make_validating_extractor() -> Box<ValidatingExtractor>;
-        fn get_extract_url_without_protocol(e: &ValidatingExtractor) -> bool;
-        fn set_extract_url_without_protocol(e: &ValidatingExtractor, extract_url_without_protocol: bool);
-        fn extract_entities_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_mentioned_screennames_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_mentions_or_lists_with_indices(e: &ValidatingExtractor, text: &str)  -> ExtractResult;
-        fn extract_reply_username(e: &ValidatingExtractor, text: &str) -> MentionResult;
-        fn extract_urls_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_hashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_cashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-*/
+        type FFIValidatingExtractor;
+        fn make_validating_extractor(config: &Configuration) -> Box<FFIValidatingExtractor>;
+        fn get_extract_url_without_protocol_validated(e: &FFIValidatingExtractor) -> bool;
+        fn set_extract_url_without_protocol_validated(e: &mut FFIValidatingExtractor, extract_url_without_protocol: bool);
+        fn get_normalize(e: &FFIValidatingExtractor) -> bool;
+        fn set_normalize(e: &mut FFIValidatingExtractor, normalize: bool);
+        fn extract_entities_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_mentioned_screennames_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_mentions_or_lists_with_indices_validated(e: &FFIValidatingExtractor, text: &str)  -> ExtractResult;
+        fn extract_reply_username_validated(e: &FFIValidatingExtractor, text: &str) -> UniquePtr<MentionResult>;
+        fn extract_urls_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_hashtags_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
+        fn extract_cashtags_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
 
         // HitHighlighter
         type HitHighlighter;
@@ -256,6 +256,27 @@ impl ffi::TwitterTextParseResults {
             is_valid: results.is_valid,
             display_text_range: ffi::Range::from(&results.display_text_range),
             valid_text_range: ffi::Range::from(&results.valid_text_range),
+        }
+    }
+}
+
+impl ffi::ExtractResult {
+    fn from(result: ExtractResult) -> ffi::ExtractResult {
+        ffi::ExtractResult {
+            parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
+            entities: result.entities.iter().map(|e|{ ffi::Entity::from(e) }).collect(),
+        }
+    }
+}
+
+impl ffi::MentionResult {
+    fn from(result: MentionResult) -> ffi::MentionResult {
+        ffi::MentionResult {
+            parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
+            mention: match result.mention {
+                Some(e) => UniquePtr::new(ffi::Entity::from(&e)),
+                None => UniquePtr::null(),
+            }
         }
     }
 }
@@ -451,21 +472,123 @@ pub fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Enti
     e.extract_cashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-/*
 // ValidatingExtractor
-pub fn make_validating_extractor() -> Box<ValidatingExtractor>;
-pub fn get_extract_url_without_protocol(e: &ValidatingExtractor) -> bool;
-pub fn set_extract_url_without_protocol(e: &ValidatingExtractor, extract_url_without_protocol: bool);
-pub fn extract_entities_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_mentioned_screennames(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_mentioned_screennames_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_mentions_or_lists_with_indices(e: &ValidatingExtractor, text: &str)  -> ExtractResult;
-pub fn extract_reply_username(e: &ValidatingExtractor, text: &str) -> MentionResult;
-pub fn extract_urls(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_urls_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_hashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-pub fn extract_cashtags_with_indices(e: &ValidatingExtractor, text: &str) -> ExtractResult;
-*/
+pub struct FFIValidatingExtractor {
+    config: Configuration,
+    normalize: bool,
+    extract_url_without_protocol: bool,
+}
+
+pub fn make_validating_extractor(config: &ffi::Configuration) -> Box<FFIValidatingExtractor> {
+    Box::new(FFIValidatingExtractor { 
+        config: ffi::Configuration::to(config),
+        normalize: true,
+        extract_url_without_protocol: true,
+    })
+}
+
+pub fn get_extract_url_without_protocol_validated(fve: &FFIValidatingExtractor) -> bool {
+    fve.extract_url_without_protocol
+}
+
+pub fn set_extract_url_without_protocol_validated(fve: &mut FFIValidatingExtractor, extract_url_without_protocol: bool) {
+    fve.extract_url_without_protocol = extract_url_without_protocol;
+}
+
+pub fn get_normalize(fve: &FFIValidatingExtractor) -> bool {
+    fve.normalize
+}
+
+pub fn set_normalize(fve: &mut FFIValidatingExtractor, normalize: bool) {
+    fve.normalize = normalize;
+}
+
+pub fn extract_entities_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_entities_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_entities_with_indices(text))
+}
+
+pub fn extract_mentioned_screennames_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_mentioned_screennames_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_mentioned_screennames_with_indices(text))
+}
+
+pub fn extract_mentions_or_lists_with_indices_validated(fve: &FFIValidatingExtractor, text: &str)  -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_mentions_or_lists_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_mentions_or_lists_with_indices(text))
+}
+
+pub fn extract_reply_username_validated(fve: &FFIValidatingExtractor, text: &str) -> UniquePtr<ffi::MentionResult> {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        println!("here?");
+        let t = extractor.prep_input(text);
+        println!("t: {:?}", t);
+        let result = extractor.extract_reply_username(t.as_str());
+        println!("result: {:?}", result);
+        return UniquePtr::new(ffi::MentionResult::from(result));
+    }
+
+    UniquePtr::new(ffi::MentionResult::from(extractor.extract_reply_username(text)))
+}
+
+pub fn extract_urls_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_urls_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_urls_with_indices(text))
+}
+
+pub fn extract_hashtags_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_hashtags_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_hashtags_with_indices(text))
+}
+
+pub fn extract_cashtags_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_cashtags_with_indices(text.as_str());
+        return ffi::ExtractResult::from(result);
+    }
+
+    ffi::ExtractResult::from(extractor.extract_cashtags_with_indices(text))
+}
 
 // HitHighlighter
 pub fn make_default_highlighter() -> Box<HitHighlighter> {

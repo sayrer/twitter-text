@@ -1,5 +1,6 @@
 #include "twitter.h"
 #include <iostream>
+#include <memory>
 
 namespace twitter_text {
 
@@ -258,12 +259,12 @@ Autolinker::autolinkCashtags(std::string &text) {
 
 // Extractor
 bool
-Extractor::get_extract_url_without_protocol() {
+Extractor::getExtractUrlWithoutProtocol() {
   return ffi::get_extract_url_without_protocol(*extractor);
 }
 
 void
-Extractor::set_extract_url_without_protocol(bool extractUrlwp) {
+Extractor::setExtractUrlWithoutProtocol(bool extractUrlwp) {
   ffi::set_extract_url_without_protocol(*extractor, extractUrlwp);
 }
 
@@ -273,6 +274,14 @@ entitiesToCpp(::rust::Vec<Entity> &rustVec) {
   stdv.reserve(rustVec.size());
   std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
   return stdv;
+}
+
+std::unique_ptr<ExtractResult>
+convertResult(ffi::ExtractResult &result) {
+  std::unique_ptr<ExtractResult> er(new ExtractResult());
+  er->parseResults = result.parse_results;
+  er->entities = entitiesToCpp(result.entities);
+  return er;
 }
 
 std::vector<std::string>
@@ -350,10 +359,75 @@ Extractor::extractCashtagsWithIndices(std::string &text) {
   return entitiesToCpp(entities);
 }
 
+// ValidatingExtractor
+bool
+ValidatingExtractor::getExtractUrlWithoutProtocol() {
+  return ffi::get_extract_url_without_protocol_validated(*extractor);
+}
+
+void
+ValidatingExtractor::setExtractUrlWithoutProtocol(bool extractUrlwp) {
+  ffi::set_extract_url_without_protocol_validated(*extractor, extractUrlwp);
+}
+
+bool
+ValidatingExtractor::getNormalize() {
+  return ffi::get_normalize(*extractor);
+}
+
+void
+ValidatingExtractor::setNormalize(bool normalize) {
+  ffi::set_normalize(*extractor, normalize);
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractEntitiesWithIndices(std::string &text) {
+  auto result = ffi::extract_entities_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractMentionedScreennamesWithIndices(std::string &text) {
+  auto result = ffi::extract_mentioned_screennames_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractMentionsOrListsWithIndices(std::string &text) {
+  auto result = ffi::extract_mentions_or_lists_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
+std::unique_ptr<MentionResult>
+ValidatingExtractor::extractReplyScreenname(std::string &text) {
+  std::cout << "befor ffi" << std::endl;
+  auto result = ffi::extract_reply_username_validated(*extractor, text);
+  std::cout << "after ffi" << std::endl;
+  return result;
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractUrlsWithIndices(std::string &text) {
+  auto result = ffi::extract_urls_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractHashtagsWithIndices(std::string &text) {
+  auto result = ffi::extract_hashtags_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
+std::unique_ptr<ExtractResult>
+ValidatingExtractor::extractCashtagsWithIndices(std::string &text) {
+  auto result = ffi::extract_cashtags_with_indices_validated(*extractor, text);
+  return convertResult(result);
+}
+
 // HitHighlighter
 std::string
 HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
-    return std::string(ffi::hit_highlight(*highlighter, text, hits));
+  return std::string(ffi::hit_highlight(*highlighter, text, hits));
 }
 
 // Validator
@@ -411,31 +485,5 @@ void
 Validator::setShortUrlLengthHttps(int32_t i) {
   return ffi::set_short_url_length_https(*validator, i);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 } // twitter_text
