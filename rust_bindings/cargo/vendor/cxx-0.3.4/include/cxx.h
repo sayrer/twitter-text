@@ -139,8 +139,10 @@ public:
   T *operator->() noexcept;
   T &operator*() noexcept;
 
+#ifndef SWIG
   template <typename... Fields>
   static Box in_place(Fields &&...);
+#endif
 
   // Important: requires that `raw` came from an into_raw call. Do not pass a
   // pointer from `new` or any other source.

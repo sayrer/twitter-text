@@ -93,6 +93,11 @@ http_archive(
 load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
+nixpkgs_package(
+    name = "python3Full",
+    repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
+)
+
 #
 # C++
 #

@@ -1,6 +1,7 @@
 #pragma once
 #include "rust/twitter-text/twitter-text.h"
 
+
 namespace twitter_text {
 
 class TwitterTextConfiguration {
@@ -36,9 +37,14 @@ public:
 
   std::vector<ffi::WeightedRange> getRanges();
 
+  static std::unique_ptr<TwitterTextConfiguration> configV1();
+  static std::unique_ptr<TwitterTextConfiguration> configV2();
+  static std::unique_ptr<TwitterTextConfiguration> configV3();
+
 private:
   std::unique_ptr<ffi::Configuration> config;
   friend class ValidatingExtractor;
+  friend class TwitterTextParser;
 };
 
 class Autolinker {
@@ -199,7 +205,11 @@ public:
 
 private:
   ::rust::Box<ffi::Validator> validator;
-}; 
+};
+
+class TwitterTextParser {
+public:
+  static TwitterTextParseResults parse(std::string &text, TwitterTextConfiguration &ttc, bool parseUrls);
+};
 
 } // twitter_text
-

@@ -7,28 +7,41 @@ filegroup(
 
 load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library", "rust_test")
 
+twitter_text_srcs = [
+    "src/autolinker.rs",
+    "src/entity.rs",
+    "src/extractor.rs",
+    "src/hit_highlighter.rs",
+    "src/validator.rs",
+    "src/lib.rs",
+]
+
+twitter_text_deps = [
+    "//rust/config:twitter_text_config",
+    "//rust/parser:twitter_text_parser",
+    "//rust_bindings/cargo:cxx",
+    "//rust_bindings/cargo:idna",
+    "//rust_bindings/cargo:pest",
+    "//rust_bindings/cargo:unicode_normalization",
+]
+
+twitter_text_data = [
+    ":cxxbridge",
+    ":twitter_text_h",
+]
+
 rust_library(
     name = "twitter_text",
-    srcs = [
-        "src/autolinker.rs",
-        "src/entity.rs",
-        "src/extractor.rs",
-        "src/hit_highlighter.rs",
-        "src/validator.rs",
-        "src/lib.rs",
-    ],
-    deps = [
-        "//rust/config:twitter_text_config",
-        "//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:cxx",
-        "//rust_bindings/cargo:idna",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:unicode_normalization",
-    ],
-    data = [
-        ":cxxbridge",
-        ":twitter_text_h",
-    ],
+    srcs = twitter_text_srcs,
+    deps = twitter_text_deps,
+    data = twitter_text_data,
+)
+
+rust_library(
+    name = "twitter_text_static",
+    srcs = twitter_text_srcs,
+    deps = twitter_text_deps,
+    data = twitter_text_data,
     crate_type = "staticlib",
 )
 
@@ -83,7 +96,7 @@ cc_library(
     srcs = [
         ":twitter_text_cpp",
         ":cxx_wrapper",
-        "//rust/twitter-text:twitter_text",
+        ":twitter_text_static",
         "//rust_bindings/cargo:cxx_cc_library",
     ],
     linkstatic = True,

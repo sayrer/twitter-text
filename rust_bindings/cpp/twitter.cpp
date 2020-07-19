@@ -81,6 +81,21 @@ TwitterTextConfiguration::getRanges() {
   return stdv;
 }
 
+std::unique_ptr<TwitterTextConfiguration>
+TwitterTextConfiguration::configV1() {
+  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v1()));
+}
+
+std::unique_ptr<TwitterTextConfiguration>
+TwitterTextConfiguration::configV2() {
+  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v2()));
+}
+
+std::unique_ptr<TwitterTextConfiguration>
+TwitterTextConfiguration::configV3() {
+  return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v3()));
+}
+
 // Autolinker
 bool
 Autolinker::getNoFollow() {
@@ -400,10 +415,7 @@ ValidatingExtractor::extractMentionsOrListsWithIndices(std::string &text) {
 
 std::unique_ptr<MentionResult>
 ValidatingExtractor::extractReplyScreenname(std::string &text) {
-  std::cout << "befor ffi" << std::endl;
-  auto result = ffi::extract_reply_username_validated(*extractor, text);
-  std::cout << "after ffi" << std::endl;
-  return result;
+  return ffi::extract_reply_username_validated(*extractor, text);
 }
 
 std::unique_ptr<ExtractResult>
@@ -485,5 +497,11 @@ void
 Validator::setShortUrlLengthHttps(int32_t i) {
   return ffi::set_short_url_length_https(*validator, i);
 }
+
+TwitterTextParseResults
+TwitterTextParser::parse(std::string &text, TwitterTextConfiguration &ttc, bool parseUrls) {
+  return ffi::parse_ffi(text, *ttc.config, parseUrls);
+}
+
 
 } // twitter_text

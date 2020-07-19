@@ -527,7 +527,6 @@ TEST(ValidatingExtractorTest, Yaml) {
   for (ReplyTestCase test : replies) {
     std::unique_ptr<MentionResult> result = extractor->extractReplyScreenname(test.text);
     if (test.expected) {
-      std::cout << result->mention << std::endl;
       ASSERT_EQ(*test.expected, std::string(result->mention->value));
     } else {
       ASSERT_TRUE(!result->mention);

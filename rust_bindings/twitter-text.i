@@ -1,8 +1,8 @@
  %module twittertext
  %{
  /* Includes the header in the wrapper code */
- #include "twitter-text.h"
+ #include "rust_bindings/cpp/twitter.h"
  %}
  
  /* Parse the header file to generate wrappers */
- %include "twitter-text.h"
+ %include "rust_bindings/cpp/twitter.h"
