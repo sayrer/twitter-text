@@ -190,34 +190,9 @@ Autolinker::autolinkCashtags(std::string &text) {
 }
 
 // Extractor
-bool
-Extractor::getExtractUrlWithoutProtocol() {
-  return ffi::get_extract_url_without_protocol(*extractor);
-}
-
-void
-Extractor::setExtractUrlWithoutProtocol(bool extractUrlwp) {
-  ffi::set_extract_url_without_protocol(*extractor, extractUrlwp);
-}
-
-std::vector<Entity>
-entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-  std::vector<Entity> stdv;
-  stdv.reserve(rustVec.size());
-  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-  return stdv;
-}
-
-std::unique_ptr<ExtractResult>
-convertResult(ffi::ExtractResult &result) {
-  std::unique_ptr<ExtractResult> er(new ExtractResult());
-  er->parseResults = result.parse_results;
-  er->entities = entitiesToCpp(result.entities);
-  return er;
-}
 
 std::vector<std::string>
-extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
+Extractor::extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
   std::vector<std::string> stdv;
   stdv.reserve(rustVec.size());
   for (ffi::ExtractorString es : rustVec) {
@@ -227,68 +202,11 @@ extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
 }
 
 std::vector<Entity>
-Extractor::extractEntitiesWithIndices(std::string &text) {
-  auto entities = ffi::extract_entities_with_indices(*extractor, text);
-  return entitiesToCpp(entities); 
-}
-
-std::vector<std::string>
-Extractor::extractMentionedScreennames(std::string &text) {
-  auto extractor_strings = ffi::extract_mentioned_screennames(*extractor, text);
-  return extractorStringsToCpp(extractor_strings);
-}
-
-std::vector<Entity>
-Extractor::extractMentionedScreennamesWithIndices(std::string &text) {
-  auto entities = ffi::extract_mentioned_screennames_with_indices(*extractor, text);
-  return entitiesToCpp(entities); 
-}
-
-std::vector<Entity>
-Extractor::extractMentionsOrListsWithIndices(std::string &text) {
-  auto entities = ffi::extract_mentions_or_lists_with_indices(*extractor, text);
-  return entitiesToCpp(entities);
-}
-
-std::unique_ptr<Entity>
-Extractor::extractReplyScreenname(std::string &text) {
-  return ffi::extract_reply_username(*extractor, text);
-}
-
-std::vector<std::string>
-Extractor::extractUrls(std::string &text) {
-  auto extractor_strings = ffi::extract_urls(*extractor, text);
-  return extractorStringsToCpp(extractor_strings);
-}
-
-std::vector<Entity>
-Extractor::extractUrlsWithIndices(std::string &text) {
-  auto entities = ffi::extract_urls_with_indices(*extractor, text);
-  return entitiesToCpp(entities);
-}
-
-std::vector<std::string>
-Extractor::extractHashtags(std::string &text) {
-  auto extractor_strings = ffi::extract_hashtags(*extractor, text);
-  return extractorStringsToCpp(extractor_strings); 
-}
-
-std::vector<Entity>
-Extractor::extractHashtagsWithIndices(std::string &text) {
-  auto entities = ffi::extract_hashtags_with_indices(*extractor, text);
-  return entitiesToCpp(entities);
-}
-
-std::vector<std::string>
-Extractor::extractCashtags(std::string &text) {
-  auto extractor_strings = ffi::extract_cashtags(*extractor, text);
-  return extractorStringsToCpp(extractor_strings); 
-}
-
-std::vector<Entity>
-Extractor::extractCashtagsWithIndices(std::string &text) {
-  auto entities = ffi::extract_cashtags_with_indices(*extractor, text);
-  return entitiesToCpp(entities);
+Extractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+  std::vector<Entity> stdv;
+  stdv.reserve(rustVec.size());
+  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+  return stdv;
 }
 
 // ValidatingExtractor
@@ -300,6 +218,15 @@ ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::extractReplyS
 }
 
 template<>
+std::vector<Entity>
+ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+  std::vector<Entity> stdv;
+  stdv.reserve(rustVec.size());
+  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+  return stdv;
+}
+
+template<>
 std::unique_ptr<ExtractResult>
 ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::convertResult(ffi::ExtractResult &result) {
   std::unique_ptr<ExtractResult> er(new ExtractResult());
@@ -307,7 +234,6 @@ ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::convertResult
   er->entities = entitiesToCpp(result.entities);
   return er;
 }
-
 
 // HitHighlighter
 std::string

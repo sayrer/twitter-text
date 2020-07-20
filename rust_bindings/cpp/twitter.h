@@ -166,21 +166,71 @@ public:
     extractor(ffi::make_extractor()) 
   {}
 
-  bool getExtractUrlWithoutProtocol();
-  void setExtractUrlWithoutProtocol(bool extractUrlwp);
-  std::vector<Entity> extractEntitiesWithIndices(std::string &text);
-  std::vector<std::string> extractMentionedScreennames(std::string &text);
-  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text);
-  std::vector<Entity> extractMentionsOrListsWithIndices(std::string &text);
-  std::unique_ptr<Entity> extractReplyScreenname(std::string &text);
-  std::vector<std::string> extractUrls(std::string &text);
-  std::vector<Entity> extractUrlsWithIndices(std::string &text);
-  std::vector<std::string> extractHashtags(std::string &text);
-  std::vector<Entity> extractHashtagsWithIndices(std::string &text);
-  std::vector<std::string> extractCashtags(std::string &text);
-  std::vector<Entity> extractCashtagsWithIndices(std::string &text);
+  bool getExtractUrlWithoutProtocol() {
+    return ffi::get_extract_url_without_protocol(*extractor);
+  }
+
+  void setExtractUrlWithoutProtocol(bool extractUrlwp) {
+    ffi::set_extract_url_without_protocol(*extractor, extractUrlwp);
+  }
+
+  std::vector<Entity> extractEntitiesWithIndices(std::string &text) {
+    auto entities = ffi::extract_entities_with_indices(*extractor, text);
+    return entitiesToCpp(entities); 
+  }
+
+  std::vector<std::string> extractMentionedScreennames(std::string &text) {
+    auto extractor_strings = ffi::extract_mentioned_screennames(*extractor, text);
+    return extractorStringsToCpp(extractor_strings);
+  }
+
+  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text) {
+    auto entities = ffi::extract_mentioned_screennames_with_indices(*extractor, text);
+    return entitiesToCpp(entities); 
+  }
+
+  std::vector<Entity> extractMentionsOrListsWithIndices(std::string &text) {
+    auto entities = ffi::extract_mentions_or_lists_with_indices(*extractor, text);
+    return entitiesToCpp(entities);
+  }
+
+  std::unique_ptr<Entity> extractReplyScreenname(std::string &text) {
+    return ffi::extract_reply_username(*extractor, text);
+  }
+
+  std::vector<std::string> extractUrls(std::string &text) {
+    auto extractor_strings = ffi::extract_urls(*extractor, text);
+    return extractorStringsToCpp(extractor_strings);
+  }
+
+  std::vector<Entity> extractUrlsWithIndices(std::string &text) {
+    auto entities = ffi::extract_urls_with_indices(*extractor, text);
+    return entitiesToCpp(entities);
+  }
+
+  std::vector<std::string> extractHashtags(std::string &text) {
+    auto extractor_strings = ffi::extract_hashtags(*extractor, text);
+    return extractorStringsToCpp(extractor_strings); 
+  }
+
+  std::vector<Entity> extractHashtagsWithIndices(std::string &text) {
+    auto entities = ffi::extract_hashtags_with_indices(*extractor, text);
+    return entitiesToCpp(entities);
+  }
+
+  std::vector<std::string> extractCashtags(std::string &text) {
+    auto extractor_strings = ffi::extract_cashtags(*extractor, text);
+    return extractorStringsToCpp(extractor_strings); 
+  }
+
+  std::vector<Entity> extractCashtagsWithIndices(std::string &text) {
+    auto entities = ffi::extract_cashtags_with_indices(*extractor, text);
+    return entitiesToCpp(entities);
+  }
 
 private:
+  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
+  std::vector<std::string> extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec);
   ::rust::Box<ffi::Extractor> extractor;
 };
 
@@ -253,6 +303,7 @@ public:
 
 private:
   std::unique_ptr<ExtractResult> convertResult(ffi::ExtractResult &result);
+  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
   ::rust::Box<ffi::FFIValidatingExtractor> extractor;
 };
 
