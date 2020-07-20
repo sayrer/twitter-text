@@ -143,10 +143,10 @@ TEST(ValidatorTest, Yaml) {
 }
 
 void
-validateWeighting(std::vector<WeightedTweetTestCase> &tests, TwitterTextConfiguration &config) {
+validateWeighting(std::vector<WeightedTweetTestCase> &tests, TwitterTextConfiguration<> &config) {
   ASSERT_TRUE(tests.size() > 0);
   for (WeightedTweetTestCase test : tests) {
-    auto result = TwitterTextParser::parse(test.text, config, true);
+    auto result = TwitterTextParser<>::parse(test.text, config, true);
     ASSERT_EQ(test.expected.weightedLength, result.weighted_length);
     ASSERT_EQ(test.expected.valid, result.is_valid);
     ASSERT_EQ(test.expected.permillage, result.permillage);
@@ -163,9 +163,9 @@ TEST(ValidatorTest, Weighted) {
   auto emoji_tests = readYaml<WeightedTweetTestCase>(map["tests"]["WeightedTweetsWithDiscountedEmojiCounterTest"]);
   auto directional_marker_tests = readYaml<WeightedTweetTestCase>(map["tests"]["UnicodeDirectionalMarkerCounterTest"]);
 
-  validateWeighting(counter_tests, *TwitterTextConfiguration::configV2());
-  validateWeighting(emoji_tests, *TwitterTextConfiguration::configV3());
-  validateWeighting(directional_marker_tests, *TwitterTextConfiguration::configV3());
+  validateWeighting(counter_tests, *TwitterTextConfiguration<>::configV2());
+  validateWeighting(emoji_tests, *TwitterTextConfiguration<>::configV3());
+  validateWeighting(directional_marker_tests, *TwitterTextConfiguration<>::configV3());
 }
 
 } // twitter_text

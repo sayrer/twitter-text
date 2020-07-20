@@ -463,15 +463,15 @@ TEST(ExtractorTest, Yaml) {
 }
 
 TEST(ValidatingExtractorTest, Ctor) {
-  TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  TwitterTextConfiguration<> config;
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   ASSERT_NE(extractor, nullptr);
   delete extractor;
 }
 
 TEST(ValidatingExtractorTest, Accessors) {
-  TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  TwitterTextConfiguration<> config;
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   ASSERT_NE(extractor, nullptr);
 
   ASSERT_EQ(extractor->getNormalize(), true);
@@ -486,8 +486,8 @@ TEST(ValidatingExtractorTest, Accessors) {
 }
 
 TEST(ValidatingExtractorTest, Yaml) {
-  TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  TwitterTextConfiguration<> config;
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/extract.yml");
   auto mentions_with_indices = readYaml<MentionIndexTestCase>(map["tests"]["mentions_with_indices"]);
   auto mentions_or_lists_with_indices = readYaml<MentionOrListIndexTestCase>(map["tests"]["mentions_or_lists_with_indices"]);
