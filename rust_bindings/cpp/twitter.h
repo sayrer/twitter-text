@@ -92,7 +92,6 @@ private:
 
   friend class ValidatingExtractor;
 
-  template<typename V3, typename S3>
   friend class TwitterTextParser;
 };
 
@@ -370,10 +369,6 @@ private:
   ::rust::Box<ffi::Validator> validator;
 };
 
-template<
-  typename V = std::vector<ffi::WeightedRange>,
-  typename S = std::string
->
 class TwitterTextParser {
 public:
   static TwitterTextParseResults parse(std::string &text, TwitterTextConfiguration &ttc, bool parseUrls) {

@@ -146,7 +146,7 @@ void
 validateWeighting(std::vector<WeightedTweetTestCase> &tests, TwitterTextConfiguration &config) {
   ASSERT_TRUE(tests.size() > 0);
   for (WeightedTweetTestCase test : tests) {
-    auto result = TwitterTextParser<>::parse(test.text, config, true);
+    auto result = TwitterTextParser::parse(test.text, config, true);
     ASSERT_EQ(test.expected.weightedLength, result.weighted_length);
     ASSERT_EQ(test.expected.valid, result.is_valid);
     ASSERT_EQ(test.expected.permillage, result.permillage);
