@@ -54,7 +54,7 @@ std::vector<HighlightTestCase>
 readYaml(YAML::Node node) {
 	std::vector<HighlightTestCase> testcases;
 	for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
-    	const YAML::Node& test = *it;
+    const YAML::Node& test = *it;
 		testcases.push_back(test.as<HighlightTestCase>());
 	}
 	return testcases;

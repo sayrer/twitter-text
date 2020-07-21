@@ -4,15 +4,6 @@
 
 namespace twitter_text {
 
-// TwitterTextConfiguration
-template<>
-std::vector<ffi::WeightedRange> 
-TwitterTextConfiguration<std::vector<ffi::WeightedRange>, std::string>::getRanges() {
-  std::vector<ffi::WeightedRange> stdv;
-  std::copy(config->ranges.begin(), config->ranges.end(), std::back_inserter(stdv));
-  return stdv;
-}
-
 // Autolinker
 bool
 Autolinker::getNoFollow() {
@@ -24,9 +15,9 @@ Autolinker::setNoFollow(bool noFollow) {
   config->no_follow = noFollow;
 }
 
-std::string
+::rust::String
 Autolinker::getUrlClass() {
-  return std::string(config->url_class);
+  return config->url_class;
 }
 
 void
@@ -34,9 +25,9 @@ Autolinker::setUrlClass(std::string urlClass) {
   config->url_class = ::rust::String(urlClass);
 }
 
-std::string
+::rust::String
 Autolinker::getUrlTarget() {
-  return std::string(config->url_target);
+  return config->url_target;
 }
 
 void
@@ -44,9 +35,9 @@ Autolinker::setUrlTarget(std::string urlTarget) {
   config->url_target = ::rust::String(urlTarget);
 }
 
-std::string
+::rust::String
 Autolinker::getSymbolTag() {
-  return std::string(config->symbol_tag);
+  return config->symbol_tag;
 }
 
 void
@@ -54,9 +45,9 @@ Autolinker::setSymbolTag(std::string symbolTag) {
   config->symbol_tag = ::rust::String(symbolTag);
 }
 
-std::string
+::rust::String
 Autolinker::getTextWithSymbolTag() {
-  return std::string(config->text_with_symbol_tag); 
+  return config->text_with_symbol_tag; 
 }
 
 void
@@ -64,7 +55,7 @@ Autolinker::setTextWithSymbolTag(std::string textWithSymbolTag) {
   config->text_with_symbol_tag = ::rust::String(textWithSymbolTag);
 }
 
-std::string
+::rust::String
 Autolinker::getListClass() {
   return std::string(config->list_class); 
 }
@@ -74,7 +65,7 @@ Autolinker::setListClass(std::string listClass) {
   config->list_class = rust::String(listClass);
 }
 
-std::string
+::rust::String
 Autolinker::getUsernameClass() {
   return std::string(config->username_class);
 }
@@ -84,9 +75,9 @@ Autolinker::setUsernameClass(std::string usernameClass) {
   config->username_class = ::rust::String(usernameClass);
 }
 
-std::string
+::rust::String
 Autolinker::getHashtagClass() {
-  return std::string(config->hashtag_class);  
+  return config->hashtag_class;
 }
 
 void
@@ -94,9 +85,9 @@ Autolinker::setHashtagClass(std::string hashtagClass) {
   config->hashtag_class = ::rust::String(hashtagClass);
 }
 
-std::string
+::rust::String
 Autolinker::getCashtagClass() {
-  return std::string(config->cashtag_class);  
+  return config->cashtag_class;  
 }
 
 void
@@ -104,9 +95,9 @@ Autolinker::setCashtagClass(std::string cashtagClass) {
   config->cashtag_class = ::rust::String(cashtagClass);
 }
 
-std::string
+::rust::String
 Autolinker::getUsernameUrlBase() {
-  return std::string(config->username_url_base);  
+  return config->username_url_base;  
 }
 
 void
@@ -114,9 +105,9 @@ Autolinker::setUsernameUrlBase(std::string usernameUrlBase) {
   config->username_url_base = ::rust::String(usernameUrlBase);
 }
 
-std::string
+::rust::String
 Autolinker::getListUrlBase() {
-  return std::string(config->list_url_base);
+  return config->list_url_base;
 }
 
 void
@@ -124,9 +115,9 @@ Autolinker::setListUrlBase(std::string listUrlBase) {
   config->list_url_base = ::rust::String(listUrlBase);
 }
 
-std::string
+::rust::String
 Autolinker::getHashtagUrlBase() {
-  return std::string(config->hashtag_url_base);  
+  return config->hashtag_url_base;  
 }
 
 void
@@ -134,9 +125,9 @@ Autolinker::setHashtagUrlBase(std::string hashtagUrlBase) {
   config->hashtag_url_base = ::rust::String(hashtagUrlBase);
 }
 
-std::string
+::rust::String
 Autolinker::getCashtagUrlBase() {
-  return std::string(config->cashtag_url_base);
+  return config->cashtag_url_base;
 }
 
 void
@@ -144,9 +135,9 @@ Autolinker::setCashtagUrlBase(std::string cashtagUrlBase) {
   config->cashtag_url_base = ::rust::String(cashtagUrlBase);
 }
 
-std::string
+::rust::String
 Autolinker::getInvisibleTagAttrs() {
-  return std::string(config->invisible_tag_attrs);
+  return config->invisible_tag_attrs;
 }
 
 void
@@ -164,29 +155,29 @@ Autolinker::setUsernameIncludeSymbol(bool usernameIncludeSymbol) {
   config->username_include_symbol = usernameIncludeSymbol;
 }
 
-std::string
+::rust::String
 Autolinker::autolink(std::string &text) {
-  return std::string(ffi::autolink(text, *config));
+  return ffi::autolink(text, *config);
 }
 
-std::string
+::rust::String
 Autolinker::autolinkUsernamesAndLists(std::string &text) {
-  return std::string(ffi::autolink_usernames_and_lists(text, *config));
+  return ffi::autolink_usernames_and_lists(text, *config);
 }
 
-std::string
+::rust::String
 Autolinker::autolinkHashtags(std::string &text) {
-  return std::string(ffi::autolink_hashtags(text, *config));
+  return ffi::autolink_hashtags(text, *config);
 }
 
-std::string
+::rust::String
 Autolinker::autolinkUrls(std::string &text) {
-  return std::string(ffi::autolink_urls(text, *config));
+  return ffi::autolink_urls(text, *config);
 }
 
-std::string
+::rust::String
 Autolinker::autolinkCashtags(std::string &text) { 
-  return std::string(ffi::autolink_cashtags(text, *config));
+  return ffi::autolink_cashtags(text, *config);
 }
 
 // Extractor
@@ -201,34 +192,23 @@ Extractor::extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
   return stdv;
 }
 
-std::vector<Entity>
-Extractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-  std::vector<Entity> stdv;
-  stdv.reserve(rustVec.size());
-  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-  return stdv;
-}
-
 // ValidatingExtractor
 
-template<>
 std::unique_ptr<MentionResult>
-ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::extractReplyScreenname(std::string &text) {
+ValidatingExtractor::extractReplyScreenname(std::string &text) {
   return ffi::extract_reply_username_validated(*extractor, text);
 }
 
-template<>
 std::vector<Entity>
-ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+ValidatingExtractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
   std::vector<Entity> stdv;
   stdv.reserve(rustVec.size());
   std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
   return stdv;
 }
 
-template<>
 std::unique_ptr<ExtractResult>
-ValidatingExtractor<std::vector<ffi::WeightedRange>, std::string>::convertResult(ffi::ExtractResult &result) {
+ValidatingExtractor::convertResult(ffi::ExtractResult &result) {
   std::unique_ptr<ExtractResult> er(new ExtractResult());
   er->parseResults = result.parse_results;
   er->entities = entitiesToCpp(result.entities);

@@ -3,10 +3,6 @@
 
 namespace twitter_text {
 
-template<
-  typename V = std::vector<ffi::WeightedRange>,
-  typename S = std::string
->
 class TwitterTextConfiguration {
 public:
   TwitterTextConfiguration(): TwitterTextConfiguration(ffi::default_config())
@@ -85,12 +81,15 @@ public:
     return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v3()));
   }
 
-  V getRanges();
+  std::vector<ffi::WeightedRange> getRanges() {
+    std::vector<ffi::WeightedRange> stdv;
+    std::copy(config->ranges.begin(), config->ranges.end(), std::back_inserter(stdv));
+    return stdv;
+  }
 
 private:
   std::unique_ptr<ffi::Configuration> config;
 
-  template<typename V2, typename S2>
   friend class ValidatingExtractor;
 
   template<typename V3, typename S3>
@@ -106,53 +105,53 @@ public:
   bool getNoFollow();
   void setNoFollow(bool noFollow);
 
-  std::string getUrlClass();
+  ::rust::String getUrlClass();
   void setUrlClass(std::string urlClass);
 
-  std::string getUrlTarget();
+  ::rust::String getUrlTarget();
   void setUrlTarget(std::string urlTarget);
 
-  std::string getSymbolTag();
+  ::rust::String getSymbolTag();
   void setSymbolTag(std::string symbolTag);
 
-  std::string getTextWithSymbolTag();
+  ::rust::String getTextWithSymbolTag();
   void setTextWithSymbolTag(std::string textWithSymbolTag);
 
-  std::string getListClass();
+  ::rust::String getListClass();
   void setListClass(std::string listClass);
 
-  std::string getUsernameClass();
+  ::rust::String getUsernameClass();
   void setUsernameClass(std::string usernameClass);
 
-  std::string getHashtagClass();
+  ::rust::String getHashtagClass();
   void setHashtagClass(std::string hashtagClass);
 
-  std::string getCashtagClass();
+  ::rust::String getCashtagClass();
   void setCashtagClass(std::string cashtagClass);
 
-  std::string getUsernameUrlBase();
+  ::rust::String getUsernameUrlBase();
   void setUsernameUrlBase(std::string usernameUrlBase);
 
-  std::string getListUrlBase();
+  ::rust::String getListUrlBase();
   void setListUrlBase(std::string listUrlBase);
 
-  std::string getHashtagUrlBase();
+  ::rust::String getHashtagUrlBase();
   void setHashtagUrlBase(std::string hashtagUrlBase);
 
-  std::string getCashtagUrlBase();
+  ::rust::String getCashtagUrlBase();
   void setCashtagUrlBase(std::string cashtagUrlBase);
 
-  std::string getInvisibleTagAttrs();
+  ::rust::String getInvisibleTagAttrs();
   void setInvisibleTagAttrs(std::string invisibleTagAttrs);
 
   bool getUsernameIncludeSymbol();
   void setUsernameIncludeSymbol(bool usernameIncludeSymbol);
 
-  std::string autolink(std::string &text);
-  std::string autolinkUsernamesAndLists(std::string &text);
-  std::string autolinkHashtags(std::string &text);
-  std::string autolinkUrls(std::string &text);
-  std::string autolinkCashtags(std::string &text);
+  ::rust::String autolink(std::string &text);
+  ::rust::String autolinkUsernamesAndLists(std::string &text);
+  ::rust::String autolinkHashtags(std::string &text);
+  ::rust::String autolinkUrls(std::string &text);
+  ::rust::String autolinkCashtags(std::string &text);
 
 private:
   std::unique_ptr<ffi::AutolinkerConfig> config;
@@ -184,14 +183,12 @@ public:
     return extractorStringsToCpp(extractor_strings);
   }
 
-  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string &text) {
-    auto entities = ffi::extract_mentioned_screennames_with_indices(*extractor, text);
-    return entitiesToCpp(entities); 
+  ::rust::Vec<Entity> extractMentionedScreennamesWithIndices(std::string &text) {
+    return ffi::extract_mentioned_screennames_with_indices(*extractor, text);
   }
 
-  std::vector<Entity> extractMentionsOrListsWithIndices(std::string &text) {
-    auto entities = ffi::extract_mentions_or_lists_with_indices(*extractor, text);
-    return entitiesToCpp(entities);
+  ::rust::Vec<Entity> extractMentionsOrListsWithIndices(std::string &text) {
+    return ffi::extract_mentions_or_lists_with_indices(*extractor, text);
   }
 
   std::unique_ptr<Entity> extractReplyScreenname(std::string &text) {
@@ -203,9 +200,8 @@ public:
     return extractorStringsToCpp(extractor_strings);
   }
 
-  std::vector<Entity> extractUrlsWithIndices(std::string &text) {
-    auto entities = ffi::extract_urls_with_indices(*extractor, text);
-    return entitiesToCpp(entities);
+  ::rust::Vec<Entity> extractUrlsWithIndices(std::string &text) {
+    return ffi::extract_urls_with_indices(*extractor, text);
   }
 
   std::vector<std::string> extractHashtags(std::string &text) {
@@ -213,9 +209,8 @@ public:
     return extractorStringsToCpp(extractor_strings); 
   }
 
-  std::vector<Entity> extractHashtagsWithIndices(std::string &text) {
-    auto entities = ffi::extract_hashtags_with_indices(*extractor, text);
-    return entitiesToCpp(entities);
+  ::rust::Vec<Entity> extractHashtagsWithIndices(std::string &text) {
+    return ffi::extract_hashtags_with_indices(*extractor, text);
   }
 
   std::vector<std::string> extractCashtags(std::string &text) {
@@ -223,9 +218,8 @@ public:
     return extractorStringsToCpp(extractor_strings); 
   }
 
-  std::vector<Entity> extractCashtagsWithIndices(std::string &text) {
-    auto entities = ffi::extract_cashtags_with_indices(*extractor, text);
-    return entitiesToCpp(entities);
+  ::rust::Vec<Entity> extractCashtagsWithIndices(std::string &text) {
+    return ffi::extract_cashtags_with_indices(*extractor, text);
   }
 
 private:
@@ -243,13 +237,9 @@ struct ExtractResult final {
 
 typedef ffi::MentionResult MentionResult;
 
-template<
-  typename V = std::vector<ffi::WeightedRange>,
-  typename S = std::string
->
 class ValidatingExtractor {
 public:
-  ValidatingExtractor(TwitterTextConfiguration<V,S> &ttc):
+  ValidatingExtractor(TwitterTextConfiguration &ttc):
     extractor(ffi::make_validating_extractor(*ttc.config)) 
   {}
 
@@ -386,7 +376,7 @@ template<
 >
 class TwitterTextParser {
 public:
-  static TwitterTextParseResults parse(std::string &text, TwitterTextConfiguration<V, S> &ttc, bool parseUrls) {
+  static TwitterTextParseResults parse(std::string &text, TwitterTextConfiguration &ttc, bool parseUrls) {
     return ffi::parse_ffi(text, *ttc.config, parseUrls);
   }
 };

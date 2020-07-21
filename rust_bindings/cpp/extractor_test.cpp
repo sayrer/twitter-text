@@ -353,26 +353,28 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(mentions_with_indices.size() > 0);
   for (MentionIndexTestCase test : mentions_with_indices) {
-    std::vector<Entity> entities = extractor->extractMentionedScreennamesWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractMentionedScreennamesWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].screen_name);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].screen_name);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
   ASSERT_TRUE(mentions_or_lists_with_indices.size() > 0);
   for (MentionOrListIndexTestCase test : mentions_or_lists_with_indices) {
-    std::vector<Entity> entities = extractor->extractMentionsOrListsWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractMentionsOrListsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].screen_name);
-      ASSERT_EQ(std::string(entities[index].list_slug), test.expected[index].list_slug);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].screen_name);
+      ASSERT_EQ(std::string(entity.list_slug), test.expected[index].list_slug);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -393,25 +395,27 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(urls_with_indices.size() > 0);
   for (UrlIndexTestCase test : urls_with_indices) {
-    std::vector<Entity> entities = extractor->extractUrlsWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].url);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].url);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
   ASSERT_TRUE(urls_with_directional_markers.size() > 0);
   for (UrlIndexTestCase test : urls_with_directional_markers) {
-    std::vector<Entity> entities = extractor->extractUrlsWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].url);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].url);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -432,13 +436,14 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(hashtags_with_indices.size() > 0);
   for (HashtagIndexTestCase test : hashtags_with_indices) {
-    std::vector<Entity> entities = extractor->extractHashtagsWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractHashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].hashtag);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].hashtag);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -449,13 +454,14 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(cashtags_with_indices.size() > 0);
   for (CashtagIndexTestCase test : cashtags_with_indices) {
-    std::vector<Entity> entities = extractor->extractCashtagsWithIndices(test.text);
+    ::rust::Vec<Entity> entities = extractor->extractCashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), entities.size());
     for (auto it = entities.begin(); it != entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(entities.begin(), it);
-      ASSERT_EQ(std::string(entities[index].value), test.expected[index].cashtag);
-      ASSERT_EQ(entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].cashtag);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -463,15 +469,15 @@ TEST(ExtractorTest, Yaml) {
 }
 
 TEST(ValidatingExtractorTest, Ctor) {
-  TwitterTextConfiguration<> config;
-  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
   ASSERT_NE(extractor, nullptr);
   delete extractor;
 }
 
 TEST(ValidatingExtractorTest, Accessors) {
-  TwitterTextConfiguration<> config;
-  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
   ASSERT_NE(extractor, nullptr);
 
   ASSERT_EQ(extractor->getNormalize(), true);
@@ -486,8 +492,8 @@ TEST(ValidatingExtractorTest, Accessors) {
 }
 
 TEST(ValidatingExtractorTest, Yaml) {
-  TwitterTextConfiguration<> config;
-  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
+  TwitterTextConfiguration config;
+  ValidatingExtractor *extractor = new ValidatingExtractor(config);
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/extract.yml");
   auto mentions_with_indices = readYaml<MentionIndexTestCase>(map["tests"]["mentions_with_indices"]);
   auto mentions_or_lists_with_indices = readYaml<MentionOrListIndexTestCase>(map["tests"]["mentions_or_lists_with_indices"]);
