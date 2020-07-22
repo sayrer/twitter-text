@@ -156,27 +156,27 @@ Autolinker::setUsernameIncludeSymbol(bool usernameIncludeSymbol) {
 }
 
 ::rust::String
-Autolinker::autolink(std::string &text) {
+Autolinker::autolink(const std::string &text) {
   return ffi::autolink(text, *config);
 }
 
 ::rust::String
-Autolinker::autolinkUsernamesAndLists(std::string &text) {
+Autolinker::autolinkUsernamesAndLists(const std::string &text) {
   return ffi::autolink_usernames_and_lists(text, *config);
 }
 
 ::rust::String
-Autolinker::autolinkHashtags(std::string &text) {
+Autolinker::autolinkHashtags(const std::string &text) {
   return ffi::autolink_hashtags(text, *config);
 }
 
 ::rust::String
-Autolinker::autolinkUrls(std::string &text) {
+Autolinker::autolinkUrls(const std::string &text) {
   return ffi::autolink_urls(text, *config);
 }
 
 ::rust::String
-Autolinker::autolinkCashtags(std::string &text) { 
+Autolinker::autolinkCashtags(const std::string &text) { 
   return ffi::autolink_cashtags(text, *config);
 }
 
@@ -194,7 +194,7 @@ Extractor::extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
 
 // ValidatingExtractor
 
-std::unique_ptr<MentionResult>
+std::shared_ptr<MentionResult>
 ValidatingExtractor::extractReplyScreenname(std::string &text) {
   return ffi::extract_reply_username_validated(*extractor, text);
 }

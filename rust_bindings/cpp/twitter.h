@@ -8,17 +8,17 @@ public:
   TwitterTextConfiguration(): TwitterTextConfiguration(ffi::default_config())
   {}
 
-  TwitterTextConfiguration(std::unique_ptr<ffi::Configuration> config):
-    config(std::move(config))
+  TwitterTextConfiguration(std::shared_ptr<::twitter_text::ffi::Configuration> config):
+    config(config)
   {}
 
   // TODO: these are fallible, so the return type should change 
-  static std::unique_ptr<TwitterTextConfiguration> configuration_from_path(std::string path) {
-    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_path(path)));
+  static std::shared_ptr<TwitterTextConfiguration> configuration_from_path(std::string path) {
+    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_path(path)));
   }
 
-  static std::unique_ptr<TwitterTextConfiguration> configuration_from_json(std::string json) {
-    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_json(json)));
+  static std::shared_ptr<TwitterTextConfiguration> configuration_from_json(std::string json) {
+    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_json(json)));
   }
 
   int32_t getVersion() {
@@ -69,26 +69,26 @@ public:
     config->emoji_parsing_enabled = enabled;
   }
 
-  static std::unique_ptr<TwitterTextConfiguration> configV1()  {
-    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v1()));
+  static std::shared_ptr<TwitterTextConfiguration> configV1()  {
+    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v1()));
   }
 
-  static std::unique_ptr<TwitterTextConfiguration> configV2() {
-    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v2()));
+  static std::shared_ptr<TwitterTextConfiguration> configV2() {
+    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v2()));
   }
 
-  static std::unique_ptr<TwitterTextConfiguration> configV3() {
-    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v3()));
+  static std::shared_ptr<TwitterTextConfiguration> configV3() {
+    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::config_v3()));
   }
 
-  std::vector<ffi::WeightedRange> getRanges() {
+  std::vector<::twitter_text::ffi::WeightedRange> getRanges() {
     std::vector<ffi::WeightedRange> stdv;
     std::copy(config->ranges.begin(), config->ranges.end(), std::back_inserter(stdv));
     return stdv;
   }
 
 private:
-  std::unique_ptr<ffi::Configuration> config;
+  std::shared_ptr<ffi::Configuration> config;
 
   friend class ValidatingExtractor;
 
@@ -98,7 +98,7 @@ private:
 class Autolinker {
 public:
   Autolinker(): 
-    config(ffi::autolink_default_config()) 
+    config(::twitter_text::ffi::autolink_default_config()) 
   {}
 
   bool getNoFollow();
@@ -146,22 +146,22 @@ public:
   bool getUsernameIncludeSymbol();
   void setUsernameIncludeSymbol(bool usernameIncludeSymbol);
 
-  ::rust::String autolink(std::string &text);
-  ::rust::String autolinkUsernamesAndLists(std::string &text);
-  ::rust::String autolinkHashtags(std::string &text);
-  ::rust::String autolinkUrls(std::string &text);
-  ::rust::String autolinkCashtags(std::string &text);
+  ::rust::String autolink(const std::string &text);
+  ::rust::String autolinkUsernamesAndLists(const std::string &text);
+  ::rust::String autolinkHashtags(const std::string &text);
+  ::rust::String autolinkUrls(const std::string &text);
+  ::rust::String autolinkCashtags(const std::string &text);
 
 private:
-  std::unique_ptr<ffi::AutolinkerConfig> config;
+  std::unique_ptr<::twitter_text::ffi::AutolinkerConfig> config;
 };
 
-typedef ffi::Entity Entity;
+typedef ::twitter_text::ffi::Entity Entity;
 
 class Extractor {
 public:
   Extractor():
-    extractor(ffi::make_extractor()) 
+    extractor(::twitter_text::ffi::make_extractor()) 
   {}
 
   bool getExtractUrlWithoutProtocol() {
@@ -190,7 +190,7 @@ public:
     return ffi::extract_mentions_or_lists_with_indices(*extractor, text);
   }
 
-  std::unique_ptr<Entity> extractReplyScreenname(std::string &text) {
+  std::shared_ptr<Entity> extractReplyScreenname(std::string &text) {
     return ffi::extract_reply_username(*extractor, text);
   }
 
@@ -227,14 +227,14 @@ private:
   ::rust::Box<ffi::Extractor> extractor;
 };
 
-typedef ffi::TwitterTextParseResults TwitterTextParseResults;
+typedef ::twitter_text::ffi::TwitterTextParseResults TwitterTextParseResults;
 
 struct ExtractResult final {
   TwitterTextParseResults parseResults;
   std::vector<Entity> entities;
 };
 
-typedef ffi::MentionResult MentionResult;
+typedef ::twitter_text::ffi::MentionResult MentionResult;
 
 class ValidatingExtractor {
 public:
@@ -258,34 +258,34 @@ public:
     ffi::set_normalize(*extractor, normalize);
   }
 
-  std::unique_ptr<ExtractResult> extractEntitiesWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractEntitiesWithIndices(std::string &text) {
     auto result = ffi::extract_entities_with_indices_validated(*extractor, text);
     return convertResult(result);
   }
 
-  std::unique_ptr<ExtractResult> extractMentionedScreennamesWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractMentionedScreennamesWithIndices(std::string &text) {
     auto result = ffi::extract_mentioned_screennames_with_indices_validated(*extractor, text);
     return convertResult(result);
   }
 
-  std::unique_ptr<ExtractResult> extractMentionsOrListsWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractMentionsOrListsWithIndices(std::string &text) {
     auto result = ffi::extract_mentions_or_lists_with_indices_validated(*extractor, text);
     return convertResult(result);
   }
 
-  std::unique_ptr<MentionResult> extractReplyScreenname(std::string &text);
+  std::shared_ptr<MentionResult> extractReplyScreenname(std::string &text);
 
-  std::unique_ptr<ExtractResult> extractUrlsWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractUrlsWithIndices(std::string &text) {
     auto result = ffi::extract_urls_with_indices_validated(*extractor, text);
     return convertResult(result);
   }
 
-  std::unique_ptr<ExtractResult> extractHashtagsWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractHashtagsWithIndices(std::string &text) {
     auto result = ffi::extract_hashtags_with_indices_validated(*extractor, text);
     return convertResult(result);
   }
 
-  std::unique_ptr<ExtractResult> extractCashtagsWithIndices(std::string &text) {
+  std::shared_ptr<ExtractResult> extractCashtagsWithIndices(std::string &text) {
     auto result = ffi::extract_cashtags_with_indices_validated(*extractor, text);
     return convertResult(result);
   }

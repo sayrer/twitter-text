@@ -380,7 +380,7 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(replies.size() > 0);
   for (ReplyTestCase test : replies) {
-    std::unique_ptr<Entity> entity = extractor->extractReplyScreenname(test.text);
+    std::shared_ptr<Entity> entity = extractor->extractReplyScreenname(test.text);
     if (test.expected) {
       ASSERT_EQ(*test.expected, std::string(entity->value));
     } else {
@@ -506,7 +506,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(mentions_with_indices.size() > 0);
   for (MentionIndexTestCase test : mentions_with_indices) {
-    std::unique_ptr<ExtractResult> result = extractor->extractMentionedScreennamesWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractMentionedScreennamesWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
@@ -518,7 +518,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(mentions_or_lists_with_indices.size() > 0);
   for (MentionOrListIndexTestCase test : mentions_or_lists_with_indices) {
-    std::unique_ptr<ExtractResult> result = extractor->extractMentionsOrListsWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractMentionsOrListsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
@@ -531,7 +531,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(replies.size() > 0);
   for (ReplyTestCase test : replies) {
-    std::unique_ptr<MentionResult> result = extractor->extractReplyScreenname(test.text);
+    std::shared_ptr<MentionResult> result = extractor->extractReplyScreenname(test.text);
     if (test.expected) {
       ASSERT_EQ(*test.expected, std::string(result->mention->value));
     } else {
@@ -541,7 +541,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(urls_with_indices.size() > 0);
   for (UrlIndexTestCase test : urls_with_indices) {
-    std::unique_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
@@ -553,7 +553,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(urls_with_directional_markers.size() > 0);
   for (UrlIndexTestCase test : urls_with_directional_markers) {
-    std::unique_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
@@ -565,7 +565,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(hashtags_with_indices.size() > 0);
   for (HashtagIndexTestCase test : hashtags_with_indices) {
-    std::unique_ptr<ExtractResult> result = extractor->extractHashtagsWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractHashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
@@ -577,7 +577,7 @@ TEST(ValidatingExtractorTest, Yaml) {
 
   ASSERT_TRUE(cashtags_with_indices.size() > 0);
   for (CashtagIndexTestCase test : cashtags_with_indices) {
-    std::unique_ptr<ExtractResult> result = extractor->extractCashtagsWithIndices(test.text);
+    std::shared_ptr<ExtractResult> result = extractor->extractCashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
       size_t index = std::distance(result->entities.begin(), it);
