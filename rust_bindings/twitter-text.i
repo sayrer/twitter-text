@@ -13,6 +13,7 @@
 
 namespace std {
     %template(WeightedRangeList) vector<twitter_text::WeightedRange>;
+    %template(Hits) vector<twitter_text::Hit>;
 }
 
 namespace rust {
@@ -20,7 +21,6 @@ namespace rust {
     %typemap(out) String {
        $result = PyUnicode_FromStringAndSize($1.data(), $1.size());
     }
-
 }
 
 %ignore Box;
@@ -66,7 +66,6 @@ namespace rust {
 %ignore ExtractorString;
 %ignore MentionResult;
 %ignore ValidatingExtractor;
-%ignore HitHighlighter;
 %ignore TwitterTextParser;
 %ignore TwitterTextParseResults;
 %ignore Validator;

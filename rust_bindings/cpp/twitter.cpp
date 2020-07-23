@@ -201,7 +201,7 @@ ValidatingExtractor::extractReplyScreenname(std::string &text) {
 
 // HitHighlighter
 std::string
-HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
+HitHighlighter::highlight(const std::string &text, std::vector<Hit> &hits) {
   return std::string(hit_highlight(*highlighter, text, hits));
 }
 

@@ -292,7 +292,7 @@ public:
     highlighter(make_highlighter(tag_str)) 
   {}
 
-  std::string highlight(std::string &text, std::vector<Hit> &hits);
+  std::string highlight(const std::string &text, std::vector<Hit> &hits);
 
 private:
   ::rust::Box<RustHitHighlighter> highlighter;

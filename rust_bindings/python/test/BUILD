@@ -16,8 +16,8 @@ TEST_DEPS = [
 ]
 
 py_test(
-    name = "autolinker_test",
-    srcs = ["autolinker_test.py"],
+    name = "test_autolinker",
+    srcs = ["test_autolinker.py"],
     deps = TEST_DEPS,
     imports =[".."],
     python_version = "PY3",
@@ -28,14 +28,26 @@ py_test(
 )
 
 py_test(
-    name = "configuration_test",
-    srcs = ["configuration_test.py"],
+    name = "test_configuration",
+    srcs = ["test_configuration.py"],
     deps = TEST_DEPS,
     imports =[".."],
     python_version = "PY3",
     srcs_version = "PY3",
     data = [
         "//rust_bindings/cpp:config_test_data",
+        "//rust/conformance:yaml",
+    ],
+)
+
+py_test(
+    name = "test_hithighlighter",
+    srcs = ["test_hithighlighter.py"],
+    deps = TEST_DEPS,
+    imports =[".."],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    data = [
         "//rust/conformance:yaml",
     ],
 )
