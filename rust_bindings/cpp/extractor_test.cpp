@@ -509,10 +509,11 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractMentionedScreennamesWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].screen_name);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].screen_name);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -521,11 +522,12 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractMentionsOrListsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].screen_name);
-      ASSERT_EQ(std::string(result->entities[index].list_slug), test.expected[index].list_slug);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].screen_name);
+      ASSERT_EQ(std::string(entity.list_slug), test.expected[index].list_slug);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -544,10 +546,11 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].url);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].url);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -556,10 +559,11 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractUrlsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].url);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].url);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -568,10 +572,11 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractHashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].hashtag);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].hashtag);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 
@@ -580,10 +585,11 @@ TEST(ValidatingExtractorTest, Yaml) {
     std::shared_ptr<ExtractResult> result = extractor->extractCashtagsWithIndices(test.text);
     ASSERT_EQ(test.expected.size(), result->entities.size());
     for (auto it = result->entities.begin(); it != result->entities.end(); ++it) {
+      const Entity& entity = *it;
       size_t index = std::distance(result->entities.begin(), it);
-      ASSERT_EQ(std::string(result->entities[index].value), test.expected[index].cashtag);
-      ASSERT_EQ(result->entities[index].start, test.expected[index].indices[0]);
-      ASSERT_EQ(result->entities[index].end, test.expected[index].indices[1]);
+      ASSERT_EQ(std::string(entity.value), test.expected[index].cashtag);
+      ASSERT_EQ(entity.start, test.expected[index].indices[0]);
+      ASSERT_EQ(entity.end, test.expected[index].indices[1]);
     }
   }
 

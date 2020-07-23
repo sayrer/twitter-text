@@ -157,36 +157,36 @@ Autolinker::setUsernameIncludeSymbol(bool usernameIncludeSymbol) {
 
 ::rust::String
 Autolinker::autolink(const std::string &text) {
-  return ffi::autolink(text, *config);
+  return ::twitter_text::autolink_all(text, *config);
 }
 
 ::rust::String
 Autolinker::autolinkUsernamesAndLists(const std::string &text) {
-  return ffi::autolink_usernames_and_lists(text, *config);
+  return ::twitter_text::autolink_usernames_and_lists(text, *config);
 }
 
 ::rust::String
 Autolinker::autolinkHashtags(const std::string &text) {
-  return ffi::autolink_hashtags(text, *config);
+  return ::twitter_text::autolink_hashtags(text, *config);
 }
 
 ::rust::String
 Autolinker::autolinkUrls(const std::string &text) {
-  return ffi::autolink_urls(text, *config);
+  return ::twitter_text::autolink_urls(text, *config);
 }
 
 ::rust::String
 Autolinker::autolinkCashtags(const std::string &text) { 
-  return ffi::autolink_cashtags(text, *config);
+  return ::twitter_text::autolink_cashtags(text, *config);
 }
 
 // Extractor
 
 std::vector<std::string>
-Extractor::extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
+Extractor::extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
   std::vector<std::string> stdv;
   stdv.reserve(rustVec.size());
-  for (ffi::ExtractorString es : rustVec) {
+  for (ExtractorString es : rustVec) {
     stdv.push_back(std::string(es.s));
   }
   return stdv;
@@ -196,29 +196,13 @@ Extractor::extractorStringsToCpp(::rust::Vec<ffi::ExtractorString> &rustVec) {
 
 std::shared_ptr<MentionResult>
 ValidatingExtractor::extractReplyScreenname(std::string &text) {
-  return ffi::extract_reply_username_validated(*extractor, text);
-}
-
-std::vector<Entity>
-ValidatingExtractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-  std::vector<Entity> stdv;
-  stdv.reserve(rustVec.size());
-  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-  return stdv;
-}
-
-std::unique_ptr<ExtractResult>
-ValidatingExtractor::convertResult(ffi::ExtractResult &result) {
-  std::unique_ptr<ExtractResult> er(new ExtractResult());
-  er->parseResults = result.parse_results;
-  er->entities = entitiesToCpp(result.entities);
-  return er;
+  return extract_reply_username_validated(*extractor, text);
 }
 
 // HitHighlighter
 std::string
 HitHighlighter::highlight(std::string &text, std::vector<Hit> &hits) {
-  return std::string(ffi::hit_highlight(*highlighter, text, hits));
+  return std::string(hit_highlight(*highlighter, text, hits));
 }
 
 } // twitter_text

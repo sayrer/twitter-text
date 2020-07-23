@@ -43,6 +43,7 @@ genrule(
     srcs = [
       "//rust_bindings:swig_input", 
       "//rust_bindings/cpp:twitter_text_h",
+      "//rust/twitter-text:twitter_text_h",
     ],
     outs = ["twitter-text-py.cpp", "twitter_text.py"],
     cmd = "$(location @swig4//:bin/swig) -v -c++ -Dfinal= -python -o $(location twitter-text-py.cpp) -I$(BINDIR) $(location //rust_bindings:swig_input)",

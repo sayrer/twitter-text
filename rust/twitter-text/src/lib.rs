@@ -88,7 +88,7 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
     }
 }
 
-#[cxx::bridge(namespace = twitter_text::ffi)]
+#[cxx::bridge(namespace = twitter_text)]
 pub mod ffi {
     #[derive(Copy, Clone)]
     pub struct Range {
@@ -185,68 +185,72 @@ pub mod ffi {
 
         // Autolinker
         fn autolink_default_config() -> UniquePtr<AutolinkerConfig>;
-        fn autolink(text: &str, config: &AutolinkerConfig) -> String;
+        fn autolink_all(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_usernames_and_lists(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_hashtags(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_urls(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_cashtags(text: &str, config: &AutolinkerConfig) -> String;
 
         // Extractor
-        type Extractor;
-        fn make_extractor() -> Box<Extractor>;
-        fn get_extract_url_without_protocol(e: &Extractor) -> bool;
-        fn set_extract_url_without_protocol(e: &mut Extractor, extract_url_without_protocol: bool);
-        fn extract_entities_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<ExtractorString>;
-        fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str)  -> Vec<Entity>;
-        fn extract_reply_username(e: &Extractor, text: &str) -> UniquePtr<Entity>;
-        fn extract_urls(e: &Extractor, text: &str) -> Vec<ExtractorString>;
-        fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_hashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
-        fn extract_hashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
-        fn extract_cashtags(e: &Extractor, text: &str) -> Vec<ExtractorString>;
-        fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<Entity>;
+        type RustExtractor;
+        fn make_extractor() -> Box<RustExtractor>;
+        fn get_extract_url_without_protocol(r: &RustExtractor) -> bool;
+        fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_without_protocol: bool);
+        fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str)  -> Vec<Entity>;
+        fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<Entity>;
+        fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
 
         // ValidatingExtractor
-        type FFIValidatingExtractor;
-        fn make_validating_extractor(config: &Configuration) -> Box<FFIValidatingExtractor>;
-        fn get_extract_url_without_protocol_validated(e: &FFIValidatingExtractor) -> bool;
-        fn set_extract_url_without_protocol_validated(e: &mut FFIValidatingExtractor, extract_url_without_protocol: bool);
-        fn get_normalize(e: &FFIValidatingExtractor) -> bool;
-        fn set_normalize(e: &mut FFIValidatingExtractor, normalize: bool);
-        fn extract_entities_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_mentioned_screennames_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_mentions_or_lists_with_indices_validated(e: &FFIValidatingExtractor, text: &str)  -> ExtractResult;
-        fn extract_reply_username_validated(e: &FFIValidatingExtractor, text: &str) -> UniquePtr<MentionResult>;
-        fn extract_urls_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_hashtags_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
-        fn extract_cashtags_with_indices_validated(e: &FFIValidatingExtractor, text: &str) -> ExtractResult;
+        type RustValidatingExtractor;
+        fn make_validating_extractor(config: &Configuration) -> Box<RustValidatingExtractor>;
+        fn get_extract_url_without_protocol_validated(e: &RustValidatingExtractor) -> bool;
+        fn set_extract_url_without_protocol_validated(e: &mut RustValidatingExtractor, extract_url_without_protocol: bool);
+        fn get_normalize(e: &RustValidatingExtractor) -> bool;
+        fn set_normalize(e: &mut RustValidatingExtractor, normalize: bool);
+        fn extract_entities_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
+        fn extract_mentioned_screennames_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
+        fn extract_mentions_or_lists_with_indices_validated(e: &RustValidatingExtractor, text: &str)  -> UniquePtr<ExtractResult>;
+        fn extract_reply_username_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<MentionResult>;
+        fn extract_urls_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
+        fn extract_hashtags_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
+        fn extract_cashtags_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
 
         // HitHighlighter
-        type HitHighlighter;
-        fn make_highlighter(highlight_tag: &str) -> Box<HitHighlighter>;
-        fn make_default_highlighter() -> Box<HitHighlighter>;
-        fn hit_highlight(hh: &HitHighlighter, text: &str, hits: &CxxVector<Hit>) -> String;
+        type RustHitHighlighter;
+        fn make_highlighter(highlight_tag: &str) -> Box<RustHitHighlighter>;
+        fn make_default_highlighter() -> Box<RustHitHighlighter>;
+        fn hit_highlight(hh: &RustHitHighlighter, text: &str, hits: &CxxVector<Hit>) -> String;
 
         // Validator
-        type Validator;
-        fn make_default_validator() -> Box<Validator>;
-        fn is_valid_tweet(validator: &Validator, s: &str) -> bool;
-        fn is_valid_username(validator: &Validator, s: &str) -> bool;
-        fn is_valid_list(validator: &Validator, s: &str) -> bool;
-        fn is_valid_hashtag(validator: &Validator, s: &str) -> bool;
-        fn is_valid_url(validator: &Validator, s: &str) -> bool;
-        fn is_valid_url_without_protocol(validator: &Validator, s: &str) -> bool;
+        type RustValidator;
+        fn make_default_validator() -> Box<RustValidator>;
+        fn is_valid_tweet(validator: &RustValidator, s: &str) -> bool;
+        fn is_valid_username(validator: &RustValidator, s: &str) -> bool;
+        fn is_valid_list(validator: &RustValidator, s: &str) -> bool;
+        fn is_valid_hashtag(validator: &RustValidator, s: &str) -> bool;
+        fn is_valid_url(validator: &RustValidator, s: &str) -> bool;
+        fn is_valid_url_without_protocol(validator: &RustValidator, s: &str) -> bool;
         fn get_max_tweet_length() -> i32;
-        fn get_short_url_length(validator: &Validator) -> i32;
-        fn set_short_url_length(validator: &mut Validator, short_url_length: i32);
-        fn get_short_url_length_https(validator: &Validator) -> i32;
-        fn set_short_url_length_https(validator: &mut Validator, short_url_length_https: i32);
+        fn get_short_url_length(validator: &RustValidator) -> i32;
+        fn set_short_url_length(validator: &mut RustValidator, short_url_length: i32);
+        fn get_short_url_length_https(validator: &RustValidator) -> i32;
+        fn set_short_url_length_https(validator: &mut RustValidator, short_url_length_https: i32);
 
         fn parse_ffi(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults;
     }
 }
+
+type RustExtractor = Extractor;
+type RustHitHighlighter = HitHighlighter;
+type RustValidator = Validator;
 
 impl ffi::TwitterTextParseResults {
     fn from(results: TwitterTextParseResults) -> ffi::TwitterTextParseResults {
@@ -391,7 +395,7 @@ pub fn autolink_default_config() -> UniquePtr<ffi::AutolinkerConfig> {
     UniquePtr::new(Autolinker::default_config())
 }
 
-pub fn autolink(text: &str, config: &ffi::AutolinkerConfig) -> String {
+pub fn autolink_all(text: &str, config: &ffi::AutolinkerConfig) -> String {
     Autolinker::new_with_config(config).autolink(text)
 }
 
@@ -412,134 +416,134 @@ pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
 }
 
 // Extractor
-pub fn make_extractor() -> Box<Extractor> {
+pub fn make_extractor() -> Box<RustExtractor> {
     Box::new(Extractor::new())
 }
 
-pub fn get_extract_url_without_protocol(e: &Extractor) -> bool {
-    e.get_extract_url_without_protocol()
+pub fn get_extract_url_without_protocol(r: &RustExtractor) -> bool {
+    r.get_extract_url_without_protocol()
 }
 
-pub fn set_extract_url_without_protocol(e: &mut Extractor, extract_url_without_protocol: bool) {
-    e.set_extract_url_without_protocol(extract_url_without_protocol);
+pub fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_without_protocol: bool) {
+    r.set_extract_url_without_protocol(extract_url_without_protocol);
 }
 
-pub fn extract_entities_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_entities_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_entities_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_mentioned_screennames(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
-    e.extract_mentioned_screennames(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
+    r.extract_mentioned_screennames(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
 }
 
-pub fn extract_mentioned_screennames_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_mentioned_screennames_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_mentioned_screennames_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_mentions_or_lists_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_mentions_or_lists_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_mentions_or_lists_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_reply_username(e: &Extractor, text: &str) -> UniquePtr<ffi::Entity> {
-    if let Some(entity) = e.extract_reply_username(text) {
+pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::Entity> {
+    if let Some(entity) = r.extract_reply_username(text) {
         return UniquePtr::new(ffi::Entity::from(&entity));
     }
 
     UniquePtr::null()
 }
 
-pub fn extract_urls(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
-    e.extract_urls(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
+    r.extract_urls(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
 }
 
-pub fn extract_urls_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_urls_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_urls_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_hashtags(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
-    e.extract_hashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
+    r.extract_hashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
 }
 
-pub fn extract_hashtags_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_hashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_hashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_cashtags(e: &Extractor, text: &str) -> Vec<ffi::ExtractorString> {
-    e.extract_cashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
+    r.extract_cashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
 }
 
-pub fn extract_cashtags_with_indices(e: &Extractor, text: &str) -> Vec<ffi::Entity> {
-    e.extract_cashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.extract_cashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
 // ValidatingExtractor
-pub struct FFIValidatingExtractor {
+pub struct RustValidatingExtractor {
     config: Configuration,
     normalize: bool,
     extract_url_without_protocol: bool,
 }
 
-pub fn make_validating_extractor(config: &ffi::Configuration) -> Box<FFIValidatingExtractor> {
-    Box::new(FFIValidatingExtractor { 
+pub fn make_validating_extractor(config: &ffi::Configuration) -> Box<RustValidatingExtractor> {
+    Box::new(RustValidatingExtractor { 
         config: ffi::Configuration::to(config),
         normalize: true,
         extract_url_without_protocol: true,
     })
 }
 
-pub fn get_extract_url_without_protocol_validated(fve: &FFIValidatingExtractor) -> bool {
+pub fn get_extract_url_without_protocol_validated(fve: &RustValidatingExtractor) -> bool {
     fve.extract_url_without_protocol
 }
 
-pub fn set_extract_url_without_protocol_validated(fve: &mut FFIValidatingExtractor, extract_url_without_protocol: bool) {
+pub fn set_extract_url_without_protocol_validated(fve: &mut RustValidatingExtractor, extract_url_without_protocol: bool) {
     fve.extract_url_without_protocol = extract_url_without_protocol;
 }
 
-pub fn get_normalize(fve: &FFIValidatingExtractor) -> bool {
+pub fn get_normalize(fve: &RustValidatingExtractor) -> bool {
     fve.normalize
 }
 
-pub fn set_normalize(fve: &mut FFIValidatingExtractor, normalize: bool) {
+pub fn set_normalize(fve: &mut RustValidatingExtractor, normalize: bool) {
     fve.normalize = normalize;
 }
 
-pub fn extract_entities_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+pub fn extract_entities_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_entities_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_entities_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_entities_with_indices(text)))
 }
 
-pub fn extract_mentioned_screennames_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+pub fn extract_mentioned_screennames_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_mentioned_screennames_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_mentioned_screennames_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_mentioned_screennames_with_indices(text)))
 }
 
-pub fn extract_mentions_or_lists_with_indices_validated(fve: &FFIValidatingExtractor, text: &str)  -> ffi::ExtractResult {
+pub fn extract_mentions_or_lists_with_indices_validated(fve: &RustValidatingExtractor, text: &str)  -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_mentions_or_lists_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_mentions_or_lists_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_mentions_or_lists_with_indices(text)))
 }
 
-pub fn extract_reply_username_validated(fve: &FFIValidatingExtractor, text: &str) -> UniquePtr<ffi::MentionResult> {
+pub fn extract_reply_username_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::MentionResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -554,40 +558,40 @@ pub fn extract_reply_username_validated(fve: &FFIValidatingExtractor, text: &str
     UniquePtr::new(ffi::MentionResult::from(extractor.extract_reply_username(text)))
 }
 
-pub fn extract_urls_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+pub fn extract_urls_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_urls_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_urls_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_urls_with_indices(text)))
 }
 
-pub fn extract_hashtags_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+pub fn extract_hashtags_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_hashtags_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_hashtags_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_hashtags_with_indices(text)))
 }
 
-pub fn extract_cashtags_with_indices_validated(fve: &FFIValidatingExtractor, text: &str) -> ffi::ExtractResult {
+pub fn extract_cashtags_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
         let text = extractor.prep_input(text);
         let result = extractor.extract_cashtags_with_indices(text.as_str());
-        return ffi::ExtractResult::from(result);
+        return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    ffi::ExtractResult::from(extractor.extract_cashtags_with_indices(text))
+    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_cashtags_with_indices(text)))
 }
 
 // HitHighlighter
