@@ -13,12 +13,12 @@ public:
   {}
 
   // TODO: these are fallible, so the return type should change 
-  static std::shared_ptr<TwitterTextConfiguration> configuration_from_path(std::string path) {
-    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_path(path)));
+  static std::shared_ptr<TwitterTextConfiguration> configurationFromPath(std::string path) {
+    return std::unique_ptr  <TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_path(path)));
   }
 
-  static std::shared_ptr<TwitterTextConfiguration> configuration_from_json(std::string json) {
-    return std::shared_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_json(json)));
+  static std::shared_ptr<TwitterTextConfiguration> configurationFromJson(std::string json) {
+    return std::unique_ptr<TwitterTextConfiguration>(new TwitterTextConfiguration(ffi::configuration_from_json(json)));
   }
 
   int32_t getVersion() {

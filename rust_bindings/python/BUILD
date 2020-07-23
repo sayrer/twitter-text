@@ -1,3 +1,5 @@
+package(default_visibility = ["//visibility:public"])
+
 load("@rules_python//python:defs.bzl", "py_binary")
 
 py_binary(
@@ -43,6 +45,6 @@ genrule(
       "//rust_bindings/cpp:twitter_text_h",
     ],
     outs = ["twitter-text-py.cpp", "twitter_text.py"],
-    cmd = "$(location @swig//:bin/swig) -v -c++ -Dfinal= -python -o $(location twitter-text-py.cpp) -I$(BINDIR) $(location //rust_bindings:swig_input)",
-    tools = ["@swig//:bin/swig"],
+    cmd = "$(location @swig4//:bin/swig) -v -c++ -Dfinal= -python -o $(location twitter-text-py.cpp) -I$(BINDIR) $(location //rust_bindings:swig_input)",
+    tools = ["@swig4//:bin/swig"],
 )

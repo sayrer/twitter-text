@@ -2,7 +2,6 @@ import os
 import sys
 import pprint
 import setuptools
-import modtest
 import twitter_text
  
 def main():
@@ -16,6 +15,10 @@ def main():
     autolinker = twitter_text.Autolinker()
     print(autolinker)
     print(autolinker.autolink("yo $TWTR yo"))
+    config = twitter_text.TwitterTextConfiguration()
+    print(config)
+    print(dir(config))
+    print(config.get_version())
 
 if __name__ == "__main__":
     # execute only if run as a script

@@ -12,6 +12,11 @@ filegroup(
     srcs = ["twitter.cpp"],
 )
 
+filegroup(
+    name = "config_test_data",
+    srcs = ["test_data/test_config.json"]
+)
+
 cc_library(
     name = "twitter_text",
     hdrs = [
@@ -31,7 +36,7 @@ cc_test(
     srcs = [
         "config_test.cpp"
     ],
-    data = ["test_data/test_config.json"],
+    data = [":config_test_data"],
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":twitter_text",

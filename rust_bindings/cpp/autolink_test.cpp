@@ -10,7 +10,7 @@ TEST(AutolinkTest, Ctor) {
   delete autolinker;
 }
 
-TEST(AutolinkTest, CtorWithConfig) {
+TEST(AutolinkTest, Accessor) {
   Autolinker *autolinker = new Autolinker();
 
   ASSERT_EQ(autolinker->getNoFollow(), false);
