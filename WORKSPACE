@@ -61,8 +61,8 @@ gmaven_rules()
 http_archive(
     name = "io_tweag_rules_nixpkgs",
     #sha256 = "f5af641e16fcff5b24f1a9ba5d93cab5ad26500271df59ede344f1a56fc3b17d",
-    strip_prefix = "rules_nixpkgs-adfe991ad7fd41fcdbeaeabf33ea061d9b435c97",
-    urls = ["https://github.com/tweag/rules_nixpkgs/archive/adfe991ad7fd41fcdbeaeabf33ea061d9b435c97.tar.gz"],
+    strip_prefix = "rules_nixpkgs-85b767e3c6325d8f4d7916d6c8cac5691d791eef",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/85b767e3c6325d8f4d7916d6c8cac5691d791eef.tar.gz"],
 )
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
 rules_nixpkgs_dependencies()
@@ -71,32 +71,53 @@ load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "
 
 nixpkgs_git_repository(
     name = "nixpkgs",
-    revision = "19.09",
-    sha256 = "ac23e3fad10035dc9fc2882997cd12e316785438c15cf103db0fe0e267ab7f84"
+    revision = "20.03",
+    sha256 = "f21ca8bc4c8f848a351232e09f3a58d280c05323173a78a5a6013937fb05c6fe"
 )
 
 #nixpkgs_cc_configure(repository = "@nixpkgs//:default.nix")
 
 nixpkgs_package(
-    name = "swig",
+    name = "swig4",
     repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
 )
 
 #
 # Python
-#
+# 
 http_archive(
     name = "rules_python",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.0.1/rules_python-0.0.1.tar.gz",
-    sha256 = "aa96a691d3a8177f3215b14b0edc9641787abaaa30363a080165d06ab65e1161",
+    sha256 = "8821ca29f45fcd25fa7424118c5cad0abc9b57b2c0a2b482f815b70d09871f5c",
+    strip_prefix = "rules_python-0f8183b1cfa7e8afebfeeec5bcad75deb846613a",
+    urls = [
+        "https://github.com/bazelbuild/rules_python/archive/0f8183b1cfa7e8afebfeeec5bcad75deb846613a.tar.gz",
+    ],
 )
 load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
+#
+# Use pip for test dependencies
+#
+load("@rules_python//python:pip.bzl", "pip3_import", "pip_repositories")
+pip_repositories()
+
+pip3_import(
+    name = "rust_python_test_deps",
+    requirements = "//rust_bindings/python/test:requirements.txt",
+)
+load("@rust_python_test_deps//:requirements.bzl", _rust_python_test_deps_install = "pip_install")
+_rust_python_test_deps_install()
+
+#
+# SWIG needs Python development headers
+#
 nixpkgs_package(
     name = "python3Full",
     repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
 )
+
+
 
 #
 # C++
