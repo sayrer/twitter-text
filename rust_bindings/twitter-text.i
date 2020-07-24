@@ -66,9 +66,6 @@ namespace rust {
 %ignore ExtractorString;
 %ignore MentionResult;
 %ignore ValidatingExtractor;
-%ignore TwitterTextParser;
-%ignore TwitterTextParseResults;
-%ignore Validator;
 %ignore Vec<twitter_text::Entity>;
 %ignore Vec<twitter_text::ffi::Entity>;
 

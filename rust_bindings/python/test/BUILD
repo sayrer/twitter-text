@@ -51,3 +51,15 @@ py_test(
         "//rust/conformance:yaml",
     ],
 )
+
+py_test(
+    name = "test_validator",
+    srcs = ["test_validator.py"],
+    deps = TEST_DEPS,
+    imports =[".."],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    data = [
+        "//rust/conformance:yaml",
+    ],
+)

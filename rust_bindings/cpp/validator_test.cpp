@@ -108,7 +108,7 @@ const char * const boolToString(bool b)
 TEST(ValidatorTest, Yaml) {
   Validator *validator = new Validator();
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/validate.yml");
-  auto tweets = readYaml<TestCase>(map["tweets"]["plain_text"]);
+  auto tweets = readYaml<TestCase>(map["tests"]["tweets"]);
   auto usernames = readYaml<TestCase>(map["tests"]["usernames"]);
   auto lists = readYaml<TestCase>(map["tests"]["lists"]);
   auto hashtags = readYaml<TestCase>(map["tests"]["hashtags"]);
