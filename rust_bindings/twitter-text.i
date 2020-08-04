@@ -14,12 +14,18 @@
 namespace std {
     %template(WeightedRangeList) vector<twitter_text::WeightedRange>;
     %template(Hits) vector<twitter_text::Hit>;
+    %template(Entities) vector<twitter_text::Entity>;
+    %template(ExtractorStrings) vector<string>;
 }
 
 namespace rust {
     class String;
     %typemap(out) String {
        $result = PyUnicode_FromStringAndSize($1.data(), $1.size());
+    }
+
+    %typemap(out) String* {
+       $result = PyUnicode_FromStringAndSize($1->data(), $1->size());
     }
 }
 
@@ -60,14 +66,9 @@ namespace rust {
 
 %ignore AutolinkerConfig;
 %ignore Configuration;
-%ignore Entity;
-%ignore Extractor;
 %ignore ExtractResult;
 %ignore ExtractorString;
 %ignore MentionResult;
-%ignore ValidatingExtractor;
-%ignore Vec<twitter_text::Entity>;
-%ignore Vec<twitter_text::ffi::Entity>;
 
 
 /* Parse the header file to generate wrappers */

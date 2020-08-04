@@ -171,52 +171,57 @@ public:
   }
 
   std::vector<Entity> extractEntitiesWithIndices(std::string &text) {
-    auto entities = extract_entities_with_indices(*extractor, text);
-    return entitiesToCpp(entities); 
+    auto vec = extract_entities_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractMentionedScreennames(std::string &text) {
-    auto extractor_strings = extract_mentioned_screennames(*extractor, text);
-    return extractorStringsToCpp(extractor_strings);
+  std::vector<std::string> extractMentionedScreennames(const std::string &text) {
+    auto vec = extract_mentioned_screennames(*extractor, text);
+    return extractorStringsToCpp(vec);
   }
 
-  ::rust::Vec<Entity> extractMentionedScreennamesWithIndices(std::string &text) {
-    return extract_mentioned_screennames_with_indices(*extractor, text);
+  std::vector<Entity> extractMentionedScreennamesWithIndices(const std::string &text) {
+    auto vec = extract_mentioned_screennames_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
-  ::rust::Vec<Entity> extractMentionsOrListsWithIndices(std::string &text) {
-    return extract_mentions_or_lists_with_indices(*extractor, text);
+  std::vector<Entity> extractMentionsOrListsWithIndices(const std::string &text) {
+    auto vec = extract_mentions_or_lists_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
-  std::shared_ptr<Entity> extractReplyScreenname(std::string &text) {
-    return extract_reply_username(*extractor, text);
+  Entity* extractReplyScreenname(const std::string &text) {
+    return extract_reply_username(*extractor, text).release();
   }
 
-  std::vector<std::string> extractUrls(std::string &text) {
-    auto extractor_strings = extract_urls(*extractor, text);
-    return extractorStringsToCpp(extractor_strings);
+  std::vector<std::string> extractUrls(const std::string &text) {
+    auto vec = extract_urls(*extractor, text);
+    return extractorStringsToCpp(vec);
   }
 
-  ::rust::Vec<Entity> extractUrlsWithIndices(std::string &text) {
-    return extract_urls_with_indices(*extractor, text);
+  std::vector<Entity> extractUrlsWithIndices(const std::string &text) {
+    auto vec = extract_urls_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractHashtags(std::string &text) {
-    auto extractor_strings = extract_hashtags(*extractor, text);
-    return extractorStringsToCpp(extractor_strings); 
+  std::vector<std::string> extractHashtags(const std::string &text) {
+    auto vec = extract_hashtags(*extractor, text);
+    return extractorStringsToCpp(vec);
   }
 
-  ::rust::Vec<Entity> extractHashtagsWithIndices(std::string &text) {
-    return extract_hashtags_with_indices(*extractor, text);
+  std::vector<Entity> extractHashtagsWithIndices(const std::string &text) {
+    auto vec = extract_hashtags_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractCashtags(std::string &text) {
-    auto extractor_strings = extract_cashtags(*extractor, text);
-    return extractorStringsToCpp(extractor_strings); 
+  std::vector<std::string> extractCashtags(const std::string &text) {
+    auto vec = extract_cashtags(*extractor, text);
+    return extractorStringsToCpp(vec);
   }
 
-  ::rust::Vec<Entity> extractCashtagsWithIndices(std::string &text) {
-    return extract_cashtags_with_indices(*extractor, text);
+  std::vector<Entity> extractCashtagsWithIndices(const std::string &text) {
+    auto vec = extract_cashtags_with_indices(*extractor, text);
+    return entitiesToCpp(vec);
   }
 
 private:
@@ -225,9 +230,17 @@ private:
   ::rust::Box<RustExtractor> extractor;
 };
 
-typedef ::twitter_text::TwitterTextParseResults TwitterTextParseResults;
+class SwigExtractResult {
+public:
+  TwitterTextParseResults parseResults;
+  std::vector<Entity> entities;
+};  
 
-typedef ::twitter_text::MentionResult MentionResult;
+class SwigMentionResult {
+public:
+  TwitterTextParseResults parseResults;
+  Entity* entity;
+};
 
 class ValidatingExtractor {
 public:
@@ -251,34 +264,41 @@ public:
     set_normalize(*extractor, normalize);
   }
 
-  std::shared_ptr<ExtractResult> extractEntitiesWithIndices(std::string &text) {
-    return extract_entities_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractEntitiesWithIndices(const std::string &text) {
+    auto result = extract_entities_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
-  std::shared_ptr<ExtractResult> extractMentionedScreennamesWithIndices(std::string &text) {
-    return extract_mentioned_screennames_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractMentionedScreennamesWithIndices(const std::string &text) {
+    auto result = extract_mentioned_screennames_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
-  std::shared_ptr<ExtractResult> extractMentionsOrListsWithIndices(std::string &text) {
-    return extract_mentions_or_lists_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractMentionsOrListsWithIndices(const std::string &text) {
+    auto result = extract_mentions_or_lists_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
-  std::shared_ptr<MentionResult> extractReplyScreenname(std::string &text);
+  SwigMentionResult* extractReplyScreenname(const std::string &text);
 
-  std::shared_ptr<ExtractResult> extractUrlsWithIndices(std::string &text) {
-    return extract_urls_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractUrlsWithIndices(const std::string &text) {
+    auto result = extract_urls_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
-  std::shared_ptr<ExtractResult> extractHashtagsWithIndices(std::string &text) {
-    return extract_hashtags_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractHashtagsWithIndices(const std::string &text) {
+    auto result = extract_hashtags_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
-  std::shared_ptr<ExtractResult> extractCashtagsWithIndices(std::string &text) {
-    return extract_cashtags_with_indices_validated(*extractor, text);
+  SwigExtractResult* extractCashtagsWithIndices(const std::string &text) {
+    auto result = extract_cashtags_with_indices_validated(*extractor, text);
+    return convertResult(*result);
   }
 
 private:
   std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
+  SwigExtractResult* convertResult(ExtractResult &result);
   ::rust::Box<RustValidatingExtractor> extractor;
 };
 

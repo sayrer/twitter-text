@@ -182,6 +182,8 @@ Autolinker::autolinkCashtags(const std::string &text) {
 
 // Extractor
 
+// Extractor
+
 std::vector<std::string>
 Extractor::extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
   std::vector<std::string> stdv;
@@ -192,11 +194,39 @@ Extractor::extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
   return stdv;
 }
 
+std::vector<Entity>
+Extractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+  std::vector<Entity> stdv;
+  stdv.reserve(rustVec.size());
+  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+  return stdv;
+}
+
 // ValidatingExtractor
 
-std::shared_ptr<MentionResult>
-ValidatingExtractor::extractReplyScreenname(std::string &text) {
-  return extract_reply_username_validated(*extractor, text);
+SwigMentionResult*
+ValidatingExtractor::extractReplyScreenname(const std::string &text) {
+  auto result = extract_reply_username_validated(*extractor, text);
+  auto swmr = new SwigMentionResult();
+  swmr->parseResults = result->parse_results;
+  swmr->entity = result->mention.release();
+  return swmr;
+}
+
+std::vector<Entity>
+ValidatingExtractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+  std::vector<Entity> stdv;
+  stdv.reserve(rustVec.size());
+  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+  return stdv;
+}
+
+SwigExtractResult*
+ValidatingExtractor::convertResult(ExtractResult &result) {
+  auto swer = new SwigExtractResult();
+  swer->parseResults = result.parse_results;
+  swer->entities = entitiesToCpp(result.entities);
+  return swer;
 }
 
 // HitHighlighter

@@ -41,6 +41,18 @@ py_test(
 )
 
 py_test(
+    name = "test_extractor",
+    srcs = ["test_extractor.py"],
+    deps = TEST_DEPS,
+    imports =[".."],
+    python_version = "PY3",
+    srcs_version = "PY3",
+    data = [
+        "//rust/conformance:yaml",
+    ],
+)
+
+py_test(
     name = "test_hithighlighter",
     srcs = ["test_hithighlighter.py"],
     deps = TEST_DEPS,
