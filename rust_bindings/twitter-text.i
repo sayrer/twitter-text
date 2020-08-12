@@ -1,4 +1,8 @@
+#ifdef SWIGJAVA
+%module TwitterText
+#elif SWIGPYTHON
 %module twitter_text
+#endif
 %{
 /* Includes the header in the wrapper code */
 #include "rust/twitter-text/twitter-text.h"
@@ -9,14 +13,16 @@
 %include <std_string.i>
 %include <std_vector.i>
 
-%rename("%(undercase)s", %$isfunction) "";
-
 namespace std {
-    %template(WeightedRangeList) vector<twitter_text::WeightedRange>;
+    %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
     %template(Hits) vector<twitter_text::Hit>;
     %template(Entities) vector<twitter_text::Entity>;
     %template(ExtractorStrings) vector<string>;
 }
+
+#ifdef SWIGPYTHON
+
+%rename("%(undercase)s", %$isfunction) "";
 
 namespace rust {
     class String;
@@ -29,7 +35,57 @@ namespace rust {
     }
 }
 
-%ignore Box;
+#endif
+
+#ifdef SWIGJAVA
+
+%rename (RustString) String;
+
+namespace rust {
+    class String;
+    %typemap(jni) String "jbyteArray"
+
+    %typemap(out) String {
+      const size_t len = $1.size();
+      $result = jenv->NewByteArray(len);
+      // TODO: check that this succeeded
+      jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
+    }
+
+    %typemap(jtype) String "byte[]"
+    %typemap(jstype) String "String"
+    %typemap(javaout) String {
+      return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+    }
+}
+
+namespace std {
+  %typemap(jni) string "jbyteArray"
+  %typemap(in) string {
+    jsize length = jenv->GetArrayLength($input);
+    char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
+    // TODO: null/error check
+    $1 = std::string(buf, length);
+    jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
+  }
+  %typemap(jtype) string "byte[]"
+  %typemap(jstype) string "String"
+  %typemap(out) string {
+    const size_t len = $1.size();
+    $result = jenv->NewByteArray(len);
+    // TODO: check that this succeeded
+    jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
+  }
+  %typemap(javaout) string {
+    return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+  }
+  %typemap(javain,
+    pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
+  ) string 
+    "temp$javainput"
+}
+
+#endif
 
 %ignore config_v1;
 %ignore config_v2;
@@ -70,6 +126,7 @@ namespace rust {
 %ignore ExtractorString;
 %ignore MentionResult;
 
+%ignore Box;
 
 /* Parse the header file to generate wrappers */
 %include "rust/twitter-text/twitter-text.h"

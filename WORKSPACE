@@ -35,26 +35,6 @@ rust_repositories(edition = "2018")
 load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
 bazel_version(name = "bazel_version")
 
-
-#
-# Android
-#
-
-# Checks the standard environment variables by default
-android_sdk_repository(name = "androidsdk")
-android_ndk_repository(name = "androidndk")
-
-# Google Maven Repository
-GMAVEN_TAG = "20181212-2"
-http_archive(
-    name = "gmaven_rules",
-    strip_prefix = "gmaven_rules-%s" % GMAVEN_TAG,
-    url = "https://github.com/bazelbuild/gmaven_rules/archive/%s.tar.gz" % GMAVEN_TAG,
-    sha256 = "33027de68db6a49a352f83808fa9898c4930d39aa6fb0edc6bb3d3eec6e2bc7d",
-)
-load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
-gmaven_rules()
-
 #
 # SWIG
 #
@@ -117,8 +97,6 @@ nixpkgs_package(
     repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
 )
 
-
-
 #
 # C++
 #
@@ -138,3 +116,39 @@ http_archive(
         "https://github.com/jbeder/yaml-cpp/archive/33316d531bd9032d66f5bcc3ba1fd114a4ab0e1c.tar.gz",
     ],
 )
+
+#
+# Java
+#
+RULES_JVM_EXTERNAL_TAG = "3.3"
+RULES_JVM_EXTERNAL_SHA = "d85951a92c0908c80bd8551002d66cb23c3434409c814179c0ff026b53544dab"
+
+http_archive(
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    sha256 = RULES_JVM_EXTERNAL_SHA,
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    artifacts = [
+        "junit:junit:4.12",
+        "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.1",
+        "com.fasterxml.jackson.core:jackson-databind:2.8.7",
+        "com.google.code.findbugs:jsr305:2.0.1",
+    ],
+    repositories = [
+        "https://jcenter.bintray.com/",
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+
+#
+# Android
+#
+# Checks the standard environment variables by default
+android_sdk_repository(name = "androidsdk")
+android_ndk_repository(name = "androidndk")

@@ -63,6 +63,12 @@ def test_accessors():
     autolinker.set_username_include_symbol(True)
     assert autolinker.get_username_include_symbol() is True
 
+def test_emoji():
+    autolinker = twitter_text.Autolinker()
+    assert autolinker.get_url_class() == ""
+    autolinker.set_url_class("foo 👳🏿‍♀️")
+    assert autolinker.get_url_class() == "foo 👳🏿‍♀️"
+
 def test_yaml():
     autolinker = twitter_text.Autolinker()
 

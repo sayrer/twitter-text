@@ -25,7 +25,7 @@ def test_path():
     assert wr.range.end == 4351
     assert wr.weight == 200
 
-def test_path():
+def test_json():
     with open(r"rust_bindings/cpp/test_data/test_config.json") as file:
         config = twitter_text.TwitterTextConfiguration.configuration_from_json(file.read())
         assert config is not None
