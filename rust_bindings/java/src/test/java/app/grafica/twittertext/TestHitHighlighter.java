@@ -57,4 +57,12 @@ public class TestHitHighlighter {
       assertEquals(test.get("expected"), highlighter.highlight(test.get("text").toString(), hits));
     }
   }
+
+  @Test
+  public void testEmoji() {
+    HitHighlighter highlighter = new HitHighlighter();
+    String emoji = "foo 👳🏿‍♀️";
+    String result = highlighter.highlight(emoji, new Hits());
+    assertEquals(emoji, result);
+  }
 }

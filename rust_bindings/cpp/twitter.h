@@ -312,7 +312,7 @@ public:
     highlighter(make_highlighter(tag_str)) 
   {}
 
-  std::string highlight(const std::string &text, std::vector<Hit> &hits);
+  std::string highlight(std::string text, std::vector<Hit> &hits);
 
 private:
   ::rust::Box<RustHitHighlighter> highlighter;
@@ -324,27 +324,27 @@ public:
     validator(make_default_validator()) 
   {}
 
-  bool isValidTweet(const std::string &text) {
+  bool isValidTweet(std::string text) {
     return is_valid_tweet(*validator, text);
   }
 
-  bool isValidUsername(const std::string &text) {
+  bool isValidUsername(std::string text) {
     return is_valid_username(*validator, text);
   }
 
-  bool isValidList(const std::string &text) {
+  bool isValidList(std::string text) {
     return is_valid_list(*validator, text);
   }
 
-  bool isValidHashtag(const std::string &text) {
+  bool isValidHashtag(std::string text) {
     return is_valid_hashtag(*validator, text);
   }
 
-  bool isValidUrl(const std::string &text) {
+  bool isValidUrl(std::string text) {
     return is_valid_url(*validator, text);
   }
 
-  bool isValidUrlWithoutProtocol(const std::string &text) {
+  bool isValidUrlWithoutProtocol(std::string text) {
     return is_valid_url_without_protocol(*validator, text);
   }
 
@@ -374,7 +374,7 @@ private:
 
 class TwitterTextParser {
 public:
-  static TwitterTextParseResults parse(const std::string &text, TwitterTextConfiguration &ttc, bool parseUrls) {
+  static TwitterTextParseResults parse(std::string text, TwitterTextConfiguration &ttc, bool parseUrls) {
     return parse_ffi(text, *ttc.config, parseUrls);
   }
 };

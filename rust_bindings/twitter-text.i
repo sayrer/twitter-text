@@ -40,6 +40,7 @@ namespace rust {
 #ifdef SWIGJAVA
 
 %rename (RustString) String;
+%rename("%(lowercamelcase)s", %$not %$isclass) "";
 
 namespace rust {
     class String;

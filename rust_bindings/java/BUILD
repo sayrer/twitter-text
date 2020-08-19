@@ -43,6 +43,7 @@ SWIG_JAVA_FILES = [
   "TwitterText.java",
   "TwitterTextConfiguration.java",
   "TwitterTextJNI.java",
+  "TwitterTextParser.java",
   "TwitterTextParseResults.java",
   "ValidatingExtractor.java",
   "Validator.java",

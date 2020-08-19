@@ -32,6 +32,17 @@ java_test(
     ],
 )
 
+java_test(
+    name = "validator",
+    srcs = ["TestValidator.java"],
+    test_class = "app.grafica.twittertext.TestValidator",
+    deps = [
+        ":yaml",
+        "//rust_bindings/java:twittertext_jni",
+        "//rust_bindings/java:test_deps",
+    ],
+)
+
 java_library(
     name = "yaml",
     srcs = ["Yaml.java"],
