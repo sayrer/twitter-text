@@ -50,7 +50,7 @@ namespace rust {
     jsize length = jenv->GetArrayLength($input);
     char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
     // TODO: null/error check
-    $1 = std::string(buf, length);
+    $1 = ::rust::String(buf, length);
     jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
   }
 
@@ -76,15 +76,15 @@ namespace rust {
     jsize length = jenv->GetArrayLength($input);
     char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
     // TODO: null/error check
-    $1 = std::string(buf, length);
+    $1 = new ::rust::String(buf, length);
     jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
   }
 
     %typemap(out) String* {
-      const size_t len = $1.size();
+      const size_t len = $1->size();
       $result = jenv->NewByteArray(len);
       // TODO: check that this succeeded
-      jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
+      jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1->data());
     }
 
     %typemap(jtype) String* "byte[]"

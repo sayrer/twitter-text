@@ -31,9 +31,9 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.18:proc_macro2",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.19:proc_macro2",
         "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
-        "//rust_bindings/cargo/vendor/syn-1.0.30:syn",
+        "//rust_bindings/cargo/vendor/syn-1.0.38:syn",
     ],
     rustc_flags = [
         "--cap-lints=allow",

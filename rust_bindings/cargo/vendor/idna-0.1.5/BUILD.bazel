@@ -33,7 +33,7 @@ rust_library(
     deps = [
         "//rust_bindings/cargo/vendor/matches-0.1.8:matches",
         "//rust_bindings/cargo/vendor/unicode-bidi-0.3.4:unicode_bidi",
-        "//rust_bindings/cargo/vendor/unicode-normalization-0.1.12:unicode_normalization",
+        "//rust_bindings/cargo/vendor/unicode-normalization-0.1.13:unicode_normalization",
     ],
     rustc_flags = [
         "--cap-lints=allow",

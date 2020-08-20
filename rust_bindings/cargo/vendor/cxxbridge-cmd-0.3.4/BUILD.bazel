@@ -33,12 +33,12 @@ rust_binary(
     deps = [
         # Binaries get an implicit dependency on their crate's lib
         ":cxxbridge_cmd",
-        "//rust_bindings/cargo/vendor/anyhow-1.0.31:anyhow",
-        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.4:codespan_reporting",
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.18:proc_macro2",
+        "//rust_bindings/cargo/vendor/anyhow-1.0.32:anyhow",
+        "//rust_bindings/cargo/vendor/clap-2.33.3:clap",
+        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.5:codespan_reporting",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.19:proc_macro2",
         "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
-        "//rust_bindings/cargo/vendor/structopt-0.3.14:structopt",
-        "//rust_bindings/cargo/vendor/syn-1.0.30:syn",
+        "//rust_bindings/cargo/vendor/syn-1.0.38:syn",
     ],
     rustc_flags = [
         "--cap-lints=allow",
@@ -59,12 +59,12 @@ rust_library(
     edition = "2018",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/anyhow-1.0.31:anyhow",
-        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.4:codespan_reporting",
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.18:proc_macro2",
+        "//rust_bindings/cargo/vendor/anyhow-1.0.32:anyhow",
+        "//rust_bindings/cargo/vendor/clap-2.33.3:clap",
+        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.5:codespan_reporting",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.19:proc_macro2",
         "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
-        "//rust_bindings/cargo/vendor/structopt-0.3.14:structopt",
-        "//rust_bindings/cargo/vendor/syn-1.0.30:syn",
+        "//rust_bindings/cargo/vendor/syn-1.0.38:syn",
     ],
     rustc_flags = [
         "--cap-lints=allow",

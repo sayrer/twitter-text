@@ -31,9 +31,9 @@ rust_library(
     edition = "2015",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/dtoa-0.4.5:dtoa",
+        "//rust_bindings/cargo/vendor/dtoa-0.4.6:dtoa",
         "//rust_bindings/cargo/vendor/linked-hash-map-0.5.3:linked_hash_map",
-        "//rust_bindings/cargo/vendor/serde-1.0.111:serde",
+        "//rust_bindings/cargo/vendor/serde-1.0.115:serde",
         "//rust_bindings/cargo/vendor/yaml-rust-0.4.4:yaml_rust",
     ],
     rustc_flags = [

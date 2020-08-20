@@ -18,7 +18,7 @@ pub(super) fn gen(
     let out = &mut out_file;
 
     if header {
-        writeln!(out, "#pragma once");
+        writeln!(out.front, "#pragma once");
     }
 
     out.include.extend(opt.include);
@@ -86,13 +86,13 @@ pub(super) fn gen(
         out.begin_block("extern \"C\"");
         write_exception_glue(out, apis);
         for api in apis {
-            let (efn, write): (_, fn(_, _, _)) = match api {
+            let (efn, write): (_, fn(_, _, _, _)) = match api {
                 Api::CxxFunction(efn) => (efn, write_cxx_function_shim),
                 Api::RustFunction(efn) => (efn, write_rust_function_decl),
                 _ => continue,
             };
             out.next_section();
-            write(out, efn, types);
+            write(out, efn, types, &opt.cxx_impl_annotations);
         }
         out.end_block("extern \"C\"");
     }
@@ -114,7 +114,7 @@ pub(super) fn gen(
         write_generic_instantiations(out, types);
     }
 
-    out.prepend(out.include.to_string());
+    write!(out.front, "{}", out.include);
 
     out_file
 }
@@ -149,11 +149,13 @@ fn write_include_cxxbridge(out: &mut OutFile, apis: &[Api], types: &Types) {
     for ty in types {
         match ty {
             Type::RustBox(_) => {
+                out.include.new = true;
                 out.include.type_traits = true;
                 needs_rust_box = true;
             }
             Type::RustVec(_) => {
                 out.include.array = true;
+                out.include.new = true;
                 out.include.type_traits = true;
                 needs_rust_vec = true;
             }
@@ -312,6 +314,7 @@ fn write_include_cxxbridge(out: &mut OutFile, apis: &[Api], types: &Types) {
 }
 
 fn write_struct(out: &mut OutFile, strct: &Struct) {
+    write_include_guard_start(out, &strct.ident);
     for line in strct.doc.to_string().lines() {
         writeln!(out, "//{}", line);
     }
@@ -322,6 +325,7 @@ fn write_struct(out: &mut OutFile, strct: &Struct) {
         writeln!(out, "{};", field.ident);
     }
     writeln!(out, "}};");
+    write_include_guard_end(out, &strct.ident);
 }
 
 fn write_struct_decl(out: &mut OutFile, ident: &Ident) {
@@ -332,7 +336,31 @@ fn write_struct_using(out: &mut OutFile, ident: &Ident) {
     writeln!(out, "using {} = {};", ident, ident);
 }
 
+const INCLUDE_GUARD_PREFIX: &'static str = "CXXBRIDGE03_TYPE_";
+
+fn write_include_guard_start(out: &mut OutFile, ident: &Ident) {
+    writeln!(
+        out,
+        "#ifndef {}{}{}",
+        INCLUDE_GUARD_PREFIX, out.namespace, ident
+    );
+    writeln!(
+        out,
+        "#define {}{}{}",
+        INCLUDE_GUARD_PREFIX, out.namespace, ident
+    );
+}
+
+fn write_include_guard_end(out: &mut OutFile, ident: &Ident) {
+    writeln!(
+        out,
+        "#endif // {}{}{}",
+        INCLUDE_GUARD_PREFIX, out.namespace, ident
+    );
+}
+
 fn write_struct_with_methods(out: &mut OutFile, ety: &ExternType, methods: &[&ExternFn]) {
+    write_include_guard_start(out, &ety.ident);
     for line in ety.doc.to_string().lines() {
         writeln!(out, "//{}", line);
     }
@@ -347,9 +375,11 @@ fn write_struct_with_methods(out: &mut OutFile, ety: &ExternType, methods: &[&Ex
         writeln!(out, ";");
     }
     writeln!(out, "}};");
+    write_include_guard_end(out, &ety.ident);
 }
 
 fn write_enum(out: &mut OutFile, enm: &Enum) {
+    write_include_guard_start(out, &enm.ident);
     for line in enm.doc.to_string().lines() {
         writeln!(out, "//{}", line);
     }
@@ -360,6 +390,7 @@ fn write_enum(out: &mut OutFile, enm: &Enum) {
         writeln!(out, "  {} = {},", variant.ident, variant.discriminant);
     }
     writeln!(out, "}};");
+    write_include_guard_end(out, &enm.ident);
 }
 
 fn check_enum(out: &mut OutFile, enm: &Enum) {
@@ -397,7 +428,17 @@ fn write_exception_glue(out: &mut OutFile, apis: &[Api]) {
     }
 }
 
-fn write_cxx_function_shim(out: &mut OutFile, efn: &ExternFn, types: &Types) {
+fn write_cxx_function_shim(
+    out: &mut OutFile,
+    efn: &ExternFn,
+    types: &Types,
+    impl_annotations: &Option<String>,
+) {
+    if !out.header {
+        if let Some(annotation) = impl_annotations {
+            write!(out, "{} ", annotation);
+        }
+    }
     if efn.throws {
         write!(out, "::rust::Str::Repr ");
     } else {
@@ -463,6 +504,7 @@ fn write_cxx_function_shim(out: &mut OutFile, efn: &ExternFn, types: &Types) {
         write!(out, "        ");
     }
     if indirect_return {
+        out.include.new = true;
         write!(out, "new (return$) ");
         write_indirect_return_type(out, efn.ret.as_ref().unwrap());
         write!(out, "(");
@@ -557,7 +599,7 @@ fn write_function_pointer_trampoline(
     write_rust_function_shim_impl(out, &c_trampoline, f, types, &r_trampoline, indirect_call);
 }
 
-fn write_rust_function_decl(out: &mut OutFile, efn: &ExternFn, types: &Types) {
+fn write_rust_function_decl(out: &mut OutFile, efn: &ExternFn, types: &Types, _: &Option<String>) {
     let link_name = mangle::extern_fn(&out.namespace, efn);
     let indirect_call = false;
     write_rust_function_decl_impl(out, &link_name, efn, types, indirect_call);
@@ -1149,6 +1191,7 @@ fn write_unique_ptr(out: &mut OutFile, ident: &Ident, types: &Types) {
 
 // Shared by UniquePtr<T> and UniquePtr<CxxVector<T>>.
 fn write_unique_ptr_common(out: &mut OutFile, ty: &Type, types: &Types) {
+    out.include.new = true;
     out.include.utility = true;
     let inner = to_typename(&out.namespace, ty);
     let instance = to_mangled(&out.namespace, ty);

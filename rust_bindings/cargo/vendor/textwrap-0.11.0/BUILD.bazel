@@ -34,7 +34,7 @@ rust_library(
     edition = "2015",
     srcs = glob(["**/*.rs"]),
     deps = [
-        "//rust_bindings/cargo/vendor/unicode-width-0.1.7:unicode_width",
+        "//rust_bindings/cargo/vendor/unicode-width-0.1.8:unicode_width",
     ],
     rustc_flags = [
         "--cap-lints=allow",

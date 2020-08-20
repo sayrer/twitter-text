@@ -9,8 +9,8 @@ features = ["std"]
 clap = "2.33.0"
 proc-macro-error = {version = "=0.4.8" }
 log = {version = "=0.4.0", features = ["std"]}
-cxx = { git = "https://github.com/dtolnay/cxx" }
-cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "" }
+cxx = { git = "https://github.com/dtolnay/cxx", rev = "291a8b87a16e0c738b8caaeae1d28670416dda9e" }
+cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "", rev = "291a8b87a16e0c738b8caaeae1d28670416dda9e" }
 pest = "2.1.2"
 pest_derive = "2.1.0"
 unicode-normalization = "0.1.12"
@@ -33,7 +33,7 @@ additional_flags = [
     "--cfg", "std",
 ]
 
-[raze.crates.proc-macro2.'1.0.18']
+[raze.crates.proc-macro2.'1.0.19']
 additional_flags = [
 #    "--cfg", "u128",
     "--cfg=use_proc_macro",
@@ -71,11 +71,6 @@ extra_aliased_targets = [
 ]
 
 [raze.crates.cxx.'0.3.4']
-#gen_buildrs = true
-#buildrs_additional_environment_variables = [
-#	"OPT_LEVEL=3",
-#	"HOST=x86_64-apple-darwin",
-#]
 data_attr = 'glob(["**/*.h", "**/*.cc"])'
 extra_aliased_targets = [
     "cxx_cc_library"

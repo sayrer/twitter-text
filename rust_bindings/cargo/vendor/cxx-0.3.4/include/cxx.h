@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <exception>
 #include <iosfwd>
+#include <new>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -28,6 +29,7 @@ public:
 
   String(const std::string &);
   String(const char *);
+  String(const char *, size_t);
 
   String &operator=(const String &) noexcept;
   String &operator=(String &&) noexcept;
@@ -57,6 +59,7 @@ public:
 
   Str(const std::string &);
   Str(const char *);
+  Str(const char *, size_t);
   Str(std::string &&) = delete;
 
   Str &operator=(Str) noexcept;
@@ -139,10 +142,8 @@ public:
   T *operator->() noexcept;
   T &operator*() noexcept;
 
-#ifndef SWIG
   template <typename... Fields>
   static Box in_place(Fields &&...);
-#endif
 
   // Important: requires that `raw` came from an into_raw call. Do not pass a
   // pointer from `new` or any other source.

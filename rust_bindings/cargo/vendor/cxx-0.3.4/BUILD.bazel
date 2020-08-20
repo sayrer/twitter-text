@@ -34,7 +34,7 @@ rust_library(
     srcs = glob(["**/*.rs"]),
     deps = [
         "//rust_bindings/cargo/vendor/cxxbridge-macro-0.3.4:cxxbridge_macro",
-        "//rust_bindings/cargo/vendor/link-cplusplus-1.0.1:link_cplusplus",
+        "//rust_bindings/cargo/vendor/link-cplusplus-1.0.2:link_cplusplus",
     ],
     rustc_flags = [
         "--cap-lints=allow",

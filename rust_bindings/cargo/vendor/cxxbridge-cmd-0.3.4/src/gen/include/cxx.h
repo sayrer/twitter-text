@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <exception>
 #include <iosfwd>
+#include <new>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -28,6 +29,7 @@ public:
 
   String(const std::string &);
   String(const char *);
+  String(const char *, size_t);
 
   String &operator=(const String &) noexcept;
   String &operator=(String &&) noexcept;
@@ -57,6 +59,7 @@ public:
 
   Str(const std::string &);
   Str(const char *);
+  Str(const char *, size_t);
   Str(std::string &&) = delete;
 
   Str &operator=(Str) noexcept;
@@ -139,7 +142,7 @@ public:
   T *operator->() noexcept;
   T &operator*() noexcept;
 
-#ifndef SWIG
+#ifndef SWIGJAVA
   template <typename... Fields>
   static Box in_place(Fields &&...);
 #endif
@@ -407,6 +410,7 @@ T &Box<T>::operator*() noexcept {
   return *this->ptr;
 }
 
+#ifndef SWIGJAVA
 template <typename T>
 template <typename... Fields>
 Box<T> Box<T>::in_place(Fields &&... fields) {
@@ -415,6 +419,7 @@ Box<T> Box<T>::in_place(Fields &&... fields) {
   ::new (box.ptr) T{std::forward<Fields>(fields)...};
   return box;
 }
+#endif
 
 template <typename T>
 Box<T> Box<T>::from_raw(T *raw) noexcept {
