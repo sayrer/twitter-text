@@ -44,7 +44,15 @@ namespace rust {
 
 namespace rust {
     class String;
-    %typemap(jni) String "jbyteArray"
+    %typemap(jni) String, String* "jbyteArray"
+
+  %typemap(in) String {
+    jsize length = jenv->GetArrayLength($input);
+    char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
+    // TODO: null/error check
+    $1 = std::string(buf, length);
+    jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
+  }
 
     %typemap(out) String {
       const size_t len = $1.size();
@@ -58,6 +66,36 @@ namespace rust {
     %typemap(javaout) String {
       return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
     }
+    %typemap(javain,
+    pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
+  ) String 
+    "temp$javainput"
+
+
+  %typemap(in) String* {
+    jsize length = jenv->GetArrayLength($input);
+    char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
+    // TODO: null/error check
+    $1 = std::string(buf, length);
+    jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
+  }
+
+    %typemap(out) String* {
+      const size_t len = $1.size();
+      $result = jenv->NewByteArray(len);
+      // TODO: check that this succeeded
+      jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
+    }
+
+    %typemap(jtype) String* "byte[]"
+    %typemap(jstype) String* "String"
+    %typemap(javaout) String* {
+      return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+    }
+    %typemap(javain,
+    pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
+  ) String* 
+    "temp$javainput"
 }
 
 namespace std {

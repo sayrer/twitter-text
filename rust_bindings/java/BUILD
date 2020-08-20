@@ -27,7 +27,7 @@ SWIG_JAVA_FILES = [
   "Range.java",
   "RustString.java",
   "SWIGTYPE_p_rust__Str.java",
-  "SWIGTYPE_p_rust__String.java",
+  #"SWIGTYPE_p_rust__String.java",
   "SWIGTYPE_p_rust__cxxbridge03__unsafe_bitcopy_t.java",
   "SWIGTYPE_p_std__shared_ptrT_twitter_text__Configuration_t.java",
   "SWIGTYPE_p_std__string.java",

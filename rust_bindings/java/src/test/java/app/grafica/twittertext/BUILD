@@ -22,6 +22,17 @@ java_test(
 )
 
 java_test(
+    name = "extractor",
+    srcs = ["TestExtractor.java"],
+    test_class = "app.grafica.twittertext.TestExtractor",
+    deps = [
+        ":yaml",
+        "//rust_bindings/java:twittertext_jni",
+        "//rust_bindings/java:test_deps",
+    ],
+)
+
+java_test(
     name = "highlighter",
     srcs = ["TestHitHighlighter.java"],
     test_class = "app.grafica.twittertext.TestHitHighlighter",
@@ -47,6 +58,7 @@ java_library(
     name = "yaml",
     srcs = ["Yaml.java"],
     deps = [
+      "//rust_bindings/java:twittertext_jni",
       "//rust_bindings/java:test_deps",
     ]
 )
