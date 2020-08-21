@@ -184,12 +184,12 @@ Autolinker::autolinkCashtags(const std::string &text) {
 
 // Extractor
 
-std::vector<std::string>
+std::vector<ExtractorString>
 Extractor::extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
-  std::vector<std::string> stdv;
+  std::vector<ExtractorString> stdv;
   stdv.reserve(rustVec.size());
   for (ExtractorString es : rustVec) {
-    stdv.push_back(std::string(es.s));
+    stdv.push_back(es);
   }
   return stdv;
 }

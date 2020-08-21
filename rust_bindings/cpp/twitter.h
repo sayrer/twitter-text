@@ -170,63 +170,67 @@ public:
     set_extract_url_without_protocol(*extractor, extractUrlwp);
   }
 
-  std::vector<Entity> extractEntitiesWithIndices(std::string &text) {
+  std::vector<Entity> extractEntitiesWithIndices(std::string text) {
     auto vec = extract_entities_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractMentionedScreennames(const std::string &text) {
+  std::vector<ExtractorString> extractMentionedScreennames(std::string text) {
     auto vec = extract_mentioned_screennames(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractMentionedScreennamesWithIndices(const std::string &text) {
+  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string text) {
     auto vec = extract_mentioned_screennames_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
-  std::vector<Entity> extractMentionsOrListsWithIndices(const std::string &text) {
+  std::vector<Entity> extractMentionsOrListsWithIndices(std::string text) {
     auto vec = extract_mentions_or_lists_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
-  Entity* extractReplyScreenname(const std::string &text) {
+  Entity* extractReplyScreenname(std::string text) {
     return extract_reply_username(*extractor, text).release();
   }
 
-  std::vector<std::string> extractUrls(const std::string &text) {
+  std::vector<ExtractorString> extractUrls(std::string text) {
     auto vec = extract_urls(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractUrlsWithIndices(const std::string &text) {
+  std::vector<Entity> extractUrlsWithIndices(std::string text) {
     auto vec = extract_urls_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractHashtags(const std::string &text) {
+  std::vector<ExtractorString> extractHashtags(std::string text) {
     auto vec = extract_hashtags(*extractor, text);
-    return extractorStringsToCpp(vec);
+    std::vector<ExtractorString> ret = extractorStringsToCpp(vec);
+    if (!ret.empty()) {
+      //printf("Vec 0: %s\n", ret[0].c_str());
+    }
+    return ret;
   }
 
-  std::vector<Entity> extractHashtagsWithIndices(const std::string &text) {
+  std::vector<Entity> extractHashtagsWithIndices(std::string text) {
     auto vec = extract_hashtags_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
-  std::vector<std::string> extractCashtags(const std::string &text) {
+  std::vector<ExtractorString> extractCashtags(std::string text) {
     auto vec = extract_cashtags(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractCashtagsWithIndices(const std::string &text) {
+  std::vector<Entity> extractCashtagsWithIndices(std::string text) {
     auto vec = extract_cashtags_with_indices(*extractor, text);
     return entitiesToCpp(vec);
   }
 
 private:
   std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
-  std::vector<std::string> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec);
+  std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec);
   ::rust::Box<RustExtractor> extractor;
 };
 

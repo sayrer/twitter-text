@@ -26,7 +26,6 @@ public class Yaml {
       e.setEnd(indices.get(1));
       e.setValue(configEntry.get(key).toString());
       e.setListSlug(listSlug.isEmpty() ? null : listSlug);
-      e.setEntityType((Integer) configEntry.get("type"));
       expected.add(e);
     }
     return expected;

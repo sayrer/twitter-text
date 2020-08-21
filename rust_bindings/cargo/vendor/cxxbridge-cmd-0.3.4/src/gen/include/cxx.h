@@ -142,7 +142,7 @@ public:
   T *operator->() noexcept;
   T &operator*() noexcept;
 
-#ifndef SWIGJAVA
+#ifndef SWIG
   template <typename... Fields>
   static Box in_place(Fields &&...);
 #endif
@@ -410,7 +410,7 @@ T &Box<T>::operator*() noexcept {
   return *this->ptr;
 }
 
-#ifndef SWIGJAVA
+#ifndef SWIG
 template <typename T>
 template <typename... Fields>
 Box<T> Box<T>::in_place(Fields &&... fields) {

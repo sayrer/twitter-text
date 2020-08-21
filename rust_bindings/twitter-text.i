@@ -17,7 +17,7 @@ namespace std {
     %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
     %template(Hits) vector<twitter_text::Hit>;
     %template(Entities) vector<twitter_text::Entity>;
-    %template(ExtractorStrings) vector<string>;
+    %template(ExtractorStrings) vector<twitter_text::ExtractorString>;
 }
 
 #ifdef SWIGPYTHON
@@ -64,7 +64,10 @@ namespace rust {
     %typemap(jtype) String "byte[]"
     %typemap(jstype) String "String"
     %typemap(javaout) String {
-      return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+      System.out.println("Test decode?");
+      String s = java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+      System.out.println("decoded: " + s);
+      return s;
     }
     %typemap(javain,
     pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
@@ -90,10 +93,11 @@ namespace rust {
     %typemap(jtype) String* "byte[]"
     %typemap(jstype) String* "String"
     %typemap(javaout) String* {
+      System.out.println("Test decode? 2");
       return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
     }
     %typemap(javain,
-    pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
+    pre= "byte[] temp$javainput = new byte[0]; if ($javainput != null) temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
   ) String* 
     "temp$javainput"
 }
@@ -116,12 +120,49 @@ namespace std {
     jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
   }
   %typemap(javaout) string {
+    System.out.println("Calling javaout");
     return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
   }
   %typemap(javain,
     pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
   ) string 
     "temp$javainput"
+
+  %typemap(jni) string* "jbyteArray"
+  %typemap(in) string* {
+    jsize length = jenv->GetArrayLength($input);
+    char* buf = (char *) jenv->GetPrimitiveArrayCritical($input, NULL);
+    // TODO: null/error check
+    $1 = std::string(buf, length);
+    jenv->ReleasePrimitiveArrayCritical($input, buf, 0);
+  }
+  %typemap(jtype) string* "byte[]"
+  %typemap(jstype) string* "String"
+  %typemap(out) string* {
+    const size_t len = $1.size();
+    $result = jenv->NewByteArray(len);
+    // TODO: check that this succeeded
+    jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
+  }
+  %typemap(javaout) string* {
+    System.out.println("Calling javaout");
+    return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
+  }
+  %typemap(javain,
+    pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
+  ) string* 
+    "temp$javainput"
+
+  %typemap(jstype) vector<twitter_text::ExtractorString> "java.util.AbstractList<String>"
+  %typemap(javaout) vector<twitter_text::ExtractorString> {
+    System.out.println("Test decode? 3");
+    ExtractorStrings es = new ExtractorStrings($jnicall, true);
+    java.util.ArrayList list = new java.util.ArrayList(es.size());
+    for (int i = 0; i < es.size(); i++) {
+      list.add(es.get(i).getS());
+    }
+    return list;
+  }
 }
 
 #endif
@@ -162,7 +203,6 @@ namespace std {
 %ignore AutolinkerConfig;
 %ignore Configuration;
 %ignore ExtractResult;
-%ignore ExtractorString;
 %ignore MentionResult;
 
 %ignore Box;
