@@ -35,6 +35,8 @@ namespace rust {
     }
 }
 
+// see tf_session.i for more TODO here
+
 namespace std {
   %typemap(out) vector<twitter_text::ExtractorString> {
     PyObject* list = PyList_New($1.size());
@@ -52,6 +54,8 @@ namespace std {
 
 %rename (RustString) String;
 %rename("%(lowercamelcase)s", %$not %$isclass) "";
+%rename (ExtractResult) SwigExtractResult;
+%rename (MentionResult) SwigMentionResult;
 
 namespace rust {
     class String;

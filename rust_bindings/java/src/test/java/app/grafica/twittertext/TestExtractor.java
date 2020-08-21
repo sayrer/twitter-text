@@ -167,4 +167,141 @@ public class TestExtractor {
       }
     }
   }
+
+  @Test
+  public void tesValidatingConstructor() {
+    ValidatingExtractor extractor = new ValidatingExtractor(TwitterTextConfiguration.configV3());
+    assertNotNull(extractor);
+  }
+
+
+  @Test
+  public void testValidatingAccessors() {
+    ValidatingExtractor extractor = new ValidatingExtractor(TwitterTextConfiguration.configV3());
+    assertNotNull(extractor);
+
+    assertEquals(extractor.getNormalize(), true);
+    extractor.setNormalize(false);
+    assertEquals(extractor.getNormalize(), false);
+
+    assertEquals(extractor.getExtractUrlWithoutProtocol(), true);
+    extractor.setExtractUrlWithoutProtocol(false);
+    assertEquals(extractor.getExtractUrlWithoutProtocol(), false);
+  }
+  @Test
+  public void testValidatingYaml() throws IOException {
+    ValidatingExtractor extractor = new ValidatingExtractor(new TwitterTextConfiguration());
+    assertNotNull(extractor);
+
+    String path = "rust/conformance/tests/extract.yml"; 
+    List<Map> tests = Yaml.loadConformanceData(path, "mentions_with_indices");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractMentionedScreennamesWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "screen_name", null);
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+  
+    tests = Yaml.loadConformanceData(path, "mentions_or_lists_with_indices");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractMentionsOrListsWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "screen_name", "list_slug");
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+
+    tests = Yaml.loadConformanceData(path, "replies");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      MentionResult mr = extractor.extractReplyScreenname(test.get("text").toString());
+      Entity e = mr.getEntity();
+      assertEquals(test.get("expected"), e != null ? e.getValue() : null);
+    }
+
+    tests = Yaml.loadConformanceData(path, "urls_with_indices");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractUrlsWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "url", null);
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+
+    tests = Yaml.loadConformanceData(path, "urls_with_directional_markers");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractUrlsWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "url", null);
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+
+    tests = Yaml.loadConformanceData(path, "hashtags_with_indices");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractHashtagsWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "hashtag", null);
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+
+    tests = Yaml.loadConformanceData(path, "cashtags_with_indices");
+    assert(tests.size() > 0);
+    for (Map test : tests) {
+      ExtractResult er = extractor.extractCashtagsWithIndices(test.get("text").toString());
+      assert(er.getParseResults().getIsValid());
+      List<Entity> actual = er.getEntities();
+      List<Entity> expected = Yaml.getExpectedEntities(test, "cashtag", null);
+      assert(actual.size() > 0);
+      assertEquals(actual.size(), expected.size());
+      for (int i = 0; i < actual.size(); i++) {
+        assertEquals(expected.get(i).getStart(), actual.get(i).getStart());
+        assertEquals(expected.get(i).getEnd(), actual.get(i).getEnd());
+        assertEquals(expected.get(i).getValue(), actual.get(i).getValue());
+        assertEquals(expected.get(i).getListSlug(), actual.get(i).getListSlug());
+      }
+    }
+  }
 }
