@@ -225,3 +225,8 @@ namespace std {
 /* Parse the header file to generate wrappers */
 %include "rust/twitter-text/twitter-text.h"
 %include "rust_bindings/cpp/twitter.h"
+
+namespace twitter_text {
+    %template(Extractor) Extractor<::std::vector<twitter_text::Entity>, twitter_text::Entity*>;
+    %template(ValidatingExtractor) ValidatingExtractor<twitter_text::SwigExtractResult*, twitter_text::SwigMentionResult*>;
+}

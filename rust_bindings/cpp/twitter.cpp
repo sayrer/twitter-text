@@ -182,30 +182,146 @@ Autolinker::autolinkCashtags(const std::string &text) {
 
 // Extractor
 
-// Extractor
-
-std::vector<ExtractorString>
-Extractor::extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
-  std::vector<ExtractorString> stdv;
-  stdv.reserve(rustVec.size());
-  for (ExtractorString es : rustVec) {
-    stdv.push_back(es);
-  }
-  return stdv;
+template <>
+::rust::Vec<Entity> 
+Extractor<>::extractEntitiesWithIndices(std::string text) {
+  return extract_entities_with_indices(*extractor, text);
 }
 
+template <>
 std::vector<Entity>
-Extractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-  std::vector<Entity> stdv;
-  stdv.reserve(rustVec.size());
-  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-  return stdv;
+Extractor<std::vector<Entity>, Entity*>::extractEntitiesWithIndices(std::string text) {
+  auto vec = extract_entities_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+::rust::Vec<Entity> 
+Extractor<>::extractMentionedScreennamesWithIndices(std::string text) {
+  return extract_mentioned_screennames_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity>
+Extractor<std::vector<Entity>, Entity*>::extractMentionedScreennamesWithIndices(std::string text) {
+  auto vec = extract_mentioned_screennames_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+::rust::Vec<Entity> 
+Extractor<>::extractMentionsOrListsWithIndices(std::string text) {
+  return extract_mentions_or_lists_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity> 
+Extractor<std::vector<Entity>, Entity*>::extractMentionsOrListsWithIndices(std::string text) {
+  auto vec = extract_mentions_or_lists_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+std::shared_ptr<Entity>
+Extractor<>::extractReplyScreenname(std::string text) {
+  return extract_reply_username(*extractor, text);
+}
+
+template <>
+Entity*
+Extractor<std::vector<Entity>, Entity*>::extractReplyScreenname(std::string text) {
+  return extract_reply_username(*extractor, text).release();
+}
+
+template <>
+::rust::Vec<Entity> 
+Extractor<>::extractUrlsWithIndices(std::string text) {
+  return extract_urls_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity> 
+Extractor<std::vector<Entity>, Entity*>::extractUrlsWithIndices(std::string text) {
+  auto vec = extract_urls_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+::rust::Vec<Entity>
+Extractor<>::extractHashtagsWithIndices(std::string text) {
+  return extract_hashtags_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity>
+Extractor<std::vector<Entity>, Entity*>::extractHashtagsWithIndices(std::string text) {
+  auto vec = extract_hashtags_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+::rust::Vec<Entity>
+Extractor<>::extractCashtagsWithIndices(std::string text) {
+  return extract_cashtags_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity>
+Extractor<std::vector<Entity>, Entity*>::extractCashtagsWithIndices(std::string text) {
+  auto vec = extract_cashtags_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
 }
 
 // ValidatingExtractor
 
-SwigMentionResult*
-ValidatingExtractor::extractReplyScreenname(const std::string &text) {
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractEntitiesWithIndices(const std::string &text) {
+  return extract_entities_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult*
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractEntitiesWithIndices(const std::string &text) {
+  auto result = extract_entities_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractMentionedScreennamesWithIndices(const std::string &text) {
+  return extract_mentioned_screennames_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractMentionedScreennamesWithIndices(const std::string &text) {
+  auto result = extract_mentioned_screennames_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractMentionsOrListsWithIndices(const std::string &text) {
+  return extract_mentions_or_lists_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractMentionsOrListsWithIndices(const std::string &text) {
+  auto result = extract_mentions_or_lists_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::unique_ptr<MentionResult>
+ValidatingExtractor<>::extractReplyScreenname(const std::string &text) {
+  return extract_reply_username_validated(*extractor, text);
+}
+
+template <>
+SwigMentionResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractReplyScreenname(const std::string &text) {
   auto result = extract_reply_username_validated(*extractor, text);
   auto swmr = new SwigMentionResult();
   swmr->parseResults = result->parse_results;
@@ -213,26 +329,43 @@ ValidatingExtractor::extractReplyScreenname(const std::string &text) {
   return swmr;
 }
 
-std::vector<Entity>
-ValidatingExtractor::entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-  std::vector<Entity> stdv;
-  stdv.reserve(rustVec.size());
-  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-  return stdv;
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractUrlsWithIndices(const std::string &text) {
+  return extract_urls_with_indices_validated(*extractor, text);
 }
 
-SwigExtractResult*
-ValidatingExtractor::convertResult(ExtractResult &result) {
-  auto swer = new SwigExtractResult();
-  swer->parseResults = result.parse_results;
-  swer->entities = entitiesToCpp(result.entities);
-  return swer;
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractUrlsWithIndices(const std::string &text) {
+  auto result = extract_urls_with_indices_validated(*extractor, text);
+  return convertResult(*result);
 }
 
-// HitHighlighter
-std::string
-HitHighlighter::highlight(std::string text, std::vector<Hit> &hits) {
-  return std::string(hit_highlight(*highlighter, text, hits));
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractHashtagsWithIndices(const std::string &text) {
+  return extract_hashtags_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractHashtagsWithIndices(const std::string &text) {
+  auto result = extract_hashtags_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractCashtagsWithIndices(const std::string &text) {
+  return extract_cashtags_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractCashtagsWithIndices(const std::string &text) {
+  auto result = extract_cashtags_with_indices_validated(*extractor, text);
+  return convertResult(*result);
 }
 
 } // twitter_text

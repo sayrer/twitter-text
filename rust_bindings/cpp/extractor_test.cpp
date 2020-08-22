@@ -313,13 +313,13 @@ struct convert<CashtagIndexTestCase> {
 namespace twitter_text {
 
 TEST(ExtractorTest, Ctor) {
-  Extractor *extractor = new Extractor();
+  Extractor<> *extractor = new Extractor<>();
   ASSERT_NE(extractor, nullptr);
   delete extractor;
 }
 
 TEST(ExtractorTest, Accessors) {
-  Extractor *extractor = new Extractor();
+  Extractor<> *extractor = new Extractor<>();
   ASSERT_NE(extractor, nullptr);
 
   ASSERT_EQ(extractor->getExtractUrlWithoutProtocol(), true);
@@ -330,7 +330,7 @@ TEST(ExtractorTest, Accessors) {
 }
 
 TEST(ExtractorTest, Yaml) {
-  Extractor *extractor = new Extractor();
+  Extractor<> *extractor = new Extractor<>();
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/extract.yml");
   auto mentions = readYaml<ExtractTestCase>(map["tests"]["mentions"]);
   auto mentions_with_indices = readYaml<MentionIndexTestCase>(map["tests"]["mentions_with_indices"]);
@@ -348,7 +348,13 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(mentions.size() > 0);
   for (ExtractTestCase test : mentions) {
-    ASSERT_EQ(test.expected, extractor->extractMentionedScreennames(test.text));
+    auto actual = extractor->extractMentionedScreennames(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(mentions_with_indices.size() > 0);
@@ -390,7 +396,13 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(urls.size() > 0);
   for (ExtractTestCase test : urls) {
-    ASSERT_EQ(test.expected, extractor->extractUrls(test.text));
+    auto actual = extractor->extractUrls(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(urls_with_indices.size() > 0);
@@ -421,17 +433,35 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(tco_urls_with_params.size() > 0);
   for (ExtractTestCase test : tco_urls_with_params) {
-    ASSERT_EQ(test.expected, extractor->extractUrls(test.text));
+    auto actual = extractor->extractUrls(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(hashtags.size() > 0);
   for (ExtractTestCase test : hashtags) {
-    ASSERT_EQ(test.expected, extractor->extractHashtags(test.text));
+    auto actual = extractor->extractHashtags(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(hashtags_from_astral.size() > 0);
   for (ExtractTestCase test : hashtags_from_astral) {
-    ASSERT_EQ(test.expected, extractor->extractHashtags(test.text));
+    auto actual = extractor->extractHashtags(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(hashtags_with_indices.size() > 0);
@@ -449,7 +479,13 @@ TEST(ExtractorTest, Yaml) {
 
   ASSERT_TRUE(cashtags.size() > 0);
   for (ExtractTestCase test : cashtags) {
-    ASSERT_EQ(test.expected, extractor->extractCashtags(test.text));
+    auto actual = extractor->extractCashtags(test.text);
+    ASSERT_EQ(test.expected.size(), actual.size());
+    for (auto it = actual.begin(); it != actual.end(); ++it) {
+      const ExtractorString& es = *it;
+      size_t index = std::distance(actual.begin(), it);
+      ASSERT_EQ(test.expected[index], std::string(es.s));
+    }
   }
 
   ASSERT_TRUE(cashtags_with_indices.size() > 0);
@@ -470,14 +506,14 @@ TEST(ExtractorTest, Yaml) {
 
 TEST(ValidatingExtractorTest, Ctor) {
   TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   ASSERT_NE(extractor, nullptr);
   delete extractor;
 }
 
 TEST(ValidatingExtractorTest, Accessors) {
   TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   ASSERT_NE(extractor, nullptr);
 
   ASSERT_EQ(extractor->getNormalize(), true);
@@ -493,7 +529,7 @@ TEST(ValidatingExtractorTest, Accessors) {
 
 TEST(ValidatingExtractorTest, Yaml) {
   TwitterTextConfiguration config;
-  ValidatingExtractor *extractor = new ValidatingExtractor(config);
+  ValidatingExtractor<> *extractor = new ValidatingExtractor<>(config);
   YAML::Node map = YAML::LoadFile("rust/conformance/tests/extract.yml");
   auto mentions_with_indices = readYaml<MentionIndexTestCase>(map["tests"]["mentions_with_indices"]);
   auto mentions_or_lists_with_indices = readYaml<MentionOrListIndexTestCase>(map["tests"]["mentions_or_lists_with_indices"]);

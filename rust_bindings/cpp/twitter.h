@@ -90,6 +90,7 @@ public:
 private:
   std::shared_ptr<Configuration> config;
 
+  template<typename Extract, typename Mention>
   friend class ValidatingExtractor;
 
   friend class TwitterTextParser;
@@ -156,6 +157,10 @@ private:
   std::unique_ptr<::twitter_text::AutolinkerConfig> config;
 };
 
+template <
+  typename Vec=::rust::Vec<Entity>, 
+  typename EntityType=std::shared_ptr<Entity>
+>
 class Extractor {
 public:
   Extractor():
@@ -170,67 +175,55 @@ public:
     set_extract_url_without_protocol(*extractor, extractUrlwp);
   }
 
-  std::vector<Entity> extractEntitiesWithIndices(std::string text) {
-    auto vec = extract_entities_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
+  Vec extractEntitiesWithIndices(std::string text);
 
   std::vector<ExtractorString> extractMentionedScreennames(std::string text) {
     auto vec = extract_mentioned_screennames(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractMentionedScreennamesWithIndices(std::string text) {
-    auto vec = extract_mentioned_screennames_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
-
-  std::vector<Entity> extractMentionsOrListsWithIndices(std::string text) {
-    auto vec = extract_mentions_or_lists_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
-
-  Entity* extractReplyScreenname(std::string text) {
-    return extract_reply_username(*extractor, text).release();
-  }
+  Vec extractMentionedScreennamesWithIndices(std::string text);
+  Vec extractMentionsOrListsWithIndices(std::string text);
+  EntityType extractReplyScreenname(std::string text);
 
   std::vector<ExtractorString> extractUrls(std::string text) {
     auto vec = extract_urls(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractUrlsWithIndices(std::string text) {
-    auto vec = extract_urls_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
+  Vec extractUrlsWithIndices(std::string text);
 
   std::vector<ExtractorString> extractHashtags(std::string text) {
     auto vec = extract_hashtags(*extractor, text);
-    std::vector<ExtractorString> ret = extractorStringsToCpp(vec);
-    if (!ret.empty()) {
-      //printf("Vec 0: %s\n", ret[0].c_str());
-    }
-    return ret;
+    return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractHashtagsWithIndices(std::string text) {
-    auto vec = extract_hashtags_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
+  Vec extractHashtagsWithIndices(std::string text);
 
   std::vector<ExtractorString> extractCashtags(std::string text) {
     auto vec = extract_cashtags(*extractor, text);
     return extractorStringsToCpp(vec);
   }
 
-  std::vector<Entity> extractCashtagsWithIndices(std::string text) {
-    auto vec = extract_cashtags_with_indices(*extractor, text);
-    return entitiesToCpp(vec);
-  }
+  Vec extractCashtagsWithIndices(std::string text);
 
 private:
-  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
-  std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec);
+  std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
+    std::vector<ExtractorString> stdv;
+    stdv.reserve(rustVec.size());
+    for (ExtractorString es : rustVec) {
+      stdv.push_back(es);
+    }
+    return stdv;
+  }
+
+  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+    std::vector<Entity> stdv;
+    stdv.reserve(rustVec.size());
+    std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+    return stdv;
+  }
+
   ::rust::Box<RustExtractor> extractor;
 };
 
@@ -246,6 +239,7 @@ public:
   Entity* entity;
 };
 
+template <typename Extract=std::unique_ptr<ExtractResult>, typename Mention=std::unique_ptr<MentionResult>>
 class ValidatingExtractor {
 public:
   ValidatingExtractor(TwitterTextConfiguration &ttc):
@@ -268,41 +262,35 @@ public:
     set_normalize(*extractor, normalize);
   }
 
-  SwigExtractResult* extractEntitiesWithIndices(const std::string &text) {
-    auto result = extract_entities_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractEntitiesWithIndices(const std::string &text);
 
-  SwigExtractResult* extractMentionedScreennamesWithIndices(const std::string &text) {
-    auto result = extract_mentioned_screennames_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractMentionedScreennamesWithIndices(const std::string &text);
 
-  SwigExtractResult* extractMentionsOrListsWithIndices(const std::string &text) {
-    auto result = extract_mentions_or_lists_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractMentionsOrListsWithIndices(const std::string &text);
 
-  SwigMentionResult* extractReplyScreenname(const std::string &text);
+  Mention extractReplyScreenname(const std::string &text);
 
-  SwigExtractResult* extractUrlsWithIndices(const std::string &text) {
-    auto result = extract_urls_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractUrlsWithIndices(const std::string &text);
 
-  SwigExtractResult* extractHashtagsWithIndices(const std::string &text) {
-    auto result = extract_hashtags_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractHashtagsWithIndices(const std::string &text);
 
-  SwigExtractResult* extractCashtagsWithIndices(const std::string &text) {
-    auto result = extract_cashtags_with_indices_validated(*extractor, text);
-    return convertResult(*result);
-  }
+  Extract extractCashtagsWithIndices(const std::string &text);
 
 private:
-  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec);
-  SwigExtractResult* convertResult(ExtractResult &result);
+  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {
+    std::vector<Entity> stdv;
+    stdv.reserve(rustVec.size());
+    std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+    return stdv;
+  }
+
+  SwigExtractResult* convertResult(ExtractResult &result) {
+    auto swer = new SwigExtractResult();
+    swer->parseResults = result.parse_results;
+    swer->entities = entitiesToCpp(result.entities);
+    return swer;
+  }
+
   ::rust::Box<RustValidatingExtractor> extractor;
 };
 
@@ -316,7 +304,9 @@ public:
     highlighter(make_highlighter(tag_str)) 
   {}
 
-  std::string highlight(std::string text, std::vector<Hit> &hits);
+  std::string highlight(std::string text, std::vector<Hit> &hits) {
+    return std::string(hit_highlight(*highlighter, text, hits));
+  }
 
 private:
   ::rust::Box<RustHitHighlighter> highlighter;
