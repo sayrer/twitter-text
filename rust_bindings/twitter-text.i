@@ -52,6 +52,21 @@ namespace std {
 
 #endif
 
+#ifdef SWIGRUBY
+
+namespace rust {
+    class String;
+    %typemap(out) String {
+      $result = rb_str_new($1.data(), $1.size());
+    }
+
+    %typemap(out) String* {
+      $result = rb_str_new($1->data(), $1->size());
+    }
+}
+
+#endif
+
 #ifdef SWIGJAVA
 
 %rename (RustString) String;
@@ -216,6 +231,30 @@ namespace std {
 %ignore make_default_highlighter;
 %ignore make_highlighter;
 %ignore make_default_validator;
+%ignore autolink_usernames_and_lists;
+%ignore autolink_hashtags;
+%ignore autolink_urls;
+%ignore autolink_cashtags;
+%ignore get_extract_url_without_protocol;
+%ignore set_extract_url_without_protocol;
+%ignore get_extract_url_without_protocol_validated;
+%ignore set_extract_url_without_protocol_validated;
+%ignore get_normalize;
+%ignore set_normalize;
+%ignore hit_highlight;
+%ignore is_valid_tweet;
+%ignore is_valid_username;
+%ignore is_valid_list;
+%ignore is_valid_hashtag;
+%ignore is_valid_url;
+%ignore is_valid_url_without_protocol;
+%ignore get_max_tweet_length;
+%ignore get_short_url_length;
+%ignore set_short_url_length;
+%ignore get_short_url_length_https;
+%ignore set_short_url_length_https;
+%ignore parse_ffi;
+%ignore pretty_print;
 
 %ignore AutolinkerConfig;
 %ignore Configuration;

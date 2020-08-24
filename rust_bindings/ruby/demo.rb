@@ -1,8 +1,5 @@
-require "pp"
-
-puts pp $:
-puts "hi"
-
 require "rust_bindings/ruby/twittertext"
 
-puts Twittertext
+autolinker = Twittertext::Autolinker.new
+
+puts autolinker.autolink "What's up $TWTR or #TWTR or @twitter?"
