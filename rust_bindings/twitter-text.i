@@ -2,6 +2,8 @@
 %module TwitterText
 #elif SWIGPYTHON
 %module twitter_text
+#elif SWIGRUBY
+%module twittertext
 #endif
 %{
 /* Includes the header in the wrapper code */

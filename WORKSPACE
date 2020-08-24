@@ -38,11 +38,15 @@ bazel_version(name = "bazel_version")
 #
 # SWIG
 #
-http_archive(
+#http_archive(
+#    name = "io_tweag_rules_nixpkgs",
+#    sha256 = "2def78ee114109f4092cad25e4c9cd8f4b23dd1475e88eddb9e419352a63edbc",
+#    strip_prefix = "rules_nixpkgs-85b767e3c6325d8f4d7916d6c8cac5691d791eef",
+#    urls = ["https://github.com/tweag/rules_nixpkgs/#archive/85b767e3c6325d8f4d7916d6c8cac5691d791eef.tar.gz"],
+#)
+local_repository(
     name = "io_tweag_rules_nixpkgs",
-    sha256 = "2def78ee114109f4092cad25e4c9cd8f4b23dd1475e88eddb9e419352a63edbc",
-    strip_prefix = "rules_nixpkgs-85b767e3c6325d8f4d7916d6c8cac5691d791eef",
-    urls = ["https://github.com/tweag/rules_nixpkgs/archive/85b767e3c6325d8f4d7916d6c8cac5691d791eef.tar.gz"],
+    path = "/Users/sayrer/github/sayrer/rules_nixpkgs",
 )
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
 rules_nixpkgs_dependencies()
@@ -90,12 +94,31 @@ load("@rust_python_test_deps//:requirements.bzl", _rust_python_test_deps_install
 _rust_python_test_deps_install()
 
 #
-# SWIG needs Python development headers
+# SWIG needs development headers
 #
 nixpkgs_package(
     name = "python3Full",
     repositories = { "nixpkgs": "@nixpkgs//:default.nix" },
 )
+
+#
+# Ruby
+# 
+git_repository(
+    name = "bazelruby_rules_ruby",
+    remote = "https://github.com/bazelruby/rules_ruby.git",
+    commit = "79da596d0d26597dcb147b3b4159d4a4d76f2401"
+)
+
+load(
+    "@bazelruby_rules_ruby//ruby:deps.bzl",
+    "rules_ruby_dependencies",
+    "rules_ruby_select_sdk",
+)
+
+rules_ruby_dependencies()
+rules_ruby_select_sdk(version = "2.6.6")
+
 
 #
 # C++
