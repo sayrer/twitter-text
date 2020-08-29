@@ -2,17 +2,17 @@ load("@rust_python_test_deps//:requirements.bzl", "requirement")
 
 TEST_DEPS = [
     requirement("pytest"),
-	requirement("attrs"),
-	requirement("iniconfig"),
-	requirement("more-itertools"),
-	requirement("packaging"),
-	requirement("pluggy"),
-	requirement("py"),
-	requirement("toml"),
-	requirement("importlib-metadata"),
-	requirement("wcwidth"),
-	requirement("PyYaml"),
-	"//rust_bindings/python:twitter_text",
+    requirement("attrs"),
+    requirement("iniconfig"),
+    requirement("more-itertools"),
+    requirement("packaging"),
+    requirement("pluggy"),
+    requirement("py"),
+    requirement("toml"),
+    requirement("importlib-metadata"),
+    requirement("wcwidth"),
+    requirement("PyYaml"),
+    "//rust_bindings/python:twitter_text",
 ]
 
 py_test(
