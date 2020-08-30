@@ -54,6 +54,8 @@ namespace std {
 
 #ifdef SWIGRUBY
 
+%rename("%(undercase)s", %$isfunction) "";
+
 namespace rust {
     class String;
     %typemap(out) String {
