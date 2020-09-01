@@ -59,11 +59,11 @@ namespace std {
 namespace rust {
     class String;
     %typemap(out) String {
-      $result = rb_str_new($1.data(), $1.size());
+      $result = rb_utf8_str_new($1.data(), $1.size());
     }
 
     %typemap(out) String* {
-      $result = rb_str_new($1->data(), $1->size());
+      $result = rb_utf8_str_new($1->data(), $1->size());
     }
 }
 

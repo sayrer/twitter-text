@@ -53,5 +53,13 @@ RSpec.describe Twittertext::Autolinker do
         autolinker.set_username_include_symbol(true)
         expect(autolinker.get_username_include_symbol).to eq(true)
     end
+
+    it 'can roundtrip unicode' do
+        autolinker = Twittertext::Autolinker.new
+
+        expect(autolinker.get_url_class).to eq("")
+        autolinker.set_url_class("foo 👳🏿‍♀️")
+        expect(autolinker.get_url_class).to eq("foo 👳🏿‍♀️")
+    end
 end
 
