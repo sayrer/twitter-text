@@ -120,6 +120,20 @@ rules_ruby_dependencies()
 rules_ruby_select_sdk(version = "2.6.6")
 
 
+load(
+    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "ruby_bundle",
+)
+
+ruby_bundle(
+    name = "bundle",
+    excludes = {
+        "mini_portile": ["test/**/*"],
+    },
+    gemfile = "//:Gemfile",
+    gemfile_lock = "//:Gemfile.lock",
+)
+
 #
 # C++
 #
