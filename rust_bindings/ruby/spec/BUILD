@@ -11,6 +11,7 @@ ruby_test(
         ":autolinker_spec.rb",
         ":configuration_spec.rb",
         ":hithighlighter_spec.rb",
+        ":validator_spec.rb",
     ],
     main = "@bundle//:bin/rspec",
     args = [
