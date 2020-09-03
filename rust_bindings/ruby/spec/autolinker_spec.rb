@@ -1,5 +1,6 @@
 require 'rust_bindings/ruby/spec/spec_helper'
 require 'rust_bindings/ruby/twittertext'
+require 'yaml'
 
 RSpec.describe Twittertext::Autolinker do
     it 'has working accessors' do
@@ -61,5 +62,39 @@ RSpec.describe Twittertext::Autolinker do
         autolinker.set_url_class("foo 👳🏿‍♀️")
         expect(autolinker.get_url_class).to eq("foo 👳🏿‍♀️")
     end
-end
 
+    it 'passes conformance tests' do
+        autolinker = Twittertext::Autolinker.new
+        yaml = YAML.load_file("rust/conformance/tests/autolink.yml")
+
+        expect(yaml["tests"]["usernames"].length).to be > 0
+        yaml["tests"]["usernames"].each { |test| 
+            expect(autolinker.autolink_usernames_and_lists(test["text"])).to eq(test["expected"])
+        }
+
+        expect(yaml["tests"]["lists"].length).to be > 0
+        yaml["tests"]["lists"].each { |test| 
+            expect(autolinker.autolink_usernames_and_lists(test["text"])).to eq(test["expected"])
+        }
+
+        expect(yaml["tests"]["hashtags"].length).to be > 0
+        yaml["tests"]["hashtags"].each { |test| 
+            expect(autolinker.autolink_hashtags(test["text"])).to eq(test["expected"])
+        }
+
+        expect(yaml["tests"]["urls"].length).to be > 0
+        yaml["tests"]["urls"].each { |test| 
+            expect(autolinker.autolink_urls(test["text"])).to eq(test["expected"])
+        }
+
+        expect(yaml["tests"]["cashtags"].length).to be > 0
+        yaml["tests"]["cashtags"].each { |test| 
+            expect(autolinker.autolink_cashtags(test["text"])).to eq(test["expected"])
+        }
+
+        expect(yaml["tests"]["all"].length).to be > 0
+        yaml["tests"]["all"].each { |test| 
+            expect(autolinker.autolink(test["text"])).to eq(test["expected"])
+        }
+    end
+end

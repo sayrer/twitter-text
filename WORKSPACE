@@ -125,6 +125,7 @@ load(
     "ruby_bundle",
 )
 
+# Run 'bundle lock --update' to update the lock file without installing anything.
 ruby_bundle(
     name = "bundle",
     excludes = {

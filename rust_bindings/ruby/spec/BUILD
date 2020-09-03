@@ -17,7 +17,9 @@ ruby_test(
     deps = [
         "@bundle//:bin",
         "@bundle//:rspec",
-        "@bundle//:rspec-its",
     ],
-    data = ["//rust_bindings/ruby:twitter_text_shared_library"],
+    data = [
+        "//rust_bindings/ruby:twitter_text_shared_library",
+        "//rust/conformance:yaml",
+    ],
 )
