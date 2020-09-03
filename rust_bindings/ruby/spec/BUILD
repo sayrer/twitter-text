@@ -9,6 +9,7 @@ ruby_test(
     srcs = [
         ":spec_helper.rb",
         ":autolinker_spec.rb",
+        ":configuration_spec.rb",
     ],
     main = "@bundle//:bin/rspec",
     args = [
@@ -20,6 +21,7 @@ ruby_test(
     ],
     data = [
         "//rust_bindings/ruby:twitter_text_shared_library",
+        "//rust_bindings/cpp:config_test_data",
         "//rust/conformance:yaml",
     ],
 )
