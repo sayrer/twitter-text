@@ -10,6 +10,7 @@ ruby_test(
         ":spec_helper.rb",
         ":autolinker_spec.rb",
         ":configuration_spec.rb",
+        ":hithighlighter_spec.rb",
     ],
     main = "@bundle//:bin/rspec",
     args = [

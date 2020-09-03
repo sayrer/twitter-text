@@ -304,8 +304,8 @@ public:
     highlighter(make_highlighter(tag_str)) 
   {}
 
-  std::string highlight(std::string text, std::vector<Hit> &hits) {
-    return std::string(hit_highlight(*highlighter, text, hits));
+  rust::String highlight(std::string text, std::vector<Hit> &hits) {
+    return hit_highlight(*highlighter, text, hits);
   }
 
 private:
