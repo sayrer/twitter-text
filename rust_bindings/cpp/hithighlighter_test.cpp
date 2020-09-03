@@ -79,11 +79,11 @@ TEST(HithighlighterTest, Yaml) {
   auto with_links = readYaml(map["tests"]["with_links"]);
 
   for (HighlightTestCase test : plain_text) {
-  	ASSERT_EQ(test.expected, highlighter->highlight(test.text, test.hits));
+  	ASSERT_EQ(test.expected, std::string(highlighter->highlight(test.text, test.hits)));
   }
 
   for (HighlightTestCase test : with_links) {
-  	ASSERT_EQ(test.expected, highlighter->highlight(test.text, test.hits));
+  	ASSERT_EQ(test.expected, std::string(highlighter->highlight(test.text, test.hits)));
   }
 }
 
