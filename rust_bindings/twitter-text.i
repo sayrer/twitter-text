@@ -67,6 +67,18 @@ namespace rust {
     }
 }
 
+namespace std {
+  %typemap(out) vector<twitter_text::ExtractorString> {
+    VALUE list = rb_ary_new2($1.size());
+    std::vector<twitter_text::ExtractorString>* estrings = &$1;
+    for (size_t i = 0; i < $1.size(); i++) {
+      VALUE s = rb_utf8_str_new(estrings->at(i).s.data(), estrings->at(i).s.size());
+      rb_ary_push(list, s);
+    }
+    $result = list;
+  }
+}
+
 #endif
 
 #ifdef SWIGJAVA
