@@ -1,6 +1,6 @@
 [package]
 name = "twitter-text"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
 readme = "README.md"
 description = "An implementation of twitter-text in Rust."
@@ -13,5 +13,5 @@ cxx = "0.3.4"
 unicode-normalization = "0.1.12"
 idna = "0.1.5"
 pest = "2.1.0"
-twitter_text_config = { path = "../config" , version = "0.1.0" }
-twitter_text_parser = { path = "../parser" , version = "0.1.0" }
+twitter_text_config = { path = "../config" , version = "0.2.0" }
+twitter_text_parser = { path = "../parser" , version = "0.2.0" }
