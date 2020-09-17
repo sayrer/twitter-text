@@ -547,11 +547,8 @@ pub fn extract_reply_username_validated(fve: &RustValidatingExtractor, text: &st
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
-        println!("here?");
         let t = extractor.prep_input(text);
-        println!("t: {:?}", t);
         let result = extractor.extract_reply_username(t.as_str());
-        println!("result: {:?}", result);
         return UniquePtr::new(ffi::MentionResult::from(result));
     }
 
