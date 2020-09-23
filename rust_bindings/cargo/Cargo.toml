@@ -41,41 +41,11 @@ additional_flags = [
 "--cfg=span_locations",
 ]
 
-#[raze.crates.syn.'1.0.30']
-#additional_flags = [
-#    "--cfg", "syn_can_match_trailing_dollar",
-#    "--cfg", "syn_can_use_thread_id",
-#    "--cfg", "syn_can_use_associated_constants",
-#    "--cfg", "syn_can_call_macro_by_path",
-#    "--cfg", "syn_disable_nightly_tests",
-#]
-
-[raze.crates.rustversion.'1.0.2']
-gen_buildrs = true
-
-[raze.crates.proc-macro-error.'1.0.2']
-gen_buildrs = true
-additional_flags = [
-	"--cfg=use_fallback"
-]
-
-[raze.crates.proc-macro-error-attr.'1.0.2']
-gen_buildrs = true
-additional_flags = [
-	"--cfg=use_fallback"
-]
-
-[raze.crates.cbindgen.'0.12.2']
-extra_aliased_targets = [
-    "cargo_bin_cbindgen",
-]
-
 [raze.crates.cxx.'0.4.6']
 data_attr = 'glob(["**/*.h", "**/*.cc"])'
 extra_aliased_targets = [
     "cxx_cc_library"
 ]
-
 
 [raze.crates.cxxbridge-cmd.'0.4.6']
 additional_flags = [
