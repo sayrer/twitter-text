@@ -38,17 +38,6 @@ namespace rust {
 
 // see tf_session.i for more TODO here
 
-namespace std {
-  %typemap(out) vector<twitter_text::ExtractorString> {
-    PyObject* list = PyList_New($1.size());
-    std::vector<twitter_text::ExtractorString>* estrings = &$1;
-    for (size_t i = 0; i < $1.size(); i++) {
-      PyList_SET_ITEM(list, i, PyUnicode_FromStringAndSize(estrings->at(i).s.data(), estrings->at(i).s.size()));
-    }
-    $result = list;
-  }
-}
-
 #endif
 
 #ifdef SWIGRUBY
@@ -277,7 +266,7 @@ namespace std {
 %ignore Box;
 
 /* Parse the header file to generate wrappers */
-%include "rust/twitter-text/twitter-text.h"
+%include "rust_bindings/twitter-text-swig.h"
 %include "rust_bindings/cpp/twitter.h"
 
 namespace twitter_text {
