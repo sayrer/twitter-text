@@ -35,10 +35,9 @@ additional_flags = [
 
 [raze.crates.proc-macro2.'1.0.21']
 additional_flags = [
-#    "--cfg", "u128",
     "--cfg=use_proc_macro",
     "--cfg=wrap_proc_macro",
-"--cfg=span_locations",
+    "--cfg=span_locations",
 ]
 
 [raze.crates.cxx.'0.4.6']
