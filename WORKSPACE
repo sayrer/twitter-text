@@ -36,7 +36,7 @@ bazel_version(name = "bazel_version")
 #
 http_archive(
     name = "io_tweag_rules_nixpkgs",
-    #sha256 = "4fe458cb27708b7319b04a420c9b39022eb994624325dfb0f8b903ed3456c491",
+    sha256 = "aca86baa64174478c57f74ed09d5c2313113abe94aa3af030486d1b14032d3ed",
     strip_prefix = "rules_nixpkgs-dc24090573d74adcf38730422941fd69b87682c7",
     urls = ["https://github.com/tweag/rules_nixpkgs/archive/dc24090573d74adcf38730422941fd69b87682c7.tar.gz"],
 )
