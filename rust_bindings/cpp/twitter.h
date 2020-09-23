@@ -177,46 +177,33 @@ public:
 
   Vec extractEntitiesWithIndices(std::string text);
 
-  std::vector<ExtractorString> extractMentionedScreennames(std::string text) {
-    auto vec = extract_mentioned_screennames(*extractor, text);
-    return extractorStringsToCpp(vec);
+  ::rust::Vec<::rust::String> extractMentionedScreennames(std::string text) {
+    return extract_mentioned_screennames(*extractor, text);
   }
 
   Vec extractMentionedScreennamesWithIndices(std::string text);
   Vec extractMentionsOrListsWithIndices(std::string text);
   EntityType extractReplyScreenname(std::string text);
 
-  std::vector<ExtractorString> extractUrls(std::string text) {
-    auto vec = extract_urls(*extractor, text);
-    return extractorStringsToCpp(vec);
+  ::rust::Vec<::rust::String> extractUrls(std::string text) {
+    return extract_urls(*extractor, text);
   }
 
   Vec extractUrlsWithIndices(std::string text);
 
-  std::vector<ExtractorString> extractHashtags(std::string text) {
-    auto vec = extract_hashtags(*extractor, text);
-    return extractorStringsToCpp(vec);
+  ::rust::Vec<::rust::String> extractHashtags(std::string text) {
+    return extract_hashtags(*extractor, text);
   }
 
   Vec extractHashtagsWithIndices(std::string text);
 
-  std::vector<ExtractorString> extractCashtags(std::string text) {
-    auto vec = extract_cashtags(*extractor, text);
-    return extractorStringsToCpp(vec);
+  ::rust::Vec<::rust::String> extractCashtags(std::string text) {
+    return extract_cashtags(*extractor, text);
   }
 
   Vec extractCashtagsWithIndices(std::string text);
 
 private:
-  std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
-    std::vector<ExtractorString> stdv;
-    stdv.reserve(rustVec.size());
-    for (ExtractorString es : rustVec) {
-      stdv.push_back(es);
-    }
-    return stdv;
-  }
-
   std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {
     std::vector<Entity> stdv;
     stdv.reserve(rustVec.size());

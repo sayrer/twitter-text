@@ -19,7 +19,6 @@ namespace std {
     %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
     %template(Hits) vector<twitter_text::Hit>;
     %template(Entities) vector<twitter_text::Entity>;
-    %template(ExtractorStrings) vector<::twitter_text::ExtractorString>;
 }
 
 #ifdef SWIGPYTHON

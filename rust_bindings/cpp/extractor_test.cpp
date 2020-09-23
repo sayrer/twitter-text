@@ -351,9 +351,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractMentionedScreennames(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
@@ -399,9 +399,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractUrls(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
@@ -436,9 +436,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractUrls(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
@@ -447,9 +447,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractHashtags(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
@@ -458,9 +458,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractHashtags(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
@@ -482,9 +482,9 @@ TEST(ExtractorTest, Yaml) {
     auto actual = extractor->extractCashtags(test.text);
     ASSERT_EQ(test.expected.size(), actual.size());
     for (auto it = actual.begin(); it != actual.end(); ++it) {
-      const ExtractorString& es = *it;
+      const ::rust::String& es = *it;
       size_t index = std::distance(actual.begin(), it);
-      ASSERT_EQ(test.expected[index], std::string(es.s));
+      ASSERT_EQ(test.expected[index], std::string(es));
     }
   }
 
