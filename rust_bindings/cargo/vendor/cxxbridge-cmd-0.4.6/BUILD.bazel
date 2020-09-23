@@ -1,0 +1,90 @@
+"""
+@generated
+cargo-raze crate build file.
+
+DO NOT EDIT! Replaced on runs of cargo-raze
+"""
+
+# buildifier: disable=load
+load(
+    "@io_bazel_rules_rust//rust:rust.bzl",
+    "rust_binary",
+    "rust_library",
+    "rust_test",
+)
+
+package(default_visibility = [
+    # Public for visibility by "@raze__crate__version//" targets.
+    #
+    # Prefer access through "//rust_bindings/cargo", which limits external
+    # visibility to explicit Cargo.toml dependencies.
+    "//visibility:public",
+])
+
+licenses([
+    "notice",  # MIT from expression "MIT OR Apache-2.0"
+])
+
+# Generated targets
+# Unsupported target "build-script-build" with type "custom-build" omitted
+
+# buildifier: leave-alone
+rust_binary(
+    # Prefix bin name to disambiguate from (probable) collision with lib name
+    # N.B.: The exact form of this is subject to change.
+    name = "cargo_bin_cxxbridge",
+    deps = [
+        # Binaries get an implicit dependency on their crate's lib
+        ":cxxbridge_cmd",
+        "//rust_bindings/cargo/vendor/clap-2.33.3:clap",
+        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.5:codespan_reporting",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.21:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
+        "//rust_bindings/cargo/vendor/syn-1.0.41:syn",
+    ],
+    srcs = glob(["**/*.rs"]),
+    crate_root = "src/main.rs",
+    edition = "2018",
+    rustc_flags = [
+        "--cap-lints=allow",
+        "--cfg",
+        "procmacro2_semver_exempt",
+    ],
+    data = glob(["**/*.h"]),
+    version = "0.4.6",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+    crate_features = [
+    ],
+)
+
+# buildifier: leave-alone
+rust_library(
+    name = "cxxbridge_cmd",
+    crate_type = "lib",
+    deps = [
+        "//rust_bindings/cargo/vendor/clap-2.33.3:clap",
+        "//rust_bindings/cargo/vendor/codespan-reporting-0.9.5:codespan_reporting",
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.21:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
+        "//rust_bindings/cargo/vendor/syn-1.0.41:syn",
+    ],
+    srcs = glob(["**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2018",
+    rustc_flags = [
+        "--cap-lints=allow",
+        "--cfg",
+        "procmacro2_semver_exempt",
+    ],
+    data = glob(["**/*.h"]),
+    version = "0.4.6",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+    crate_features = [
+    ],
+)

@@ -18,17 +18,13 @@ bazel_skylib_workspace()
 #
 # Rust
 #
-#http_archive(
-#    name = "io_bazel_rules_rust",
-#    sha256 = "f33bffd6b779ae5a4f57944e86307f876872b9dbfc07b3d10d0e7f0041f29d5f",
-#    strip_prefix = "rules_rust-959ba5692cc4e6b803b20018c9eeeadedaa4b637",
-#    urls = [
-#        "https://github.com/bazelbuild/rules_rust/archive/959ba5692cc4e6b803b20018c9eeeadedaa4b637.tar.gz",
-#    ],
-#)
-local_repository(
+http_archive(
     name = "io_bazel_rules_rust",
-    path = "/Users/sayrer/github/sayrer/rules_rust_master/rules_rust",
+    sha256 = "618e791454692b58004fcfc96bb48470eaf29304d8268b26ce0e16e87869a76b",
+    strip_prefix = "rules_rust-50f45841dc68f7355113ada4d61fecabb528b38f",
+    urls = [
+        "https://github.com/bazelbuild/rules_rust/archive/50f45841dc68f7355113ada4d61fecabb528b38f.tar.gz",
+    ],
 )
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
 rust_repositories(edition = "2018")
@@ -38,15 +34,11 @@ bazel_version(name = "bazel_version")
 #
 # SWIG
 #
-#http_archive(
-#    name = "io_tweag_rules_nixpkgs",
-#    sha256 = "2def78ee114109f4092cad25e4c9cd8f4b23dd1475e88eddb9e419352a63edbc",
-#    strip_prefix = "rules_nixpkgs-85b767e3c6325d8f4d7916d6c8cac5691d791eef",
-#    urls = ["https://github.com/tweag/rules_nixpkgs/#archive/85b767e3c6325d8f4d7916d6c8cac5691d791eef.tar.gz"],
-#)
-local_repository(
+http_archive(
     name = "io_tweag_rules_nixpkgs",
-    path = "/Users/sayrer/github/sayrer/rules_nixpkgs",
+    #sha256 = "4fe458cb27708b7319b04a420c9b39022eb994624325dfb0f8b903ed3456c491",
+    strip_prefix = "rules_nixpkgs-dc24090573d74adcf38730422941fd69b87682c7",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/dc24090573d74adcf38730422941fd69b87682c7.tar.gz"],
 )
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
 rules_nixpkgs_dependencies()
@@ -141,7 +133,7 @@ ruby_bundle(
 http_archive(
     name = "gtest",
     url = "https://github.com/google/googletest/archive/release-1.7.0.zip",
-    #sha256 = "b58cb7547a28b2c718d1e38aee18a3659c9e3ff52440297e965f5edffe34b6d0",
+    sha256 = "b58cb7547a28b2c718d1e38aee18a3659c9e3ff52440297e965f5edffe34b6d0",
     build_file = "@//:gtest.BUILD",
     strip_prefix = "googletest-release-1.7.0",
 )
@@ -188,5 +180,5 @@ maven_install(
 # Android
 #
 # Checks the standard environment variables by default
-android_sdk_repository(name = "androidsdk")
-android_ndk_repository(name = "androidndk")
+#android_sdk_repository(name = "androidsdk")
+#android_ndk_repository(name = "androidndk")

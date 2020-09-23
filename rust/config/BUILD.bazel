@@ -15,7 +15,9 @@ rust_library(
     deps = [
         "//rust_bindings/cargo:lazy_static",
         "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
         "//rust_bindings/cargo:serde_json",
-    ]
+    ],
+    proc_macro_deps = [
+        "//rust_bindings/cargo:serde_derive",
+    ],
 )

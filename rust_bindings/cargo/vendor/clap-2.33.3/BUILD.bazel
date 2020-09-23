@@ -1,35 +1,36 @@
 """
+@generated
 cargo-raze crate build file.
 
 DO NOT EDIT! Replaced on runs of cargo-raze
 """
-package(default_visibility = [
-  # Public for visibility by "@raze__crate__version//" targets.
-  #
-  # Prefer access through "//rust_bindings/cargo", which limits external
-  # visibility to explicit Cargo.toml dependencies.
-  "//visibility:public",
-])
 
-licenses([
-  "notice", # "MIT"
-])
-
+# buildifier: disable=load
 load(
     "@io_bazel_rules_rust//rust:rust.bzl",
-    "rust_library",
     "rust_binary",
+    "rust_library",
     "rust_test",
 )
 
+package(default_visibility = [
+    # Public for visibility by "@raze__crate__version//" targets.
+    #
+    # Prefer access through "//rust_bindings/cargo", which limits external
+    # visibility to explicit Cargo.toml dependencies.
+    "//visibility:public",
+])
 
+licenses([
+    "notice",  # MIT from expression "MIT"
+])
 
+# Generated targets
+
+# buildifier: leave-alone
 rust_library(
     name = "clap",
-    crate_root = "src/lib.rs",
     crate_type = "lib",
-    edition = "2015",
-    srcs = glob(["**/*.rs"]),
     deps = [
         "//rust_bindings/cargo/vendor/ansi_term-0.11.0:ansi_term",
         "//rust_bindings/cargo/vendor/atty-0.2.14:atty",
@@ -39,10 +40,17 @@ rust_library(
         "//rust_bindings/cargo/vendor/unicode-width-0.1.8:unicode_width",
         "//rust_bindings/cargo/vendor/vec_map-0.8.2:vec_map",
     ],
+    srcs = glob(["**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2015",
     rustc_flags = [
         "--cap-lints=allow",
     ],
     version = "2.33.3",
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
     crate_features = [
         "ansi_term",
         "atty",
@@ -53,4 +61,3 @@ rust_library(
         "vec_map",
     ],
 )
-

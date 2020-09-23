@@ -9,8 +9,8 @@ features = ["std"]
 clap = "2.33.0"
 proc-macro-error = {version = "=0.4.8" }
 log = {version = "=0.4.0", features = ["std"]}
-cxx = { git = "https://github.com/dtolnay/cxx", rev = "291a8b87a16e0c738b8caaeae1d28670416dda9e" }
-cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "", rev = "291a8b87a16e0c738b8caaeae1d28670416dda9e" }
+cxx = { git = "https://github.com/dtolnay/cxx", rev = "71912c3f11c9a5928b6bbfd1d26bad82a1bed3f7" }
+cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "", rev = "71912c3f11c9a5928b6bbfd1d26bad82a1bed3f7" }
 pest = "2.1.2"
 pest_derive = "2.1.0"
 unicode-normalization = "0.1.12"
@@ -33,7 +33,7 @@ additional_flags = [
     "--cfg", "std",
 ]
 
-[raze.crates.proc-macro2.'1.0.19']
+[raze.crates.proc-macro2.'1.0.21']
 additional_flags = [
 #    "--cfg", "u128",
     "--cfg=use_proc_macro",
@@ -70,14 +70,14 @@ extra_aliased_targets = [
     "cargo_bin_cbindgen",
 ]
 
-[raze.crates.cxx.'0.3.4']
+[raze.crates.cxx.'0.4.6']
 data_attr = 'glob(["**/*.h", "**/*.cc"])'
 extra_aliased_targets = [
     "cxx_cc_library"
 ]
 
 
-[raze.crates.cxxbridge-cmd.'0.3.4']
+[raze.crates.cxxbridge-cmd.'0.4.6']
 additional_flags = [
     "--cfg", "procmacro2_semver_exempt",
 ]
