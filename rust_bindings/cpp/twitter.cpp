@@ -182,6 +182,14 @@ Autolinker::autolinkCashtags(const std::string &text) {
 
 // Extractor
 
+template<typename T>
+std::vector<T> vecToCpp(::rust::Vec<T> &rustVec) {
+  std::vector<T> stdv;
+  stdv.reserve(rustVec.size());
+  std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
+  return stdv;
+}
+
 template <>
 ::rust::Vec<Entity> 
 Extractor<>::extractEntitiesWithIndices(std::string text) {
@@ -190,9 +198,22 @@ Extractor<>::extractEntitiesWithIndices(std::string text) {
 
 template <>
 std::vector<Entity>
-Extractor<std::vector<Entity>, Entity*>::extractEntitiesWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractEntitiesWithIndices(std::string text) {
   auto vec = extract_entities_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
+}
+
+template <>
+::rust::Vec<::rust::String> 
+Extractor<>::extractMentionedScreennames(std::string text) {
+  return extract_mentioned_screennames(*extractor, text);
+}
+
+template <>
+std::vector<::rust::String> 
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractMentionedScreennames(std::string text) {
+  auto vec = extract_mentioned_screennames(*extractor, text);
+  return vecToCpp(vec);
 }
 
 template <>
@@ -203,9 +224,9 @@ Extractor<>::extractMentionedScreennamesWithIndices(std::string text) {
 
 template <>
 std::vector<Entity>
-Extractor<std::vector<Entity>, Entity*>::extractMentionedScreennamesWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractMentionedScreennamesWithIndices(std::string text) {
   auto vec = extract_mentioned_screennames_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
 }
 
 template <>
@@ -216,9 +237,9 @@ Extractor<>::extractMentionsOrListsWithIndices(std::string text) {
 
 template <>
 std::vector<Entity> 
-Extractor<std::vector<Entity>, Entity*>::extractMentionsOrListsWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractMentionsOrListsWithIndices(std::string text) {
   auto vec = extract_mentions_or_lists_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
 }
 
 template <>
@@ -227,9 +248,22 @@ Extractor<>::extractReplyScreenname(std::string text) {
   return extract_reply_username(*extractor, text);
 }
 
+template<>
+::rust::Vec<::rust::String>
+Extractor<>::extractUrls(std::string text) {
+    return extract_urls(*extractor, text);
+}
+
+template <>
+std::vector<::rust::String> 
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractUrls(std::string text) {
+  auto vec = extract_urls(*extractor, text);
+  return vecToCpp(vec);
+}
+
 template <>
 Entity*
-Extractor<std::vector<Entity>, Entity*>::extractReplyScreenname(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractReplyScreenname(std::string text) {
   return extract_reply_username(*extractor, text).release();
 }
 
@@ -241,9 +275,22 @@ Extractor<>::extractUrlsWithIndices(std::string text) {
 
 template <>
 std::vector<Entity> 
-Extractor<std::vector<Entity>, Entity*>::extractUrlsWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractUrlsWithIndices(std::string text) {
   auto vec = extract_urls_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
+}
+
+template<>
+::rust::Vec<::rust::String>
+Extractor<>::extractHashtags(std::string text) {
+    return extract_hashtags(*extractor, text);
+}
+
+template <>
+std::vector<::rust::String> 
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractHashtags(std::string text) {
+  auto vec = extract_hashtags(*extractor, text);
+  return vecToCpp(vec);
 }
 
 template <>
@@ -254,9 +301,22 @@ Extractor<>::extractHashtagsWithIndices(std::string text) {
 
 template <>
 std::vector<Entity>
-Extractor<std::vector<Entity>, Entity*>::extractHashtagsWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractHashtagsWithIndices(std::string text) {
   auto vec = extract_hashtags_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
+}
+
+template<>
+::rust::Vec<::rust::String>
+Extractor<>::extractCashtags(std::string text) {
+    return extract_cashtags(*extractor, text);
+}
+
+template <>
+std::vector<::rust::String>
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractCashtags(std::string text) {
+  auto vec = extract_cashtags(*extractor, text);
+  return vecToCpp(vec);
 }
 
 template <>
@@ -267,9 +327,9 @@ Extractor<>::extractCashtagsWithIndices(std::string text) {
 
 template <>
 std::vector<Entity>
-Extractor<std::vector<Entity>, Entity*>::extractCashtagsWithIndices(std::string text) {
+Extractor<std::vector<Entity>, Entity*, std::vector<::rust::String>>::extractCashtagsWithIndices(std::string text) {
   auto vec = extract_cashtags_with_indices(*extractor, text);
-  return entitiesToCpp(vec);
+  return vecToCpp(vec);
 }
 
 // ValidatingExtractor

@@ -159,7 +159,8 @@ private:
 
 template <
   typename Vec=::rust::Vec<Entity>, 
-  typename EntityType=std::shared_ptr<Entity>
+  typename EntityType=std::shared_ptr<Entity>,
+  typename StringVec=::rust::Vec<::rust::String>
 >
 class Extractor {
 public:
@@ -176,41 +177,18 @@ public:
   }
 
   Vec extractEntitiesWithIndices(std::string text);
-
-  ::rust::Vec<::rust::String> extractMentionedScreennames(std::string text) {
-    return extract_mentioned_screennames(*extractor, text);
-  }
-
+  StringVec extractMentionedScreennames(std::string text);
   Vec extractMentionedScreennamesWithIndices(std::string text);
   Vec extractMentionsOrListsWithIndices(std::string text);
   EntityType extractReplyScreenname(std::string text);
-
-  ::rust::Vec<::rust::String> extractUrls(std::string text) {
-    return extract_urls(*extractor, text);
-  }
-
+  StringVec extractUrls(std::string text);
   Vec extractUrlsWithIndices(std::string text);
-
-  ::rust::Vec<::rust::String> extractHashtags(std::string text) {
-    return extract_hashtags(*extractor, text);
-  }
-
+  StringVec extractHashtags(std::string text);
   Vec extractHashtagsWithIndices(std::string text);
-
-  ::rust::Vec<::rust::String> extractCashtags(std::string text) {
-    return extract_cashtags(*extractor, text);
-  }
-
+  StringVec extractCashtags(std::string text);
   Vec extractCashtagsWithIndices(std::string text);
 
 private:
-  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-    std::vector<Entity> stdv;
-    stdv.reserve(rustVec.size());
-    std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-    return stdv;
-  }
-
   ::rust::Box<RustExtractor> extractor;
 };
 
@@ -250,17 +228,11 @@ public:
   }
 
   Extract extractEntitiesWithIndices(const std::string &text);
-
   Extract extractMentionedScreennamesWithIndices(const std::string &text);
-
   Extract extractMentionsOrListsWithIndices(const std::string &text);
-
   Mention extractReplyScreenname(const std::string &text);
-
   Extract extractUrlsWithIndices(const std::string &text);
-
   Extract extractHashtagsWithIndices(const std::string &text);
-
   Extract extractCashtagsWithIndices(const std::string &text);
 
 private:

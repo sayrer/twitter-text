@@ -17,6 +17,7 @@
 namespace rust {
 inline namespace cxxbridge04 {
 
+struct test_test;
 struct unsafe_bitcopy_t;
 
 #ifndef CXXBRIDGE04_RUST_STRING
@@ -287,11 +288,13 @@ using try_fn = TryFn<Signature>;
 ////////////////////////////////////////////////////////////////////////////////
 /// end public API, begin implementation details
 
+#ifndef SWIG
 #ifndef CXXBRIDGE04_PANIC
 #define CXXBRIDGE04_PANIC
 template <typename Exception>
 void panic [[noreturn]] (const char *msg);
 #endif // CXXBRIDGE04_PANIC
+#endif
 
 template <typename Ret, typename... Args, bool Throws>
 Ret Fn<Ret(Args...), Throws>::operator()(Args... args) const noexcept(!Throws) {

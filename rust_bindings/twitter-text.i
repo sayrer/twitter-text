@@ -15,12 +15,6 @@
 %include <std_string.i>
 %include <std_vector.i>
 
-namespace std {
-    %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
-    %template(Hits) vector<twitter_text::Hit>;
-    %template(Entities) vector<twitter_text::Entity>;
-}
-
 #ifdef SWIGPYTHON
 
 %rename("%(undercase)s", %$isfunction) "";
@@ -39,6 +33,15 @@ namespace rust {
 // see tf_session.i for more TODO here
 
 #endif
+
+namespace std {
+    %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
+    %template(Hits) vector<twitter_text::Hit>;
+    %template(Entities) vector<twitter_text::Entity>;
+    %template(ExtractorString) vector<::rust::String>;
+}
+
+
 
 #ifdef SWIGRUBY
 
@@ -270,6 +273,6 @@ namespace std {
 %include "rust_bindings/cpp/twitter.h"
 
 namespace twitter_text {
-    %template(Extractor) Extractor<::std::vector<twitter_text::Entity>, twitter_text::Entity*>;
+    %template(Extractor) Extractor<::std::vector<twitter_text::Entity>, twitter_text::Entity*, std::vector<::rust::String>>;
     %template(ValidatingExtractor) ValidatingExtractor<twitter_text::SwigExtractResult*, twitter_text::SwigMentionResult*>;
 }
