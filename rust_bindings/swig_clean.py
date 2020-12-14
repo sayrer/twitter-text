@@ -22,8 +22,8 @@ def clean():
         with open (args.file, "r") as file:
             text = file.read()
 
-            text = text.replace("#ifndef CXXBRIDGE04_PANIC", start_swig + "#ifndef CXXBRIDGE04_PANIC")
-            text = text.replace("#endif // CXXBRIDGE04_PANIC", "#endif // CXXBRIDGE04_PANIC" + "\n" + end_swig)
+            text = text.replace("#ifndef CXXBRIDGE1_PANIC", start_swig + "#ifndef CXXBRIDGE1_PANIC")
+            text = text.replace("#endif // CXXBRIDGE1_PANIC", "#endif // CXXBRIDGE1_PANIC" + "\n" + end_swig)
             text = text.replace(box_variadic, start_swig + box_variadic + end_swig)
 
             output.write(text)                
