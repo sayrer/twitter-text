@@ -15,4 +15,5 @@ Cargo.lock
 /bazel-bin
 /bazel-out
 /bazel-twitter-text
+/bazel-twitter_text
 /.vscode
