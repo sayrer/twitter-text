@@ -20,16 +20,14 @@ bazel_skylib_workspace()
 #
 http_archive(
     name = "io_bazel_rules_rust",
-    sha256 = "618e791454692b58004fcfc96bb48470eaf29304d8268b26ce0e16e87869a76b",
-    strip_prefix = "rules_rust-50f45841dc68f7355113ada4d61fecabb528b38f",
+    sha256 = "9d01bcf49aca798b713f3805b09e5760819aeb4d791b466d2d49acdd948affd4",
+    strip_prefix = "rules_rust-4780f350e1890318b07f3add42d7746cacf3a939",
     urls = [
-        "https://github.com/bazelbuild/rules_rust/archive/50f45841dc68f7355113ada4d61fecabb528b38f.tar.gz",
+        "https://github.com/bazelbuild/rules_rust/archive/4780f350e1890318b07f3add42d7746cacf3a939.tar.gz",
     ],
 )
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
 rust_repositories(edition = "2018")
-load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
-bazel_version(name = "bazel_version")
 
 #
 # SWIG

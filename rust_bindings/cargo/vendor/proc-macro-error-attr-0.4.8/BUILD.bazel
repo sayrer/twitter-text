@@ -13,6 +13,9 @@ load(
     "rust_test",
 )
 
+# buildifier: disable=load
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
 package(default_visibility = [
     # Public for visibility by "@raze__crate__version//" targets.
     #
@@ -25,32 +28,32 @@ licenses([
     "notice",  # MIT from expression "MIT OR Apache-2.0"
 ])
 
-# Generated targets
+# Generated Targets
 
-# buildifier: leave-alone
 rust_library(
     name = "proc_macro_error_attr",
-    crate_type = "proc-macro",
-    deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.21:proc_macro2",
-        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
-        "//rust_bindings/cargo/vendor/syn-1.0.41:syn",
-        "//rust_bindings/cargo/vendor/syn-mid-0.5.0:syn_mid",
-    ],
     srcs = glob(["**/*.rs"]),
+    crate_features = [
+    ],
     crate_root = "src/lib.rs",
+    crate_type = "proc-macro",
     edition = "2018",
     proc_macro_deps = [
-        "//rust_bindings/cargo/vendor/rustversion-1.0.3:rustversion",
+        "//rust_bindings/cargo/vendor/rustversion-1.0.4:rustversion",
     ],
     rustc_flags = [
         "--cap-lints=allow",
     ],
-    version = "0.4.8",
     tags = [
         "cargo-raze",
         "manual",
     ],
-    crate_features = [
+    version = "0.4.8",
+    # buildifier: leave-alone
+    deps = [
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.24:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
+        "//rust_bindings/cargo/vendor/syn-1.0.54:syn",
+        "//rust_bindings/cargo/vendor/syn-mid-0.5.1:syn_mid",
     ],
 )

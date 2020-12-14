@@ -165,7 +165,7 @@ pub mod ffi {
         pub mention: UniquePtr<Entity>,
     }
 
-    extern "C" {
+    extern "C++" {
         include!("cxx.h");
     }
 

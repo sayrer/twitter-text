@@ -6,11 +6,11 @@ edition = "2018"
 features = ["std"]
 
 [dependencies]
-clap = "2.33.0"
+clap = "2.33.3"
 proc-macro-error = {version = "=0.4.8" }
 log = {version = "=0.4.0", features = ["std"]}
-cxx = { git = "https://github.com/dtolnay/cxx", rev = "71912c3f11c9a5928b6bbfd1d26bad82a1bed3f7" }
-cxxbridge-cmd = { git = "https://github.com/dtolnay/cxx", path = "", rev = "71912c3f11c9a5928b6bbfd1d26bad82a1bed3f7" }
+cxx = "1.0.18"
+cxxbridge-cmd ="1.0.18"
 pest = "2.1.2"
 pest_derive = "2.1.0"
 unicode-normalization = "0.1.12"
@@ -24,29 +24,33 @@ serde_yaml = "0.7"
 [lib]
 path = "fake_lib.rs"
 
-[raze]
+[package.metadata.raze]
+gen_mode = "vendor"
 workspace_path = "//rust_bindings/cargo"
-output_buildfile_suffix = "BUILD.bazel"
 
-[raze.crates.log.'0.4.0']
+#[raze]
+#workspace_path = "//rust_bindings/cargo"
+#output_buildfile_suffix = "BUILD.bazel"
+
+[package.metadata.raze.crates.log.'0.4.0']
 additional_flags = [
     "--cfg", "std",
 ]
 
-[raze.crates.proc-macro2.'1.0.21']
+[package.metadata.raze.crates.proc-macro2.'1.0.24']
 additional_flags = [
     "--cfg=use_proc_macro",
     "--cfg=wrap_proc_macro",
     "--cfg=span_locations",
 ]
 
-[raze.crates.cxx.'0.4.6']
+[package.metadata.raze.crates.cxx.'1.0.18']
 data_attr = 'glob(["**/*.h", "**/*.cc"])'
 extra_aliased_targets = [
     "cxx_cc_library"
 ]
 
-[raze.crates.cxxbridge-cmd.'0.4.6']
+[package.metadata.raze.crates.cxxbridge-cmd.'1.0.18']
 additional_flags = [
     "--cfg", "procmacro2_semver_exempt",
 ]
