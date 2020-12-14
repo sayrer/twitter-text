@@ -2,20 +2,26 @@ package(default_visibility = ["//visibility:public"])
 
 load("@io_bazel_rules_rust//rust:rust.bzl", "rust_test")
 
+TEST_DEPS = [
+    "//rust/twitter-text:twitter_text",
+    "//rust/config:twitter_text_config",
+    "//rust/parser:twitter_text_parser",
+    "//rust_bindings/cargo:pest",
+    "//rust_bindings/cargo:serde",
+    "//rust_bindings/cargo:serde_yaml",
+]
+
+PROC_MACRO_DEPS = [
+    "//rust_bindings/cargo:serde_derive",
+]
+
 rust_test(
     name = "autolink_test",
     srcs = [
         "tests/autolink.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/autolink.yml",
     ],
@@ -26,15 +32,8 @@ rust_test(
     srcs = [
         "tests/emoji.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/unicode11-emoji-test.txt",
     ],
@@ -45,15 +44,8 @@ rust_test(
     srcs = [
         "tests/extract.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/extract.yml",
     ],
@@ -64,15 +56,8 @@ rust_test(
     srcs = [
         "tests/hit_highlighting.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/hit_highlighting.yml",
     ],
@@ -83,15 +68,8 @@ rust_test(
     srcs = [
         "tests/tlds.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/tlds.yml",
     ],
@@ -102,15 +80,8 @@ rust_test(
     srcs = [
         "tests/validate.rs",
     ],
-    deps = [
-       	"//rust/twitter-text:twitter_text",
-    	"//rust/config:twitter_text_config",
-    	"//rust/parser:twitter_text_parser",
-        "//rust_bindings/cargo:pest",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_derive",
-        "//rust_bindings/cargo:serde_yaml",
-    ],
+    deps = TEST_DEPS,
+    proc_macro_deps = PROC_MACRO_DEPS,
     data = [
         "tests/validate.yml",
     ],
