@@ -3,6 +3,12 @@
 
 namespace twitter_text {
 
+class FFIString {
+public:
+  virtual void setStr(rust::Str &rust_str) = 0;
+  virtual ~FFIString() = default;
+};
+
 class TwitterTextConfiguration {
 public:
   TwitterTextConfiguration(): TwitterTextConfiguration(default_config())
