@@ -19,7 +19,7 @@ namespace std {
     %template(WeightedRangeList) vector<::twitter_text::WeightedRange>;
     %template(Hits) vector<twitter_text::Hit>;
     %template(Entities) vector<twitter_text::Entity>;
-    %template(ExtractorStrings) vector<::twitter_text::ExtractorString>;
+    %template(StringList) vector<::rust::String>;
 }
 
 #ifdef SWIGPYTHON
@@ -37,18 +37,13 @@ namespace rust {
     }
 }
 
-// see tf_session.i for more TODO here
-
 namespace std {
-  %typemap(out) vector<twitter_text::ExtractorString> {
-    PyObject* list = PyList_New($1.size());
-    std::vector<twitter_text::ExtractorString>* estrings = &$1;
-    for (size_t i = 0; i < $1.size(); i++) {
-      PyList_SET_ITEM(list, i, PyUnicode_FromStringAndSize(estrings->at(i).s.data(), estrings->at(i).s.size()));
+    %typemap(out) vector<::rust::String> {
+
     }
-    $result = list;
-  }
 }
+
+// see tf_session.i for more TODO here
 
 #endif
 
@@ -63,6 +58,10 @@ namespace rust {
     }
 
     %typemap(out) String* {
+      $result = rb_utf8_str_new($1->data(), $1->size());
+    }
+
+    %typemap(out) ::rust::String* {
       $result = rb_utf8_str_new($1->data(), $1->size());
     }
 }
@@ -110,10 +109,7 @@ namespace rust {
     %typemap(jtype) String "byte[]"
     %typemap(jstype) String "String"
     %typemap(javaout) String {
-      System.out.println("Test decode?");
-      String s = java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
-      System.out.println("decoded: " + s);
-      return s;
+      return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
     }
     %typemap(javain,
     pre= "byte[] temp$javainput = $javainput.getBytes(java.nio.charset.StandardCharsets.UTF_8);"
@@ -139,7 +135,6 @@ namespace rust {
     %typemap(jtype) String* "byte[]"
     %typemap(jstype) String* "String"
     %typemap(javaout) String* {
-      System.out.println("Test decode? 2");
       return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
     }
     %typemap(javain,
@@ -166,7 +161,6 @@ namespace std {
     jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
   }
   %typemap(javaout) string {
-    System.out.println("Calling javaout");
     return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
   }
   %typemap(javain,
@@ -191,7 +185,6 @@ namespace std {
     jenv->SetByteArrayRegion($result, 0, len, (const jbyte*)$1.data());
   }
   %typemap(javaout) string* {
-    System.out.println("Calling javaout");
     return java.nio.charset.StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap($jnicall)).toString();
   }
   %typemap(javain,
@@ -201,7 +194,6 @@ namespace std {
 
   %typemap(jstype) vector<twitter_text::ExtractorString> "java.util.AbstractList<String>"
   %typemap(javaout) vector<twitter_text::ExtractorString> {
-    System.out.println("Test decode? 3");
     ExtractorStrings es = new ExtractorStrings($jnicall, true);
     java.util.ArrayList list = new java.util.ArrayList(es.size());
     for (int i = 0; i < es.size(); i++) {
@@ -278,10 +270,10 @@ namespace std {
 %ignore Box;
 
 /* Parse the header file to generate wrappers */
-%include "rust/twitter-text/twitter-text.h"
+%include "rust_bindings/twitter-text-swig.h"
 %include "rust_bindings/cpp/twitter.h"
 
 namespace twitter_text {
-    %template(Extractor) Extractor<::std::vector<twitter_text::Entity>, twitter_text::Entity*>;
+    %template(Extractor) Extractor<::std::vector<twitter_text::Entity>, twitter_text::Entity*, std::vector<::rust::String>>;
     %template(ValidatingExtractor) ValidatingExtractor<twitter_text::SwigExtractResult*, twitter_text::SwigMentionResult*>;
 }

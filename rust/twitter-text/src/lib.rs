@@ -145,10 +145,6 @@ pub mod ffi {
         pub expanded_url: String
     }
 
-    pub struct ExtractorString {
-        s: String
-    }
-
     pub struct TwitterTextParseResults {
         pub weighted_length: i32,
         pub permillage: i32,
@@ -169,7 +165,7 @@ pub mod ffi {
         pub mention: UniquePtr<Entity>,
     }
 
-    extern "C" {
+    extern "C++" {
         include!("cxx.h");
     }
 
@@ -197,15 +193,15 @@ pub mod ffi {
         fn get_extract_url_without_protocol(r: &RustExtractor) -> bool;
         fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_without_protocol: bool);
         fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
-        fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<String>;
         fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
         fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str)  -> Vec<Entity>;
         fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<Entity>;
-        fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_urls(r: &RustExtractor, text: &str) -> Vec<String>;
         fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
-        fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<String>;
         fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
-        fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<String>;
         fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
 
         // ValidatingExtractor
@@ -356,12 +352,6 @@ impl ffi::Entity {
     }
 }
 
-impl ffi::ExtractorString {
-    pub fn new(s: &String) -> ffi::ExtractorString {
-        ffi::ExtractorString { s: s.to_string() }
-    }
-}
-
 pub fn config_v1() -> UniquePtr<ffi::Configuration> {
     UniquePtr::new(ffi::Configuration::from(twitter_text_config::config_v1()))
 }
@@ -432,8 +422,8 @@ pub fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::
     r.extract_entities_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_mentioned_screennames(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<String> {
+    r.extract_mentioned_screennames(text).iter().map(|s|{ String::from(s) }).collect()
 }
 
 pub fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
@@ -452,24 +442,24 @@ pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::E
     UniquePtr::null()
 }
 
-pub fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_urls(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_urls(r: &RustExtractor, text: &str) -> Vec<String> {
+    r.extract_urls(text).iter().map(|s|{ String::from(s) }).collect()
 }
 
 pub fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
     r.extract_urls_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_hashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<String> {
+    r.extract_hashtags(text).iter().map(|s|{ String::from(s) }).collect()
 }
 
 pub fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
     r.extract_hashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
 }
 
-pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_cashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<String> {
+    r.extract_cashtags(text).iter().map(|s|{ String::from(s) }).collect()
 }
 
 pub fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {

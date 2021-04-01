@@ -7,10 +7,10 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 http_archive(
     name = "bazel_skylib",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
     ],
-    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
 )
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 bazel_skylib_workspace()
@@ -20,23 +20,21 @@ bazel_skylib_workspace()
 #
 http_archive(
     name = "io_bazel_rules_rust",
-    sha256 = "618e791454692b58004fcfc96bb48470eaf29304d8268b26ce0e16e87869a76b",
-    strip_prefix = "rules_rust-50f45841dc68f7355113ada4d61fecabb528b38f",
+    sha256 = "9d01bcf49aca798b713f3805b09e5760819aeb4d791b466d2d49acdd948affd4",
+    strip_prefix = "rules_rust-4780f350e1890318b07f3add42d7746cacf3a939",
     urls = [
-        "https://github.com/bazelbuild/rules_rust/archive/50f45841dc68f7355113ada4d61fecabb528b38f.tar.gz",
+        "https://github.com/bazelbuild/rules_rust/archive/4780f350e1890318b07f3add42d7746cacf3a939.tar.gz",
     ],
 )
 load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
 rust_repositories(edition = "2018")
-load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
-bazel_version(name = "bazel_version")
 
 #
 # SWIG
 #
 http_archive(
     name = "io_tweag_rules_nixpkgs",
-    #sha256 = "4fe458cb27708b7319b04a420c9b39022eb994624325dfb0f8b903ed3456c491",
+    sha256 = "aca86baa64174478c57f74ed09d5c2313113abe94aa3af030486d1b14032d3ed",
     strip_prefix = "rules_nixpkgs-dc24090573d74adcf38730422941fd69b87682c7",
     urls = ["https://github.com/tweag/rules_nixpkgs/archive/dc24090573d74adcf38730422941fd69b87682c7.tar.gz"],
 )

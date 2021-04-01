@@ -13,6 +13,9 @@ load(
     "rust_test",
 )
 
+# buildifier: disable=load
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
 package(default_visibility = [
     # Public for visibility by "@raze__crate__version//" targets.
     #
@@ -25,32 +28,13 @@ licenses([
     "notice",  # MIT from expression "MIT"
 ])
 
-# Generated targets
+# Generated Targets
 
-# buildifier: leave-alone
 rust_library(
     name = "clap",
-    crate_type = "lib",
-    deps = [
-        "//rust_bindings/cargo/vendor/ansi_term-0.11.0:ansi_term",
-        "//rust_bindings/cargo/vendor/atty-0.2.14:atty",
-        "//rust_bindings/cargo/vendor/bitflags-1.2.1:bitflags",
-        "//rust_bindings/cargo/vendor/strsim-0.8.0:strsim",
-        "//rust_bindings/cargo/vendor/textwrap-0.11.0:textwrap",
-        "//rust_bindings/cargo/vendor/unicode-width-0.1.8:unicode_width",
-        "//rust_bindings/cargo/vendor/vec_map-0.8.2:vec_map",
-    ],
     srcs = glob(["**/*.rs"]),
-    crate_root = "src/lib.rs",
-    edition = "2015",
-    rustc_flags = [
-        "--cap-lints=allow",
-    ],
-    version = "2.33.3",
-    tags = [
-        "cargo-raze",
-        "manual",
-    ],
+    aliases = {
+    },
     crate_features = [
         "ansi_term",
         "atty",
@@ -60,4 +44,48 @@ rust_library(
         "suggestions",
         "vec_map",
     ],
+    crate_root = "src/lib.rs",
+    crate_type = "lib",
+    edition = "2015",
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+    version = "2.33.3",
+    # buildifier: leave-alone
+    deps = [
+        "//rust_bindings/cargo/vendor/atty-0.2.14:atty",
+        "//rust_bindings/cargo/vendor/bitflags-1.2.1:bitflags",
+        "//rust_bindings/cargo/vendor/strsim-0.8.0:strsim",
+        "//rust_bindings/cargo/vendor/textwrap-0.11.0:textwrap",
+        "//rust_bindings/cargo/vendor/unicode-width-0.1.8:unicode_width",
+        "//rust_bindings/cargo/vendor/vec_map-0.8.2:vec_map",
+    ] + selects.with_or({
+        # cfg(not(windows))
+        (
+            "@io_bazel_rules_rust//rust/platform:aarch64-apple-ios",
+            "@io_bazel_rules_rust//rust/platform:aarch64-linux-android",
+            "@io_bazel_rules_rust//rust/platform:aarch64-unknown-linux-gnu",
+            "@io_bazel_rules_rust//rust/platform:arm-unknown-linux-gnueabi",
+            "@io_bazel_rules_rust//rust/platform:i686-apple-darwin",
+            "@io_bazel_rules_rust//rust/platform:i686-linux-android",
+            "@io_bazel_rules_rust//rust/platform:i686-unknown-freebsd",
+            "@io_bazel_rules_rust//rust/platform:i686-unknown-linux-gnu",
+            "@io_bazel_rules_rust//rust/platform:powerpc-unknown-linux-gnu",
+            "@io_bazel_rules_rust//rust/platform:s390x-unknown-linux-gnu",
+            "@io_bazel_rules_rust//rust/platform:wasm32-unknown-unknown",
+            "@io_bazel_rules_rust//rust/platform:wasm32-wasi",
+            "@io_bazel_rules_rust//rust/platform:x86_64-apple-darwin",
+            "@io_bazel_rules_rust//rust/platform:x86_64-apple-ios",
+            "@io_bazel_rules_rust//rust/platform:x86_64-linux-android",
+            "@io_bazel_rules_rust//rust/platform:x86_64-unknown-freebsd",
+            "@io_bazel_rules_rust//rust/platform:x86_64-unknown-linux-gnu",
+        ): [
+            "//rust_bindings/cargo/vendor/ansi_term-0.11.0:ansi_term",
+        ],
+        "//conditions:default": [],
+    }),
 )

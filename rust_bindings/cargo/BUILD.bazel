@@ -1,6 +1,6 @@
 """
 @generated
-cargo-raze workspace build file.
+cargo-raze generated Bazel file.
 
 DO NOT EDIT! Replaced on runs of cargo-raze
 """
@@ -23,7 +23,7 @@ alias(
 
 alias(
     name = "cxx",
-    actual = "//rust_bindings/cargo/vendor/cxx-0.4.6:cxx",
+    actual = "//rust_bindings/cargo/vendor/cxx-1.0.18:cxx",
     tags = [
         "cargo-raze",
         "manual",
@@ -34,7 +34,7 @@ alias(
     # Extra aliased target, from raze configuration
     # N.B.: The exact form of this is subject to change.
     name = "cxx_cc_library",
-    actual = "//rust_bindings/cargo/vendor/cxx-0.4.6:cxx_cc_library",
+    actual = "//rust_bindings/cargo/vendor/cxx-1.0.18:cxx_cc_library",
     tags = [
         "cargo-raze",
         "manual",
@@ -43,7 +43,7 @@ alias(
 
 alias(
     name = "cxxbridge_cmd",
-    actual = "//rust_bindings/cargo/vendor/cxxbridge-cmd-0.4.6:cxxbridge_cmd",
+    actual = "//rust_bindings/cargo/vendor/cxxbridge-cmd-1.0.18:cxxbridge_cmd",
     tags = [
         "cargo-raze",
         "manual",
@@ -54,7 +54,7 @@ alias(
     # Extra aliased target, from raze configuration
     # N.B.: The exact form of this is subject to change.
     name = "cargo_bin_cxxbridge",
-    actual = "//rust_bindings/cargo/vendor/cxxbridge-cmd-0.4.6:cargo_bin_cxxbridge",
+    actual = "//rust_bindings/cargo/vendor/cxxbridge-cmd-1.0.18:cargo_bin_cxxbridge",
     tags = [
         "cargo-raze",
         "manual",
@@ -117,7 +117,7 @@ alias(
 
 alias(
     name = "serde",
-    actual = "//rust_bindings/cargo/vendor/serde-1.0.116:serde",
+    actual = "//rust_bindings/cargo/vendor/serde-1.0.118:serde",
     tags = [
         "cargo-raze",
         "manual",
@@ -126,7 +126,7 @@ alias(
 
 alias(
     name = "serde_derive",
-    actual = "//rust_bindings/cargo/vendor/serde_derive-1.0.116:serde_derive",
+    actual = "//rust_bindings/cargo/vendor/serde_derive-1.0.118:serde_derive",
     tags = [
         "cargo-raze",
         "manual",
@@ -135,7 +135,7 @@ alias(
 
 alias(
     name = "serde_json",
-    actual = "//rust_bindings/cargo/vendor/serde_json-1.0.57:serde_json",
+    actual = "//rust_bindings/cargo/vendor/serde_json-1.0.60:serde_json",
     tags = [
         "cargo-raze",
         "manual",
@@ -153,7 +153,7 @@ alias(
 
 alias(
     name = "unicode_normalization",
-    actual = "//rust_bindings/cargo/vendor/unicode-normalization-0.1.13:unicode_normalization",
+    actual = "//rust_bindings/cargo/vendor/unicode-normalization-0.1.16:unicode_normalization",
     tags = [
         "cargo-raze",
         "manual",

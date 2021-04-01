@@ -3,6 +3,12 @@
 
 namespace twitter_text {
 
+class FFIString {
+public:
+  virtual void setStr(rust::Str &rust_str) = 0;
+  virtual ~FFIString() = default;
+};
+
 class TwitterTextConfiguration {
 public:
   TwitterTextConfiguration(): TwitterTextConfiguration(default_config())
@@ -159,7 +165,8 @@ private:
 
 template <
   typename Vec=::rust::Vec<Entity>, 
-  typename EntityType=std::shared_ptr<Entity>
+  typename EntityType=std::shared_ptr<Entity>,
+  typename StringVec=::rust::Vec<::rust::String>
 >
 class Extractor {
 public:
@@ -176,54 +183,18 @@ public:
   }
 
   Vec extractEntitiesWithIndices(std::string text);
-
-  std::vector<ExtractorString> extractMentionedScreennames(std::string text) {
-    auto vec = extract_mentioned_screennames(*extractor, text);
-    return extractorStringsToCpp(vec);
-  }
-
+  StringVec extractMentionedScreennames(std::string text);
   Vec extractMentionedScreennamesWithIndices(std::string text);
   Vec extractMentionsOrListsWithIndices(std::string text);
   EntityType extractReplyScreenname(std::string text);
-
-  std::vector<ExtractorString> extractUrls(std::string text) {
-    auto vec = extract_urls(*extractor, text);
-    return extractorStringsToCpp(vec);
-  }
-
+  StringVec extractUrls(std::string text);
   Vec extractUrlsWithIndices(std::string text);
-
-  std::vector<ExtractorString> extractHashtags(std::string text) {
-    auto vec = extract_hashtags(*extractor, text);
-    return extractorStringsToCpp(vec);
-  }
-
+  StringVec extractHashtags(std::string text);
   Vec extractHashtagsWithIndices(std::string text);
-
-  std::vector<ExtractorString> extractCashtags(std::string text) {
-    auto vec = extract_cashtags(*extractor, text);
-    return extractorStringsToCpp(vec);
-  }
-
+  StringVec extractCashtags(std::string text);
   Vec extractCashtagsWithIndices(std::string text);
 
 private:
-  std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
-    std::vector<ExtractorString> stdv;
-    stdv.reserve(rustVec.size());
-    for (ExtractorString es : rustVec) {
-      stdv.push_back(es);
-    }
-    return stdv;
-  }
-
-  std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {
-    std::vector<Entity> stdv;
-    stdv.reserve(rustVec.size());
-    std::copy(rustVec.begin(), rustVec.end(), std::back_inserter(stdv));
-    return stdv;
-  }
-
   ::rust::Box<RustExtractor> extractor;
 };
 
@@ -263,17 +234,11 @@ public:
   }
 
   Extract extractEntitiesWithIndices(const std::string &text);
-
   Extract extractMentionedScreennamesWithIndices(const std::string &text);
-
   Extract extractMentionsOrListsWithIndices(const std::string &text);
-
   Mention extractReplyScreenname(const std::string &text);
-
   Extract extractUrlsWithIndices(const std::string &text);
-
   Extract extractHashtagsWithIndices(const std::string &text);
-
   Extract extractCashtagsWithIndices(const std::string &text);
 
 private:
