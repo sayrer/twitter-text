@@ -6,10 +6,14 @@ DO NOT EDIT! Replaced on runs of cargo-raze
 """
 
 # buildifier: disable=load
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+# buildifier: disable=load
 load(
-    "@io_bazel_rules_rust//rust:rust.bzl",
+    "@rules_rust//rust:defs.bzl",
     "rust_binary",
     "rust_library",
+    "rust_proc_macro",
     "rust_test",
 )
 
@@ -25,22 +29,43 @@ licenses([
     "notice",  # MIT from expression "MIT OR Apache-2.0"
 ])
 
-# Generated targets
-# Unsupported target "build-script-build" with type "custom-build" omitted
-# Unsupported target "macro-errors" with type "test" omitted
-# Unsupported target "ok" with type "test" omitted
+# Generated Targets
+# buildifier: disable=out-of-order-load
+# buildifier: disable=load-on-top
+load(
+    "@rules_rust//cargo:cargo_build_script.bzl",
+    "cargo_build_script",
+)
 
-# buildifier: leave-alone
+cargo_build_script(
+    name = "proc_macro_error_build_script",
+    srcs = glob(["**/*.rs"]),
+    build_script_env = {
+    },
+    crate_root = "build.rs",
+    data = glob(["**"]),
+    edition = "2018",
+    proc_macro_deps = [
+        "//rust_bindings/cargo/vendor/rustversion-1.0.11:rustversion",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-raze",
+        "manual",
+    ],
+    version = "0.4.8",
+    visibility = ["//visibility:private"],
+    deps = [
+    ],
+)
+
 rust_library(
     name = "proc_macro_error",
-    crate_type = "lib",
-    deps = [
-        "//rust_bindings/cargo/vendor/proc-macro2-1.0.21:proc_macro2",
-        "//rust_bindings/cargo/vendor/quote-1.0.7:quote",
-        "//rust_bindings/cargo/vendor/syn-1.0.41:syn",
-    ],
     srcs = glob(["**/*.rs"]),
     crate_root = "src/lib.rs",
+    data = [],
     edition = "2018",
     proc_macro_deps = [
         "//rust_bindings/cargo/vendor/proc-macro-error-attr-0.4.8:proc_macro_error_attr",
@@ -48,11 +73,21 @@ rust_library(
     rustc_flags = [
         "--cap-lints=allow",
     ],
-    version = "0.4.8",
     tags = [
         "cargo-raze",
+        "crate-name=proc-macro-error",
         "manual",
     ],
-    crate_features = [
+    version = "0.4.8",
+    # buildifier: leave-alone
+    deps = [
+        "//rust_bindings/cargo/vendor/proc-macro2-1.0.51:proc_macro2",
+        "//rust_bindings/cargo/vendor/quote-1.0.23:quote",
+        "//rust_bindings/cargo/vendor/syn-1.0.108:syn",
+        ":proc_macro_error_build_script",
     ],
 )
+
+# Unsupported target "macro-errors" with type "test" omitted
+
+# Unsupported target "ok" with type "test" omitted
