@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library")
 
 rust_library(
     name = "twitter_text_parser",
@@ -16,6 +16,7 @@ rust_library(
     deps = [
         "//rust_bindings/cargo:pest",
     ],
+    edition = "2018",
     proc_macro_deps = [
         "//rust_bindings/cargo:pest_derive",
     ],

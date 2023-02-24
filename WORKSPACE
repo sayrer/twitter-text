@@ -1,3 +1,4 @@
+workspace(name = "twitter_text")
 
 #
 # Bazel infrastructure
@@ -6,11 +7,11 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 http_archive(
     name = "bazel_skylib",
+    sha256 = "b8a1527901774180afc798aeb28c4634bdccf19c4d98e7bdd1ce79d1fe9aaad7",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.2/bazel-skylib-1.0.2.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
     ],
-    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
 )
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 bazel_skylib_workspace()
@@ -18,18 +19,15 @@ bazel_skylib_workspace()
 #
 # Rust
 #
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
-    name = "io_bazel_rules_rust",
-    sha256 = "618e791454692b58004fcfc96bb48470eaf29304d8268b26ce0e16e87869a76b",
-    strip_prefix = "rules_rust-50f45841dc68f7355113ada4d61fecabb528b38f",
-    urls = [
-        "https://github.com/bazelbuild/rules_rust/archive/50f45841dc68f7355113ada4d61fecabb528b38f.tar.gz",
-    ],
+    name = "rules_rust",
+    sha256 = "2466e5b2514772e84f9009010797b9cd4b51c1e6445bbd5b5e24848d90e6fb2e",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.18.0/rules_rust-v0.18.0.tar.gz"],
 )
-load("@io_bazel_rules_rust//rust:repositories.bzl", "rust_repositories")
-rust_repositories(edition = "2018")
-load("@io_bazel_rules_rust//:workspace.bzl", "bazel_version")
-bazel_version(name = "bazel_version")
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+rules_rust_dependencies()
+rust_register_toolchains()
 
 #
 # SWIG
@@ -50,8 +48,6 @@ nixpkgs_git_repository(
     revision = "20.03",
     sha256 = "f21ca8bc4c8f848a351232e09f3a58d280c05323173a78a5a6013937fb05c6fe"
 )
-
-#nixpkgs_cc_configure(repository = "@nixpkgs//:default.nix")
 
 nixpkgs_package(
     name = "swig4",
@@ -96,10 +92,14 @@ nixpkgs_package(
 #
 # Ruby
 # 
+#———————————————————————————————————————————————————————————————————————
+# To get the latest ruby rules, grab the 'master' branch.
+#———————————————————————————————————————————————————————————————————————
+
 git_repository(
     name = "bazelruby_rules_ruby",
     remote = "https://github.com/bazelruby/rules_ruby.git",
-    commit = "79da596d0d26597dcb147b3b4159d4a4d76f2401"
+    branch = "0a3275b235dd4093a2a44e2f08d96a9f07ecbe0a"
 )
 
 load(
@@ -109,8 +109,7 @@ load(
 )
 
 rules_ruby_dependencies()
-rules_ruby_select_sdk(version = "2.6.6")
-
+rules_ruby_select_sdk(version = "host") #fixme
 
 load(
     "@bazelruby_rules_ruby//ruby:defs.bzl",
