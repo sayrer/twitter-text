@@ -7,7 +7,6 @@
 #endif
 %{
 /* Includes the header in the wrapper code */
-#include "rust/twitter-text/twitter-text.h"
 #include "rust_bindings/cpp/twitter.h"
 %}
 
@@ -275,10 +274,15 @@ namespace std {
 %ignore ExtractResult;
 %ignore MentionResult;
 
+%ignore RustValidator;
+%ignore RustHitHighlighter;
+%ignore RustValidatingExtractor;
+%ignore RustExtractor;
+
 %ignore Box;
 
 /* Parse the header file to generate wrappers */
-%include "rust/twitter-text/twitter-text.h"
+%include "rust_bindings/twittertext-cleaned.h"
 %include "rust_bindings/cpp/twitter.h"
 
 namespace twitter_text {

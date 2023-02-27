@@ -1,0 +1,9 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+rust_binary(
+    name = "cxxcleaner",
+    srcs = ["src/main.rs"],
+    edition = "2018",
+)

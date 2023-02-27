@@ -34,19 +34,18 @@ rust_register_toolchains()
 #
 http_archive(
     name = "io_tweag_rules_nixpkgs",
-    #sha256 = "4fe458cb27708b7319b04a420c9b39022eb994624325dfb0f8b903ed3456c491",
-    strip_prefix = "rules_nixpkgs-dc24090573d74adcf38730422941fd69b87682c7",
-    urls = ["https://github.com/tweag/rules_nixpkgs/archive/dc24090573d74adcf38730422941fd69b87682c7.tar.gz"],
+    sha256 = "b01f170580f646ee3cde1ea4c117d00e561afaf3c59eda604cf09194a824ff10",
+    strip_prefix = "rules_nixpkgs-0.9.0",
+    urls = ["https://github.com/tweag/rules_nixpkgs/archive/refs/tags/v0.9.0.tar.gz"],
 )
 load("@io_tweag_rules_nixpkgs//nixpkgs:repositories.bzl", "rules_nixpkgs_dependencies")
 rules_nixpkgs_dependencies()
-
 load("@io_tweag_rules_nixpkgs//nixpkgs:nixpkgs.bzl", "nixpkgs_git_repository", "nixpkgs_package", "nixpkgs_cc_configure")
 
 nixpkgs_git_repository(
     name = "nixpkgs",
-    revision = "20.03",
-    sha256 = "f21ca8bc4c8f848a351232e09f3a58d280c05323173a78a5a6013937fb05c6fe"
+    revision = "22.11",
+    #sha256 = "f21ca8bc4c8f848a351232e09f3a58d280c05323173a78a5a6013937fb05c6fe"
 )
 
 nixpkgs_package(
@@ -92,9 +91,17 @@ nixpkgs_package(
 #
 # Ruby
 # 
-#———————————————————————————————————————————————————————————————————————
-# To get the latest ruby rules, grab the 'master' branch.
-#———————————————————————————————————————————————————————————————————————
+
+http_archive(
+    name = "rules_pkg",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.8.1/rules_pkg-0.8.1.tar.gz",
+        "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.1/rules_pkg-0.8.1.tar.gz",
+    ],
+    sha256 = "8c20f74bca25d2d442b327ae26768c02cf3c99e93fad0381f32be9aab1967675",
+)
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+rules_pkg_dependencies()
 
 git_repository(
     name = "bazelruby_rules_ruby",
@@ -107,6 +114,14 @@ load(
     "rules_ruby_dependencies",
     "rules_ruby_select_sdk",
 )
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+load("@bazel_skylib//lib:versions.bzl", "versions")
+
+versions.check("3.4.1")
 
 rules_ruby_dependencies()
 rules_ruby_select_sdk(version = "host") #fixme
@@ -139,10 +154,10 @@ http_archive(
 
 http_archive(
     name = "com_github_jbeder_yaml_cpp",
-    sha256 = "bf991eb70c1005cf34d38e60f66392f4461c5519d594a9790263eb62518f133c",
-    strip_prefix = "yaml-cpp-33316d531bd9032d66f5bcc3ba1fd114a4ab0e1c",
+    sha256 = "78fcfb042dfd27125715c4b9f70c73196919c03d60efb1fdf3d1b5ed0acef1ab",
+    strip_prefix = "yaml-cpp-b591d8ae2ad1ff373273c3e05973adf6c46abfa8",
     urls = [
-        "https://github.com/jbeder/yaml-cpp/archive/33316d531bd9032d66f5bcc3ba1fd114a4ab0e1c.tar.gz",
+        "https://github.com/jbeder/yaml-cpp/archive/b591d8ae2ad1ff373273c3e05973adf6c46abfa8.tar.gz",
     ],
 )
 
@@ -174,6 +189,43 @@ maven_install(
         "https://repo1.maven.org/maven2",
     ],
 )
+
+#
+# Apple
+#
+http_archive(
+    name = "build_bazel_rules_apple",
+    sha256 = "3e2c7ae0ddd181c4053b6491dad1d01ae29011bc322ca87eea45957c76d3a0c3",
+    url = "https://github.com/bazelbuild/rules_apple/releases/download/2.1.0/rules_apple.2.1.0.tar.gz",
+)
+
+load(
+    "@build_bazel_rules_apple//apple:repositories.bzl",
+    "apple_rules_dependencies",
+)
+
+apple_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:repositories.bzl",
+    "swift_rules_dependencies",
+)
+
+swift_rules_dependencies()
+
+load(
+    "@build_bazel_rules_swift//swift:extras.bzl",
+    "swift_rules_extra_dependencies",
+)
+
+swift_rules_extra_dependencies()
+
+load(
+    "@build_bazel_apple_support//lib:repositories.bzl",
+    "apple_support_dependencies",
+)
+
+apple_support_dependencies()
 
 #
 # Android

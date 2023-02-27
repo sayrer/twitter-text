@@ -5,6 +5,11 @@ load(
     "ruby_binary",
 )
 
+load(
+    "@build_bazel_rules_apple//apple:apple_binary.bzl",
+    "apple_binary",
+)
+
 ruby_binary(
     name = "demo",
     srcs = ["demo.rb"],
@@ -41,6 +46,7 @@ apple_binary(
         "-undefined,dynamic_lookup",
         "-multiply_defined,suppress",
     ],
+    minimum_os_version = "10.10",
     platform_type = "macos",
     tags = ["manual"],
     deps = [
@@ -83,6 +89,7 @@ cc_binary(
 genrule(
     name = "swig_output",
     srcs = [
+        "//rust_bindings:cleaned_header",
         "//rust_bindings:swig_input", 
         "//rust_bindings/cpp:twitter_text_h",
         "//rust/twitter-text:twitter_text_h",
