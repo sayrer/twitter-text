@@ -24,7 +24,7 @@ cc_binary(
     "//rust_bindings/cpp:twitter_text_h",
     "//rust_bindings/cpp:twitter_text_cpp",
   ],
-  copts = ["-Iexternal/python3Full/include/python3.7/"],
+  copts = ["-Iexternal/python3Full/include/python3.10/"],
   deps = [
       ":python_headers",
       "//rust_bindings/cpp:twitter_text",
@@ -41,6 +41,7 @@ cc_library(
 genrule(
     name = "swig_output",
     srcs = [
+      "//rust_bindings:cleaned_header",
       "//rust_bindings:swig_input", 
       "//rust_bindings/cpp:twitter_text_h",
       "//rust/twitter-text:twitter_text_h",
