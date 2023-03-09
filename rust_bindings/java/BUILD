@@ -81,6 +81,7 @@ java_library(
 genrule(
   name = "swig_output",
   srcs = [
+    "//rust_bindings:cleaned_header",
     "//rust_bindings:swig_input", 
     "//rust_bindings/cpp:twitter_text_h",
     "//rust/twitter-text:twitter_text_h",
