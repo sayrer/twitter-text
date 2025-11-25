@@ -1,12 +1,12 @@
 package(default_visibility = ["//visibility:public"])
 
 load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "@build_bazel_rules_ruby//ruby:defs.bzl",
     "ruby_binary",
 )
 
 load(
-    "@build_bazel_rules_apple//apple:apple_binary.bzl",
+    "@rules_apple//apple:apple_binary.bzl",
     "apple_binary",
 )
 

@@ -1,5 +1,5 @@
 load(
-    "@bazelruby_rules_ruby//ruby:defs.bzl",
+    "@build_bazel_rules_ruby//ruby:defs.bzl",
     "ruby_rspec",
     "ruby_test",
 )
