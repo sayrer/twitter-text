@@ -1,0 +1,36 @@
+module(
+    name = "twitter_text",
+    version = "0.3.0",
+)
+
+# -- bazel_dep definitions -- #
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "rules_rust", version = "0.67.0")
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "cxx.rs", version = "1.0.188")
+bazel_dep(name = "rules_ruby", version = "0.21.1")
+bazel_dep(name = "rules_apple", version = "4.3.2")
+bazel_dep(name = "rules_java", version = "8.14.0")
+bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_swift", version = "3.3.0")
+
+###############################################################################
+# T O O L C H A I N S
+###############################################################################
+
+# Rust toolchain
+RUST_EDITION = "2021"
+RUST_VERSION = "1.91.1"
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = RUST_EDITION,
+    versions = [RUST_VERSION],
+)
+use_repo(rust, "rust_toolchains")
+register_toolchains("@rust_toolchains//:all")
+
+###############################################################################
+# R U S T  C R A T E S
+###############################################################################
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
