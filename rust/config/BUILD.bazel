@@ -13,12 +13,12 @@ rust_library(
         "src/v3.json",
     ],
     deps = [
-        "//rust_bindings/cargo:lazy_static",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_json",
+        "//rust_bindings/3rdparty/crates:lazy_static",
+        "//rust_bindings/3rdparty/crates:serde",
+        "//rust_bindings/3rdparty/crates:serde_json",
     ],
     edition = "2018",
     proc_macro_deps = [
-        "//rust_bindings/cargo:serde_derive",
+        "//rust_bindings/3rdparty/crates:serde_derive",
     ],
 )

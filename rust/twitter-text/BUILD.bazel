@@ -55,8 +55,8 @@ rust_test(
 genrule(
     name = "cxxbridge",
     outs = ["cxx.h"],
-    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) --header > $(location cxx.h)",
-    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) --header > $(location cxx.h)",
+    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
 )
 
 genrule(
