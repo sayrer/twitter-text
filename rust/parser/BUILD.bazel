@@ -14,10 +14,10 @@ rust_library(
         "src/twitter_text.pest",
     ],
     deps = [
-        "//rust_bindings/cargo:pest",
+        "//rust_bindings/3rdparty/crates:pest",
     ],
     edition = "2018",
     proc_macro_deps = [
-        "//rust_bindings/cargo:pest_derive",
+        "//rust_bindings/3rdparty/crates:pest_derive",
     ],
 )

@@ -19,10 +19,10 @@ twitter_text_srcs = [
 twitter_text_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
-    "//rust_bindings/cargo:cxx",
-    "//rust_bindings/cargo:idna",
-    "//rust_bindings/cargo:pest",
-    "//rust_bindings/cargo:unicode_normalization",
+    "//rust_bindings/3rdparty/crates:cxx",
+    "//rust_bindings/3rdparty/crates:idna",
+    "//rust_bindings/3rdparty/crates:pest",
+    "//rust_bindings/3rdparty/crates:unicode_normalization",
 ]
 
 twitter_text_data = [
@@ -55,8 +55,8 @@ rust_test(
 genrule(
     name = "cxxbridge",
     outs = ["cxx.h"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header > $(location cxx.h)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) --header > $(location cxx.h)",
+    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
 )
 
 genrule(
@@ -65,8 +65,8 @@ genrule(
         "//rust/twitter-text:twitter_text_main",
     ],
     outs = ["twitter-text.h"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
+    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
 )
 
 genrule(
@@ -76,15 +76,15 @@ genrule(
         "//rust/twitter-text:twitter_text_main",
     ],
     outs = ["twitter-text.cpp"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
+    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
 )
 
 rust_static_library(
     name = "cxx_wrapper",
     srcs = ["cxx_wrapper.rs"],
     deps = [
-        "//rust_bindings/cargo:cxx",
+        "//rust_bindings/3rdparty/crates:cxx",
     ],
     edition = "2018",
     #crate_type = "staticlib",
@@ -100,7 +100,7 @@ cc_library(
         ":twitter_text_cpp",
         ":cxx_wrapper",
         ":twitter_text_static",
-        "//rust_bindings/cargo:cxx_cc_library",
+        "//rust_bindings/3rdparty/crates:cxx_cc_library",
     ],
     linkstatic = True,
 )

@@ -20,6 +20,7 @@ bazel_dep(name = "rules_swift", version = "3.3.0")
 
 # Rust toolchain
 RUST_EDITION = "2021"
+
 RUST_VERSION = "1.91.1"
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
@@ -28,6 +29,7 @@ rust.toolchain(
     versions = [RUST_VERSION],
 )
 use_repo(rust, "rust_toolchains")
+
 register_toolchains("@rust_toolchains//:all")
 
 ###############################################################################
