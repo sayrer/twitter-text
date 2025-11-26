@@ -1,6 +1,6 @@
 """Bzlmod module extensions"""
 
-load("//basic/3rdparty/crates:crates.bzl", crate_repositories = "crate_repositories")
+load("//rust_bindings/3rdparty/crates:crates.bzl", crate_repositories = "crate_repositories")
 
 def _rust_deps_impl(module_ctx):
     # This should contain the subset of WORKSPACE.bazel that defines
