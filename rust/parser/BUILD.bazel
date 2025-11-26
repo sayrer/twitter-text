@@ -16,7 +16,7 @@ rust_library(
     deps = [
         "//rust_bindings/3rdparty/crates:pest",
     ],
-    edition = "2018",
+    edition = "2021",
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:pest_derive",
     ],
