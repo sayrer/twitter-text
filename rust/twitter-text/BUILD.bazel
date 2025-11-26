@@ -65,8 +65,8 @@ genrule(
         "//rust/twitter-text:twitter_text_main",
     ],
     outs = ["twitter-text.h"],
-    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
-    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
+    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
 )
 
 genrule(
@@ -76,8 +76,8 @@ genrule(
         "//rust/twitter-text:twitter_text_main",
     ],
     outs = ["twitter-text.cpp"],
-    cmd = "$(location //rust_bindings/3rdparty/crates:cargo_bin_cxxbridge) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
-    tools = ["//rust_bindings/3rdparty/crates:cargo_bin_cxxbridge"],
+    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
+    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
 )
 
 rust_static_library(

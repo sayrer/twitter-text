@@ -34,11 +34,6 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-        "termcolor",
-    ],
     crate_root = "src/lib.rs",
     edition = "2021",
     rustc_env_files = [
@@ -99,7 +94,6 @@ rust_library(
     }),
     version = "0.13.1",
     deps = [
-        "@twitter_text__termcolor-1.4.1//:termcolor",
         "@twitter_text__unicode-width-0.2.2//:unicode_width",
     ],
 )

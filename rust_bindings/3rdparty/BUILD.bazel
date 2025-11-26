@@ -6,7 +6,8 @@ crates_vendor(
 
     },
     cargo_lockfile = "Cargo.lock",
-    generate_build_scripts = False,
+    generate_binaries = True,
+    generate_build_scripts = True,
     mode = "remote",
     packages = {
         "clap": crate.spec(
@@ -20,9 +21,6 @@ crates_vendor(
             features = ["std"],
         ),
         "cxx": crate.spec(
-            version = "1.0.189",
-        ),
-        "cxxbridge-cmd": crate.spec(
             version = "1.0.189",
         ),
         "pest": crate.spec(

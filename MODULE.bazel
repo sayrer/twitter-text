@@ -14,6 +14,8 @@ bazel_dep(name = "rules_java", version = "8.14.0")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
 
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 ###############################################################################
 # T O O L C H A I N S
 ###############################################################################
@@ -35,4 +37,49 @@ register_toolchains("@rust_toolchains//:all")
 ###############################################################################
 # R U S T  C R A T E S
 ###############################################################################
-crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+#crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+
+#
+# The codegen tool needed by cxx.
+#
+http_archive(
+    name = "cxxbridge-cmd",
+    build_file_content = """
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@cxxbridge_cmd_deps//:defs.bzl", "aliases", "all_crate_deps")
+
+rust_binary(
+    name = "cxxbridge-cmd",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = aliases(),
+    compile_data = [
+        "src/gen/include/cxx.h",
+    ],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps(
+        normal = True,
+    ),
+)
+    """,
+    sha256 = "6a368ed4a0fd83ebd3f2808613842d942a409c41cc24cd9d83f1696a00d78afe",
+    strip_prefix = "cxxbridge-cmd-1.0.189",
+    type = "tar.gz",
+    urls = ["https://static.crates.io/crates/cxxbridge-cmd/cxxbridge-cmd-1.0.189.crate"],
+)
+
+cxxbridge_cmd_deps = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+cxxbridge_cmd_deps.splicing_config(
+    repositories = ["cxxbridge_cmd_deps"],
+    resolver_version = "2",
+)
+cxxbridge_cmd_deps.from_cargo(
+    name = "cxxbridge_cmd_deps",
+    cargo_lockfile = "//rust_bindings/3rdparty/cxxbridge:Cargo.lock",
+    lockfile = "//rust_bindings/3rdparty/cxxbridge:cargo-bazel-lock.json",
+    manifests = ["@cxxbridge-cmd//:Cargo.toml"],
+)
+use_repo(
+    cxxbridge_cmd_deps,
+    "cxxbridge_cmd_deps",
+)

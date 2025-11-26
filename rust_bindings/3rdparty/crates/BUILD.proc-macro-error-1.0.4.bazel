@@ -6,7 +6,11 @@
 #     bazel run @@//rust_bindings/3rdparty:crates_vendor
 ###############################################################################
 
-load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
+load(
+    "@rules_rust//cargo:defs.bzl",
+    "cargo_build_script",
+    "cargo_toml_env_vars",
+)
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -102,8 +106,75 @@ rust_library(
     }),
     version = "1.0.4",
     deps = [
+        "@twitter_text__proc-macro-error-1.0.4//:build_script_build",
         "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
         "@twitter_text__quote-1.0.42//:quote",
         "@twitter_text__syn-1.0.109//:syn",
     ],
+)
+
+cargo_build_script(
+    name = "_bs",
+    srcs = glob(
+        include = ["**/*.rs"],
+        allow_empty = True,
+    ),
+    compile_data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            "**/*.rs",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    crate_features = [
+        "default",
+        "syn",
+        "syn-error",
+    ],
+    crate_name = "build_script_build",
+    crate_root = "build.rs",
+    data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    edition = "2018",
+    pkg_name = "proc-macro-error",
+    rustc_env_files = [
+        ":cargo_toml_env_vars",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-bazel",
+        "crate-name=proc-macro-error",
+        "manual",
+        "noclippy",
+        "norustfmt",
+    ],
+    version = "1.0.4",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@twitter_text__version_check-0.9.5//:version_check",
+    ],
+)
+
+alias(
+    name = "build_script_build",
+    actual = ":_bs",
+    tags = ["manual"],
 )

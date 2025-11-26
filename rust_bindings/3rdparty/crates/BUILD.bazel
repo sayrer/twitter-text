@@ -192,3 +192,22 @@ alias(
     actual = "@twitter_text__unicode-normalization-0.1.25//:unicode_normalization",
     tags = ["manual"],
 )
+
+# Binaries
+alias(
+    name = "clap__stdio-fixture",
+    actual = "@twitter_text__clap-4.5.53//:stdio-fixture__bin",
+    tags = ["manual"],
+)
+
+alias(
+    name = "unsafe-libyaml__run-emitter-test-suite",
+    actual = "@twitter_text__unsafe-libyaml-0.2.11//:run-emitter-test-suite__bin",
+    tags = ["manual"],
+)
+
+alias(
+    name = "unsafe-libyaml__run-parser-test-suite",
+    actual = "@twitter_text__unsafe-libyaml-0.2.11//:run-parser-test-suite__bin",
+    tags = ["manual"],
+)
