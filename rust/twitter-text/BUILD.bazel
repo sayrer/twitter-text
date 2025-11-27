@@ -79,7 +79,8 @@ rust_cxx_bridge(
     name = "bridge",
     src = "src/lib.rs",
     deps = [
-        "//rust_bindings/3rdparty/crates:cxx_cc",],
+        "//rust_bindings/3rdparty/crates:cxx_cc",
+    ],
 )
 
 rust_static_library(
