@@ -9,7 +9,7 @@ rust_library(
         "src/twitter_text.rs",
         "src/lib.rs",
     ],
-    data = [
+    compile_data = [
         "src/hit_highlighter.pest",
         "src/twitter_text.pest",
     ],

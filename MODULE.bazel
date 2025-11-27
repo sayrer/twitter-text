@@ -71,9 +71,7 @@ rust_binary(
     name = "cxxbridge-cmd",
     srcs = glob(["src/**/*.rs"]),
     aliases = aliases(),
-    compile_data = [
-        "src/gen/include/cxx.h",
-    ],
+    compile_data = glob(["src/gen/**/*.h"]),
     edition = "2021",
     visibility = ["//visibility:public"],
     deps = all_crate_deps(
