@@ -1,14 +1,10 @@
 def _llvm_toolchain_impl(rctx):
     # Symlink linux/bin from the linux_repo's clang_file
-    linux_clang = rctx.path(
-        Label("@%s//:clang_file" % rctx.attr.linux_repo)
-    )
+    linux_clang = rctx.path(Label("@%s//:clang_file" % rctx.attr.linux_repo))
     rctx.symlink(linux_clang.dirname, "linux/bin")
 
     # Symlink macos/bin from the macos_repo's clang_file
-    macos_clang = rctx.path(
-        Label("@%s//:clang_file" % rctx.attr.macos_repo)
-    )
+    macos_clang = rctx.path(Label("@%s//:clang_file" % rctx.attr.macos_repo))
     rctx.symlink(macos_clang.dirname, "macos/bin")
 
     # Write a simple wrapper that calls ld.lld (Linux) or ld64.lld (macOS)
@@ -31,7 +27,8 @@ fi
         executable = True,
     )
 
-    # Minimal BUILD file. allow_empty=True so missing dirs won't hard-fail globs.
+    # Minimal BUILD file. allow_empty = True so globs don't hard-fail
+    # if one platform's bins aren't present on a given machine.
     rctx.file(
         "BUILD.bazel",
         """
@@ -39,12 +36,12 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "linux_all_files",
-    srcs = glob(["linux/bin/**"], allow_empty = True)
+    srcs = glob(["linux/bin/**"], allow_empty = True),
 )
 
 filegroup(
     name = "macos_all_files",
-    srcs = glob(["macos/bin/**"], allow_empty = True)
+    srcs = glob(["macos/bin/**"], allow_empty = True),
 )
 
 exports_files(["clang_lld"])

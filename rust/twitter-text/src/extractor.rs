@@ -343,7 +343,7 @@ pub struct ValidatingExtractor<'a> {
 
 impl<'a> ValidatingExtractor<'a> {
     /// Create a new Extractor. [ValidatingExtractor::prep_input] must be called prior to extract.
-    pub fn new(configuration: &Configuration) -> ValidatingExtractor {
+    pub fn new(configuration: &Configuration) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
             config: configuration,
@@ -524,7 +524,7 @@ struct TextMetrics<'a> {
 }
 
 impl<'a> TextMetrics<'a> {
-    fn new(config: &Configuration, normalized_length: i32) -> TextMetrics {
+    fn new(config: &Configuration, normalized_length: i32) -> TextMetrics<'_> {
         TextMetrics {
             is_valid: true,
             weighted_count: 0,

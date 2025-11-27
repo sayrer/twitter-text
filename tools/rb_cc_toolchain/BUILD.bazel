@@ -1,1 +1,2 @@
-exports_files(["repo.bzl", "rust.bzl"])
+exports_files([
+    "repo.bzl",])

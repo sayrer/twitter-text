@@ -48,6 +48,10 @@ filegroup(
     urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.6/LLVM-21.1.6-macOS-ARM64.tar.xz"],
 )
 
+###############################################################################
+# Hermetic LLVM wrapper repo (symlinks + clang_lld wrapper)
+###############################################################################
+
 llvm_toolchain = use_repo_rule("//tools/rb_cc_toolchain:repo.bzl", "llvm_toolchain")
 
 llvm_toolchain(
@@ -57,21 +61,26 @@ llvm_toolchain(
 )
 
 ###############################################################################
-# R U S T  T O O L C H A I N
+# Rust toolchains from rules_rust (0.67.0)
 ###############################################################################
 
-# Rust toolchain
 RUST_EDITION = "2021"
 
-RUST_VERSION = "1.91.1"
+RUST_VERSION = "1.91.1"  # as you had
 
-rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(
+rust_ext = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust_ext.toolchain(
+    edition = RUST_EDITION,
     versions = [RUST_VERSION],
 )
-use_repo(rust, "rust_toolchains")
+use_repo(rust_ext, "rust_toolchains")
 
+# This registers the standard rules_rust toolchains (rustc, cargo, etc.)
 register_toolchains("@rust_toolchains//:all")
+
+# NOTE: C/C++ is still using Bazel's default toolchain for now.
+# When you're ready to wire in C++ platform toolchains, you'll add
+# register_toolchains() calls for those here.
 
 ###############################################################################
 # R U S T  C R A T E S
