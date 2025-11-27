@@ -17,7 +17,47 @@ bazel_dep(name = "rules_swift", version = "3.3.0")
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 ###############################################################################
-# T O O L C H A I N S
+# RBE / Hermetic LLVM + LLD toolchains
+###############################################################################
+
+http_archive(
+    name = "llvm_linux",
+    build_file_content = """
+filegroup(
+    name = "clang_file",
+    srcs = ["bin/clang"],
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "8ac1aadfa96b87b8747f7383d06ed9579f9d5c32a1af7af947b0cfe29d88ac87",
+    strip_prefix = "LLVM-21.1.6-Linux-X64",
+    urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.6/LLVM-21.1.6-Linux-X64.tar.xz"],
+)
+
+http_archive(
+    name = "llvm_macos",
+    build_file_content = """
+filegroup(
+    name = "clang_file",
+    srcs = ["bin/clang"],
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "bdf036e9987b8706471b565f50178a34218909b1858a82c426269da49780b6ba",
+    strip_prefix = "LLVM-21.1.6-macOS-ARM64",
+    urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.6/LLVM-21.1.6-macOS-ARM64.tar.xz"],
+)
+
+llvm_toolchain = use_repo_rule("//tools/rb_cc_toolchain:repo.bzl", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "hermetic_llvm",
+    linux_repo = "llvm_linux",
+    macos_repo = "llvm_macos",
+)
+
+###############################################################################
+# R U S T  T O O L C H A I N
 ###############################################################################
 
 # Rust toolchain
@@ -27,7 +67,6 @@ RUST_VERSION = "1.91.1"
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(
-    edition = RUST_EDITION,
     versions = [RUST_VERSION],
 )
 use_repo(rust, "rust_toolchains")
@@ -38,7 +77,6 @@ register_toolchains("@rust_toolchains//:all")
 # R U S T  C R A T E S
 ###############################################################################
 deps = use_extension("//:extensions.bzl", "rust_deps")
-
 use_repo(
     deps,
     "twitter_text",
@@ -56,7 +94,6 @@ use_repo(
     "twitter_text__serde_yaml_ng-0.10.0",
     "twitter_text__unicode-normalization-0.1.25",
 )
-
 
 #
 # The codegen tool needed by cxx.
