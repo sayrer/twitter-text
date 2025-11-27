@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use crate::entity::Entity;
 use crate::entity;
+use crate::entity::Entity;
 use crate::extractor::{Extract, Extractor};
 use crate::ffi;
 
@@ -148,21 +148,26 @@ impl<'a> Autolinker<'a> {
         }
     }
 
-    fn link_to_text(&self, entity: &Entity, original_text: &str,
-                    attributes: &mut Attributes, buf: &mut String) {
+    fn link_to_text(
+        &self,
+        _entity: &Entity,
+        original_text: &str,
+        attributes: &mut Attributes,
+        buf: &mut String,
+    ) {
         if self.no_follow {
             attributes.push((String::from("rel"), String::from("nofollow")));
         }
 
         let text = original_text;
         /*
-            if (linkAttributeModifier != null) {
-                linkAttributeModifier.modify(entity, attributes);
+           if (linkAttributeModifier != null) {
+               linkAttributeModifier.modify(entity, attributes);
+           }
+           if (linkTextModifier != null) {
+               text = linkTextModifier.modify(entity, originalText);
             }
-            if (linkTextModifier != null) {
-                text = linkTextModifier.modify(entity, originalText);
-             }
-         */
+        */
 
         buf.push_str("<a");
         for (k, v) in attributes {
@@ -177,18 +182,28 @@ impl<'a> Autolinker<'a> {
         buf.push_str("</a>");
     }
 
-    fn link_to_text_with_symbol(&self, entity: &Entity, sym: &str, original_text: &str,
-                                attributes: &mut Attributes, buf: &mut String) {
+    fn link_to_text_with_symbol(
+        &self,
+        entity: &Entity,
+        sym: &str,
+        original_text: &str,
+        attributes: &mut Attributes,
+        buf: &mut String,
+    ) {
         let tagged_symbol = match self.symbol_tag {
             "" => String::from(sym),
-            _ => format!("<{}>{}</{}>", self.symbol_tag, sym, self.symbol_tag)
+            _ => format!("<{}>{}</{}>", self.symbol_tag, sym, self.symbol_tag),
         };
         let text = escape_html(original_text);
         let tagged_text = match self.text_with_symbol_tag {
             "" => text,
-            _ => format!("<{}>{}</{}>", self.text_with_symbol_tag, text, self.text_with_symbol_tag)
+            _ => format!(
+                "<{}>{}</{}>",
+                self.text_with_symbol_tag, text, self.text_with_symbol_tag
+            ),
         };
-        let inc_sym = self.username_include_symbol || !(sym.contains('@') || sym.contains('\u{FF20}'));
+        let inc_sym =
+            self.username_include_symbol || !(sym.contains('@') || sym.contains('\u{FF20}'));
 
         if inc_sym {
             self.link_to_text(entity, &(tagged_symbol + &tagged_text), attributes, buf);
@@ -199,21 +214,31 @@ impl<'a> Autolinker<'a> {
     }
 
     fn link_to_hashtag(&self, entity: &Entity, text: &str, buf: &mut String) {
-        let hash_char = text.chars().skip(entity.get_start() as usize).take(1).collect::<String>();
+        let hash_char = text
+            .chars()
+            .skip(entity.get_start() as usize)
+            .take(1)
+            .collect::<String>();
         let hashtag = entity.get_value();
         let mut attrs: Attributes = Vec::new();
-        attrs.push((HREF.to_string(), String::from(self.hashtag_url_base.to_owned() + hashtag)));
+        attrs.push((
+            HREF.to_string(),
+            String::from(self.hashtag_url_base.to_owned() + hashtag),
+        ));
         attrs.push((TITLE.to_string(), String::from("#".to_owned() + hashtag)));
 
         if contains_rtl(text) {
-            attrs.push((CLASS.to_string(), String::from(self.hashtag_class.to_owned() + " rtl")));
+            attrs.push((
+                CLASS.to_string(),
+                String::from(self.hashtag_class.to_owned() + " rtl"),
+            ));
         } else {
             attrs.push((CLASS.to_string(), String::from(self.hashtag_class)));
         }
         self.link_to_text_with_symbol(entity, hash_char.as_str(), hashtag, &mut attrs, buf);
     }
 
-    fn link_to_cashtag(&self, entity: &Entity, text: &str, buf: &mut String) {
+    fn link_to_cashtag(&self, entity: &Entity, _text: &str, buf: &mut String) {
         let cashtag = entity.get_value();
         let mut attrs: Attributes = Vec::new();
         attrs.push((HREF.to_string(), self.cashtag_url_base.to_owned() + cashtag));
@@ -225,7 +250,11 @@ impl<'a> Autolinker<'a> {
 
     fn link_to_mention_and_list(&self, entity: &Entity, text: &str, buf: &mut String) {
         let mut mention = String::from(entity.get_value());
-        let at_char = text.chars().skip(entity.get_start() as usize).take(1).collect::<String>();
+        let at_char = text
+            .chars()
+            .skip(entity.get_start() as usize)
+            .take(1)
+            .collect::<String>();
         let mut attrs: Attributes = Vec::new();
 
         if entity.get_type() == entity::Type::MENTION && !entity.get_list_slug().is_empty() {
@@ -234,13 +263,16 @@ impl<'a> Autolinker<'a> {
             attrs.push((HREF.to_string(), self.list_url_base.to_owned() + &mention));
         } else {
             attrs.push((CLASS.to_string(), self.username_class.to_owned()));
-            attrs.push((HREF.to_string(), self.username_url_base.to_owned() + &mention));
+            attrs.push((
+                HREF.to_string(),
+                self.username_url_base.to_owned() + &mention,
+            ));
         }
 
         self.link_to_text_with_symbol(entity, at_char.as_str(), mention.as_str(), &mut attrs, buf);
     }
 
-    fn link_to_url(&self, entity: &Entity, text: &str, buf: &mut String) {
+    fn link_to_url(&self, entity: &Entity, _text: &str, buf: &mut String) {
         let url = entity.get_value();
         let mut link_text = escape_html(url);
         if !entity.get_display_url().is_empty() && !entity.get_expanded_url().is_empty() {
@@ -288,10 +320,16 @@ impl<'a> Autolinker<'a> {
             let display_url_sans_ellipses = entity.get_display_url().replace("…", "");
             let index = entity.get_expanded_url().find(&display_url_sans_ellipses);
             if let Some(display_url_index_in_expanded_url) = index {
-                let before_display_url = entity.get_expanded_url().chars()
-                    .take(display_url_index_in_expanded_url).collect::<String>();
-                let after_display_url = entity.get_expanded_url().chars().skip(
-                    display_url_index_in_expanded_url + display_url_sans_ellipses.len()).collect::<String>();
+                let before_display_url = entity
+                    .get_expanded_url()
+                    .chars()
+                    .take(display_url_index_in_expanded_url)
+                    .collect::<String>();
+                let after_display_url = entity
+                    .get_expanded_url()
+                    .chars()
+                    .skip(display_url_index_in_expanded_url + display_url_sans_ellipses.len())
+                    .collect::<String>();
                 let preceding_ellipsis = if entity.get_display_url().starts_with("…") {
                     "…"
                 } else {
@@ -344,7 +382,11 @@ impl<'a> Autolinker<'a> {
         let mut buf = String::with_capacity(text.len() * 2);
         let mut offset = 0usize;
         for entity in entities {
-            buf += &text.chars().skip(offset).take(entity.get_start() as usize - offset).collect::<String>();
+            buf += &text
+                .chars()
+                .skip(offset)
+                .take(entity.get_start() as usize - offset)
+                .collect::<String>();
             match entity.get_type() {
                 entity::Type::URL => self.link_to_url(entity, text, &mut buf),
                 entity::Type::HASHTAG => self.link_to_hashtag(entity, text, &mut buf),
@@ -400,10 +442,11 @@ impl<'a> Autolinker<'a> {
 
 fn contains_rtl(s: &str) -> bool {
     for c in s.chars() {
-        if (c >= '\u{0600}' && c <= '\u{06FF}') ||
-            (c >= '\u{0750}' && c <= '\u{077F}') ||
-            (c >= '\u{0590}' && c <= '\u{05FF}') ||
-            (c >= '\u{FE70}' && c <= '\u{FEFF}') {
+        if (c >= '\u{0600}' && c <= '\u{06FF}')
+            || (c >= '\u{0750}' && c <= '\u{077F}')
+            || (c >= '\u{0590}' && c <= '\u{05FF}')
+            || (c >= '\u{FE70}' && c <= '\u{FEFF}')
+        {
             return true;
         }
     }
@@ -427,7 +470,7 @@ fn escape_html(s: &str) -> String {
                     '&' => "&amp;",
                     '\'' => "&#39;",
                     '"' => "&quot;",
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 buf.push_str(s);
                 last = i + 1;
@@ -440,7 +483,7 @@ fn escape_html(s: &str) -> String {
         buf.push_str(&s[last..]);
     }
 
-     buf
+    buf
 }
 
 fn escape_brackets(s: &str) -> String {
@@ -453,7 +496,7 @@ fn escape_brackets(s: &str) -> String {
                 let s = match ch as char {
                     '>' => "&gt;",
                     '<' => "&lt;",
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
                 buf.push_str(s);
                 last = i + 1;
@@ -476,7 +519,10 @@ mod tests {
     #[test]
     fn test_escape_html() {
         let s = "foo <bar> baz & 'hmm' or \"hmm\"";
-        assert_eq!("foo &lt;bar&gt; baz &amp; &#39;hmm&#39; or &quot;hmm&quot;", escape_html(s));
+        assert_eq!(
+            "foo &lt;bar&gt; baz &amp; &#39;hmm&#39; or &quot;hmm&quot;",
+            escape_html(s)
+        );
     }
 
     #[test]

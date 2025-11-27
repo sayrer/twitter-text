@@ -3,14 +3,14 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use lazy_static::lazy_static;
+use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
+use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde_derive::{Deserialize, Serialize};
 use std::cmp::Ordering;
-use std::path::PathBuf;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
-use serde_derive::{Serialize, Deserialize};
-use serde::ser::{Serialize, Serializer, SerializeStruct};
-use serde::de::{self, Deserialize, Deserializer, Visitor, MapAccess};
+use std::path::PathBuf;
 
 pub const DEFAULT_VERSION: i32 = 3;
 pub const DEFAULT_WEIGHTED_LENGTH: i32 = 280;
@@ -27,19 +27,19 @@ lazy_static! {
     static ref CONFIG_V3: Configuration = Configuration::configuration_from_json(V3_JSON);
 }
 
-pub extern fn config_v1() -> &'static Configuration {
+pub extern "C" fn config_v1() -> &'static Configuration {
     &CONFIG_V1
 }
 
-pub extern fn config_v2() -> &'static Configuration {
+pub extern "C" fn config_v2() -> &'static Configuration {
     &CONFIG_V2
 }
 
-pub extern fn config_v3() -> &'static Configuration {
+pub extern "C" fn config_v3() -> &'static Configuration {
     &CONFIG_V3
 }
 
-pub extern fn default() -> &'static Configuration {
+pub extern "C" fn default() -> &'static Configuration {
     &CONFIG_V3
 }
 
@@ -66,23 +66,24 @@ impl Configuration {
             default_weight: DEFAULT_WEIGHT,
             ranges: Configuration::default_ranges(),
             transformed_url_length: DEFAULT_TRANSFORMED_URL_LENGTH,
-            emoji_parsing_enabled: true
+            emoji_parsing_enabled: true,
         }
     }
 
     fn default_ranges() -> Vec<WeightedRange> {
-         vec!(
+        vec![
             WeightedRange::new(0, 4351, 100),
             WeightedRange::new(8192, 8205, 100),
             WeightedRange::new(8208, 8223, 100),
             WeightedRange::new(8242, 8247, 100),
-        )
+        ]
     }
 
     pub fn configuration_from_path(path: &PathBuf) -> Configuration {
         let mut f = File::open(path).expect("Config file not found");
         let mut contents = String::new();
-        f.read_to_string(&mut contents).expect("Error reading config file");
+        f.read_to_string(&mut contents)
+            .expect("Error reading config file");
         Configuration::configuration_from_json(&contents)
     }
 
@@ -94,14 +95,14 @@ impl Configuration {
 #[derive(Debug, PartialEq, Hash, Clone, Copy)]
 pub struct WeightedRange {
     pub range: Range,
-    pub weight: i32
+    pub weight: i32,
 }
 
 impl WeightedRange {
     pub fn new(start: i32, end: i32, weight: i32) -> WeightedRange {
         WeightedRange {
             range: Range::new(start, end),
-            weight
+            weight,
         }
     }
 
@@ -112,8 +113,8 @@ impl WeightedRange {
 
 impl Serialize for WeightedRange {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         let mut state = serializer.serialize_struct("WeightedRange", 3)?;
         state.serialize_field("start", &self.range.start())?;
@@ -125,12 +126,16 @@ impl Serialize for WeightedRange {
 
 impl<'de> Deserialize<'de> for WeightedRange {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field { Start, End, Weight }
+        enum Field {
+            Start,
+            End,
+            Weight,
+        }
 
         struct WeightedRangeVisitor;
         impl<'de> Visitor<'de> for WeightedRangeVisitor {
@@ -141,8 +146,8 @@ impl<'de> Deserialize<'de> for WeightedRange {
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<WeightedRange, V::Error>
-                where
-                    V: MapAccess<'de>,
+            where
+                V: MapAccess<'de>,
             {
                 let mut start = None;
                 let mut end = None;
@@ -192,7 +197,7 @@ impl Range {
         Range { start: 0, end: 0 }
     }
 
-    pub fn new( start: i32, end: i32 ) -> Range {
+    pub fn new(start: i32, end: i32) -> Range {
         Range { start, end }
     }
 

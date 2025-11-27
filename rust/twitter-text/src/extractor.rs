@@ -4,6 +4,7 @@
 
 use crate::entity::{Entity, Type};
 use crate::TwitterTextParseResults;
+use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
 use pest::Parser;
 use std::iter::Peekable;
 use std::str::CharIndices;
@@ -467,7 +468,7 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 
     fn mention_result(&self, s: &'a str, entity: Option<Pair<'a>>) -> MentionResult<'a> {
         match entity {
-            Some(e) => {
+            Some(_e) => {
                 let results = self.extract_entities_with_indices(s);
                 MentionResult::new(results.parse_results, Some(results.entities[0].clone()))
             }
@@ -652,12 +653,22 @@ fn validate_url(p: Pair) -> bool {
 
 fn valid_punycode(original: &str, domain: &pest::iterators::Pair<Rule>) -> bool {
     let source = domain.as_span().as_str();
-    let config = idna::Config::default()
-        .verify_dns_length(true)
-        .transitional_processing(true)
-        .use_std3_ascii_rules(false);
+    let uts46 = Uts46::new();
 
-    match config.to_ascii(&source) {
+    // This no longer allows transitional processing, we'll see if that matters.
+    let result = uts46.to_ascii(
+        source.as_bytes(),
+        // No ASCII deny list. This corresponds to UseSTD3ASCIIRules=false.
+        AsciiDenyList::EMPTY,
+        // CheckHyphens=false: Do not place positional restrictions on hyphens.
+        // This mode is used by the WHATWG URL Standard for normal User Agent
+        // processing (i.e. not conformance checking).
+        Hyphens::Allow,
+        // VerifyDNSLength=true. (The trailing root label dot is not allowed.)
+        DnsLength::Verify,
+    );
+
+    match result {
         Ok(s) => length_check(original, source, &s, domain.as_rule() != Rule::uwp_domain),
         Err(_) => false,
     }
