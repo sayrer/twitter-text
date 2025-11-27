@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 use twitter_text::autolinker::Autolinker;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -34,14 +34,14 @@ pub struct Tests {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Manifest {
-    pub tests: Tests
+    pub tests: Tests,
 }
 
 const MANIFEST_YML: &str = include_str!("autolink.yml");
 
 #[test]
 fn autolink() {
-    let manifest: Manifest = serde_yaml::from_str(MANIFEST_YML).expect("Error parsing yaml");
+    let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
 
     for assertion in manifest.tests.usernames {
         let autolinker = Autolinker::new(false);

@@ -4,15 +4,10 @@
 
 use crate::entity::{Entity, Type};
 use crate::TwitterTextParseResults;
-use idna::uts46;
-use twitter_text_config::Configuration;
-// This API changed, see:
-// https://github.com/servo/rust-url/blob/b06048d70d4cc9cf4ffb277f06cfcebd53b2141e/idna/tests/unit.rs#L27
-//
-use idna::uts46::Flags;
 use pest::Parser;
 use std::iter::Peekable;
 use std::str::CharIndices;
+use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
@@ -657,12 +652,12 @@ fn validate_url(p: Pair) -> bool {
 
 fn valid_punycode(original: &str, domain: &pest::iterators::Pair<Rule>) -> bool {
     let source = domain.as_span().as_str();
-    let flags = Flags {
-        use_std3_ascii_rules: false,
-        transitional_processing: true,
-        verify_dns_length: true,
-    };
-    match uts46::to_ascii(&source, flags) {
+    let config = idna::Config::default()
+        .verify_dns_length(true)
+        .transitional_processing(true)
+        .use_std3_ascii_rules(false);
+
+    match config.to_ascii(&source) {
         Ok(s) => length_check(original, source, &s, domain.as_rule() != Rule::uwp_domain),
         Err(_) => false,
     }

@@ -18,7 +18,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/autolink.yml",
     ],
     edition = "2018",
@@ -40,7 +40,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/unicode11-emoji-test.txt",
     ],
     edition = "2018",
@@ -62,7 +62,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/extract.yml",
     ],
     edition = "2018",
@@ -84,7 +84,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/hit_highlighting.yml",
     ],
     edition = "2018",
@@ -106,7 +106,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/tlds.yml",
     ],
     edition = "2018",
@@ -128,7 +128,7 @@ rust_test(
     proc_macro_deps = [
         "//rust_bindings/3rdparty/crates:serde_derive",
     ],
-    data = [
+    compile_data = [
         "tests/validate.yml",
     ],
     edition = "2018",
