@@ -2,18 +2,21 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use twitter_text_config::Configuration;
-use idna::uts46;
 use crate::entity::{Entity, Type};
-use idna::uts46::Flags;
-use unicode_normalization::UnicodeNormalization;
 use crate::TwitterTextParseResults;
-use std::str::CharIndices;
-use std::iter::Peekable;
+use idna::uts46;
+use twitter_text_config::Configuration;
+// This API changed, see:
+// https://github.com/servo/rust-url/blob/b06048d70d4cc9cf4ffb277f06cfcebd53b2141e/idna/tests/unit.rs#L27
+//
+use idna::uts46::Flags;
 use pest::Parser;
-use twitter_text_parser::twitter_text::TwitterTextParser;
-use twitter_text_parser::twitter_text::Rule;
+use std::iter::Peekable;
+use std::str::CharIndices;
 use twitter_text_config::Range;
+use twitter_text_parser::twitter_text::Rule;
+use twitter_text_parser::twitter_text::TwitterTextParser;
+use unicode_normalization::UnicodeNormalization;
 
 type RuleMatch = fn(Rule) -> bool;
 type Pair<'a> = pest::iterators::Pair<'a, Rule>;
@@ -38,7 +41,12 @@ pub trait Extract<'a> {
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T;
 
     /// Create the result type. The concrete type varies by implementation.
-    fn create_result(&self, s: &'a str, entity_count:usize, pairs: &mut Vec<UnprocessedEntity<'a>>) -> Self::T;
+    fn create_result(
+        &self,
+        s: &'a str,
+        entity_count: usize,
+        pairs: &mut Vec<UnprocessedEntity<'a>>,
+    ) -> Self::T;
 
     /// Create the mention result type. The concrete type varies by implementation.
     fn extract_reply_username(&self, s: &'a str) -> Self::Mention;
@@ -77,40 +85,38 @@ pub trait Extract<'a> {
                     }
                 });
                 self.create_result(s, entity_count, &mut scanned)
-            },
-            Err(_e) => {
-                self.empty_result()
             }
+            Err(_e) => self.empty_result(),
         }
     }
 
     /// Extract all URLs from the text, subject to value returned by [Extract::get_extract_url_without_protocol].
     fn extract_urls_with_indices(&self, s: &'a str) -> Self::T {
         if self.get_extract_url_without_protocol() {
-            self.extract(s, |r| { r == Rule::url || r == Rule::url_without_protocol })
+            self.extract(s, |r| r == Rule::url || r == Rule::url_without_protocol)
         } else {
-            self.extract(s, |r| { r == Rule::url })
+            self.extract(s, |r| r == Rule::url)
         }
     }
 
     /// Extract all Hashtags from the text
     fn extract_hashtags_with_indices(&self, s: &'a str) -> Self::T {
-        self.extract(s, |r| { r == Rule::hashtag })
+        self.extract(s, |r| r == Rule::hashtag)
     }
 
     /// Extract all Cashtags from the text
     fn extract_cashtags_with_indices(&self, s: &'a str) -> Self::T {
-        self.extract(s, |r| { r == Rule::cashtag })
+        self.extract(s, |r| r == Rule::cashtag)
     }
 
     /// Extract all usernames from the text.
     fn extract_mentioned_screennames_with_indices(&self, s: &'a str) -> Self::T {
-        self.extract(s, |r| { r == Rule::username })
+        self.extract(s, |r| r == Rule::username)
     }
 
     /// Extract all usernames and lists from the text.
     fn extract_mentions_or_lists_with_indices(&self, s: &'a str) -> Self::T {
-        self.extract(s, |r| { r == Rule::username || r == Rule::list })
+        self.extract(s, |r| r == Rule::username || r == Rule::list)
     }
 
     /// Extract a "reply"--a username that appears at the beginning of a tweet.
@@ -121,58 +127,78 @@ pub trait Extract<'a> {
                     return self.mention_result(s, Some(pair));
                 }
 
-                return self.mention_result(s, None)
+                return self.mention_result(s, None);
             }
-            Err(_) => self.mention_result(s, None)
+            Err(_) => self.mention_result(s, None),
         }
     }
 
     /// Extract all entities from the text (Usernames, Lists, Hashtags, Cashtags, and URLs).
     fn extract_entities_with_indices(&self, s: &'a str) -> Self::T {
         self.extract(s, |r| {
-            r == Rule::url || r == Rule::hashtag || r == Rule::cashtag ||
-                r == Rule::list || r == Rule::username
+            r == Rule::url
+                || r == Rule::hashtag
+                || r == Rule::cashtag
+                || r == Rule::list
+                || r == Rule::username
         })
     }
 
     /// Parse the text without extracting any entities.
     fn extract_scan(&self, s: &'a str) -> Self::T {
-        self.extract(s, |_r| { false })
+        self.extract(s, |_r| false)
     }
 
-    fn entity_from_pair(&self, ue: UnprocessedEntity<'a>, start: i32, end: i32) -> Option<Entity<'a>> {
+    fn entity_from_pair(
+        &self,
+        ue: UnprocessedEntity<'a>,
+        start: i32,
+        end: i32,
+    ) -> Option<Entity<'a>> {
         match ue {
             UnprocessedEntity::UrlSpan(url) => {
                 Some(Entity::new(Type::URL, url.as_str(), start, end))
-            },
+            }
             UnprocessedEntity::Pair(pair) => {
                 let s = pair.as_str();
                 match pair.as_rule() {
-                    Rule::hashtag => {
-                        Some(Entity::new(Type::HASHTAG, &s[calculate_offset(s)..], start, end))
-                    },
-                    Rule::cashtag => {
-                        Some(Entity::new(Type::CASHTAG, &s[calculate_offset(s)..], start, end))
-                    },
-                    Rule::username => {
-                        Some(Entity::new(Type::MENTION, &s[calculate_offset(s)..], start, end))
-                    },
+                    Rule::hashtag => Some(Entity::new(
+                        Type::HASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    Rule::cashtag => Some(Entity::new(
+                        Type::CASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    Rule::username => Some(Entity::new(
+                        Type::MENTION,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
                     Rule::list => {
                         let mut list_iter = pair.into_inner();
-                        let listname = list_iter.find(|p| { p.as_rule() == Rule::listname });
-                        let list_slug = list_iter.find(|p| { p.as_rule() == Rule::list_slug });
+                        let listname = list_iter.find(|p| p.as_rule() == Rule::listname);
+                        let list_slug = list_iter.find(|p| p.as_rule() == Rule::list_slug);
                         match (listname, list_slug) {
                             (Some(ln), Some(ls)) => {
                                 let name = ln.as_str();
-                                Some(Entity::new_list(Type::MENTION, &name[calculate_offset(name)..],
-                                                      &ls.as_str(), start, end))
-                            },
-                            _ => {
-                                None
+                                Some(Entity::new_list(
+                                    Type::MENTION,
+                                    &name[calculate_offset(name)..],
+                                    &ls.as_str(),
+                                    start,
+                                    end,
+                                ))
                             }
+                            _ => None,
                         }
                     }
-                    _ => None
+                    _ => None,
                 }
             }
         }
@@ -196,31 +222,35 @@ impl Extractor {
 
     /// Extract a vector of URLs as [String] objects.
     pub fn extract_urls(&self, s: &str) -> Vec<String> {
-        self.extract_urls_with_indices(s).iter().map(|entity| {
-            String::from(entity.get_value())
-        }).collect()
+        self.extract_urls_with_indices(s)
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
     }
 
     /// Extract a vector of Hashtags as [String] objects.
     pub fn extract_hashtags(&self, s: &str) -> Vec<String> {
-        self.extract_hashtags_with_indices(s).iter().map(|entity| {
-            String::from(entity.get_value())
-        }).collect()
+        self.extract_hashtags_with_indices(s)
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
     }
 
     /// Extract a vector of Cashtags as [String] objects.
     pub fn extract_cashtags(&self, s: &str) -> Vec<String> {
-        self.extract_cashtags_with_indices(s).iter().map(|entity| {
-            String::from(entity.get_value())
-        }).collect()
+        self.extract_cashtags_with_indices(s)
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
     }
 
     /// Extract all usernames from the text. The same
     /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
     pub fn extract_mentioned_screennames(&self, s: &str) -> Vec<String> {
-        self.extract_mentioned_screennames_with_indices(s).iter().map(|entity| {
-            String::from(entity.get_value())
-        }).collect()
+        self.extract_mentioned_screennames_with_indices(s)
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
     }
 
     // Internal UTF-8 to UTF-32 offset calculation.
@@ -264,7 +294,12 @@ impl<'a> Extract<'a> for Extractor {
         self.extract_impl(s, r_match)
     }
 
-    fn create_result(&self, s: &'a str, count: usize, scanned: &mut Vec<UnprocessedEntity<'a>>) -> Vec<Entity<'a>> {
+    fn create_result(
+        &self,
+        s: &'a str,
+        count: usize,
+        scanned: &mut Vec<UnprocessedEntity<'a>>,
+    ) -> Vec<Entity<'a>> {
         let mut entities = Vec::with_capacity(count);
         let mut iter = s.char_indices().peekable();
         let mut start_index = 0;
@@ -291,8 +326,8 @@ impl<'a> Extract<'a> for Extractor {
                 let mut v = Vec::new();
                 v.push(UnprocessedEntity::Pair(e));
                 self.create_result(s, 1, &mut v).pop()
-            },
-            None => None
+            }
+            None => None,
         }
     }
 
@@ -336,7 +371,10 @@ impl<'a> ValidatingExtractor<'a> {
 
     /// Create a new Extractor from text that is already nfc-normalized. There's no need to call
     /// [ValidatingExtractor::prep_input] for this text.
-    pub fn new_with_nfc_input(configuration: &'a Configuration, s: &str) -> ValidatingExtractor<'a> {
+    pub fn new_with_nfc_input(
+        configuration: &'a Configuration,
+        s: &str,
+    ) -> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,
@@ -377,7 +415,12 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
         self.extract_impl(s, r_match)
     }
 
-    fn create_result(&self, s: &'a str, count: usize, scanned: &mut Vec<UnprocessedEntity<'a>>) -> ExtractResult<'a> {
+    fn create_result(
+        &self,
+        s: &'a str,
+        count: usize,
+        scanned: &mut Vec<UnprocessedEntity<'a>>,
+    ) -> ExtractResult<'a> {
         let mut iter = s.char_indices().peekable();
         let mut metrics = TextMetrics::new(self.config, self.ld.normalized_length);
         let mut entities = Vec::with_capacity(count);
@@ -408,7 +451,8 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 
         let normalized_tweet_offset: i32 = self.ld.original_length - self.ld.normalized_length;
         let scaled_weighted_length = metrics.weighted_count / self.config.scale;
-        let is_valid = metrics.is_valid && scaled_weighted_length <= self.config.max_weighted_tweet_length;
+        let is_valid =
+            metrics.is_valid && scaled_weighted_length <= self.config.max_weighted_tweet_length;
         let permillage = scaled_weighted_length * 1000 / self.config.max_weighted_tweet_length;
 
         let results = TwitterTextParseResults::new(
@@ -431,8 +475,8 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
             Some(e) => {
                 let results = self.extract_entities_with_indices(s);
                 MentionResult::new(results.parse_results, Some(results.entities[0].clone()))
-            },
-            None => MentionResult::new(TwitterTextParseResults::empty(), None)
+            }
+            None => MentionResult::new(TwitterTextParseResults::empty(), None),
         }
     }
 
@@ -444,11 +488,11 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 /// Entities and validation data returned by [ValidatingExtractor].
 pub struct ExtractResult<'a> {
     pub parse_results: TwitterTextParseResults,
-    pub entities: Vec<Entity<'a>>
+    pub entities: Vec<Entity<'a>>,
 }
 
 impl<'a> ExtractResult<'a> {
-    pub fn new(results: TwitterTextParseResults,  e: Vec<Entity<'a>>) -> ExtractResult<'a> {
+    pub fn new(results: TwitterTextParseResults, e: Vec<Entity<'a>>) -> ExtractResult<'a> {
         ExtractResult {
             parse_results: results,
             entities: e,
@@ -460,11 +504,11 @@ impl<'a> ExtractResult<'a> {
 #[derive(Debug)]
 pub struct MentionResult<'a> {
     pub parse_results: TwitterTextParseResults,
-    pub mention: Option<Entity<'a>>
+    pub mention: Option<Entity<'a>>,
 }
 
 impl<'a> MentionResult<'a> {
-    pub fn new(results: TwitterTextParseResults,  e: Option<Entity<'a>>) -> MentionResult<'a> {
+    pub fn new(results: TwitterTextParseResults, e: Option<Entity<'a>>) -> MentionResult<'a> {
         MentionResult {
             parse_results: results,
             mention: e,
@@ -492,12 +536,12 @@ impl<'a> TextMetrics<'a> {
             valid_offset: 0,
             normalized_length,
             scaled_max_weighted_tweet_length: config.max_weighted_tweet_length * config.scale,
-            config
+            config,
         }
     }
 
     fn add_char(&mut self, c: char) {
-        let len_utf16 : i32 = as_i32(c.len_utf16());
+        let len_utf16: i32 = as_i32(c.len_utf16());
         self.add_offset(len_utf16);
     }
 
@@ -549,7 +593,7 @@ impl<'a> TextMetrics<'a> {
                 match action {
                     TrackAction::Text => self.track_text(c),
                     TrackAction::Emoji => self.track_emoji(c),
-                    TrackAction::Url => {},
+                    TrackAction::Url => {}
                 }
             }
         }
@@ -565,12 +609,12 @@ impl<'a> TextMetrics<'a> {
 enum TrackAction {
     Text,
     Emoji,
-    Url
+    Url,
 }
 
 pub enum UnprocessedEntity<'a> {
     UrlSpan(pest::Span<'a>),
-    Pair(Pair<'a>)
+    Pair(Pair<'a>),
 }
 
 impl<'a> UnprocessedEntity<'a> {
@@ -591,7 +635,7 @@ impl<'a> UnprocessedEntity<'a> {
     fn as_rule(&self) -> Rule {
         match self {
             UnprocessedEntity::UrlSpan(_span) => Rule::url,
-            UnprocessedEntity::Pair(pair) => pair.as_rule()
+            UnprocessedEntity::Pair(pair) => pair.as_rule(),
         }
     }
 }
@@ -607,7 +651,7 @@ fn validate_url(p: Pair) -> bool {
         r == Rule::host || r == Rule::tco_domain || r == Rule::uwp_domain
     }) {
         Some(pair) => valid_punycode(original, &pair),
-        _ => false
+        _ => false,
     }
 }
 
@@ -620,17 +664,17 @@ fn valid_punycode(original: &str, domain: &pest::iterators::Pair<Rule>) -> bool 
     };
     match uts46::to_ascii(&source, flags) {
         Ok(s) => length_check(original, source, &s, domain.as_rule() != Rule::uwp_domain),
-        Err(_) => false
+        Err(_) => false,
     }
 }
 
-fn length_check(original: &str, original_domain: &str,
-                punycode_domain: &str, has_scheme: bool) -> bool {
-    let length = if has_scheme {
-        0
-    } else {
-        "https://".len()
-    };
+fn length_check(
+    original: &str,
+    original_domain: &str,
+    punycode_domain: &str,
+    has_scheme: bool,
+) -> bool {
+    let length = if has_scheme { 0 } else { "https://".len() };
 
     (length + original.len() - original_domain.len() + punycode_domain.len()) < MAX_URL_LENGTH
 }
