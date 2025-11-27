@@ -23,6 +23,7 @@ twitter_text_deps = [
 
 twitter_text_data = [
     ":bridge/include",
+    "//rust_bindings/3rdparty/crates:cxx_cc",
 ]
 
 rust_library(
@@ -77,7 +78,8 @@ rust_test(
 rust_cxx_bridge(
     name = "bridge",
     src = "src/lib.rs",
-    deps = [],
+    deps = [
+        "//rust_bindings/3rdparty/crates:cxx_cc",],
 )
 
 rust_static_library(
