@@ -96,6 +96,7 @@ use_repo(
     "twitter_text__idna-1.1.0",
     "twitter_text__lazy_static-1.5.0",
     "twitter_text__log-0.4.28",
+    "twitter_text__magnus-0.8.2",
     "twitter_text__pest-2.8.4",
     "twitter_text__pest_derive-2.8.4",
     "twitter_text__proc-macro-error-1.0.4",

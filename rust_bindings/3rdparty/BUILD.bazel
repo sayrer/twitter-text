@@ -50,6 +50,9 @@ crates_vendor(
         "serde_yaml_ng": crate.spec(
             version = "0.10.0",
         ),
+        "magnus": crate.spec(
+            version = "0.8.2",
+        ),
     },
     repository_name = "twitter_text",
     tags = ["manual"],

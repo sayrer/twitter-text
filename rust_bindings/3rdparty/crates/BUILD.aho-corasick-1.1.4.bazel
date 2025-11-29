@@ -17,7 +17,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "syn",
+    name = "aho_corasick",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -35,17 +35,8 @@ rust_library(
         ],
     ),
     crate_features = [
-        "clone-impls",
-        "default",
-        "derive",
-        "extra-traits",
-        "fold",
-        "full",
-        "parsing",
-        "printing",
-        "proc-macro",
-        "visit",
-        "visit-mut",
+        "perf-literal",
+        "std",
     ],
     crate_root = "src/lib.rs",
     edition = "2021",
@@ -57,7 +48,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=syn",
+        "crate-name=aho-corasick",
         "manual",
         "noclippy",
         "norustfmt",
@@ -105,10 +96,8 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "2.0.111",
+    version = "1.1.4",
     deps = [
-        "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__unicode-ident-1.0.22//:unicode_ident",
+        "@twitter_text__memchr-2.7.6//:memchr",
     ],
 )

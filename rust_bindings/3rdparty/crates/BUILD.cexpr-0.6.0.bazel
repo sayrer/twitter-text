@@ -17,7 +17,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "syn",
+    name = "cexpr",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -34,21 +34,8 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "clone-impls",
-        "default",
-        "derive",
-        "extra-traits",
-        "fold",
-        "full",
-        "parsing",
-        "printing",
-        "proc-macro",
-        "visit",
-        "visit-mut",
-    ],
     crate_root = "src/lib.rs",
-    edition = "2021",
+    edition = "2018",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -57,7 +44,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=syn",
+        "crate-name=cexpr",
         "manual",
         "noclippy",
         "norustfmt",
@@ -105,10 +92,8 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "2.0.111",
+    version = "0.6.0",
     deps = [
-        "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__unicode-ident-1.0.22//:unicode_ident",
+        "@twitter_text__nom-7.1.3//:nom",
     ],
 )

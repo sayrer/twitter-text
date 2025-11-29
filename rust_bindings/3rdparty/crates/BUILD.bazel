@@ -98,6 +98,18 @@ alias(
 )
 
 alias(
+    name = "magnus-0.8.2",
+    actual = "@twitter_text__magnus-0.8.2//:magnus",
+    tags = ["manual"],
+)
+
+alias(
+    name = "magnus",
+    actual = "@twitter_text__magnus-0.8.2//:magnus",
+    tags = ["manual"],
+)
+
+alias(
     name = "pest-2.8.4",
     actual = "@twitter_text__pest-2.8.4//:pest",
     tags = ["manual"],

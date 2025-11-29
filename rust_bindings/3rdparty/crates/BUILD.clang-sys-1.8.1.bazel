@@ -6,7 +6,11 @@
 #     bazel run @@//rust_bindings/3rdparty:crates_vendor
 ###############################################################################
 
-load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
+load(
+    "@rules_rust//cargo:defs.bzl",
+    "cargo_build_script",
+    "cargo_toml_env_vars",
+)
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -17,7 +21,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "syn",
+    name = "clang_sys",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -35,17 +39,16 @@ rust_library(
         ],
     ),
     crate_features = [
-        "clone-impls",
-        "default",
-        "derive",
-        "extra-traits",
-        "fold",
-        "full",
-        "parsing",
-        "printing",
-        "proc-macro",
-        "visit",
-        "visit-mut",
+        "clang_3_5",
+        "clang_3_6",
+        "clang_3_7",
+        "clang_3_8",
+        "clang_3_9",
+        "clang_4_0",
+        "clang_5_0",
+        "clang_6_0",
+        "libloading",
+        "runtime",
     ],
     crate_root = "src/lib.rs",
     edition = "2021",
@@ -57,7 +60,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=syn",
+        "crate-name=clang-sys",
         "manual",
         "noclippy",
         "norustfmt",
@@ -105,10 +108,85 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "2.0.111",
+    version = "1.8.1",
     deps = [
-        "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__unicode-ident-1.0.22//:unicode_ident",
+        "@twitter_text__clang-sys-1.8.1//:build_script_build",
+        "@twitter_text__glob-0.3.3//:glob",
+        "@twitter_text__libc-0.2.177//:libc",
+        "@twitter_text__libloading-0.8.9//:libloading",
     ],
+)
+
+cargo_build_script(
+    name = "_bs",
+    srcs = glob(
+        include = ["**/*.rs"],
+        allow_empty = True,
+    ),
+    compile_data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            "**/*.rs",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    crate_features = [
+        "clang_3_5",
+        "clang_3_6",
+        "clang_3_7",
+        "clang_3_8",
+        "clang_3_9",
+        "clang_4_0",
+        "clang_5_0",
+        "clang_6_0",
+        "libloading",
+        "runtime",
+    ],
+    crate_name = "build_script_build",
+    crate_root = "build.rs",
+    data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    edition = "2021",
+    links = "clang",
+    pkg_name = "clang-sys",
+    rustc_env_files = [
+        ":cargo_toml_env_vars",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-bazel",
+        "crate-name=clang-sys",
+        "manual",
+        "noclippy",
+        "norustfmt",
+    ],
+    version = "1.8.1",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@twitter_text__glob-0.3.3//:glob",
+    ],
+)
+
+alias(
+    name = "build_script_build",
+    actual = ":_bs",
+    tags = ["manual"],
 )
