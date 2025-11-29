@@ -26,7 +26,7 @@ cc_library(
         "twitter.cpp"
     ],
     deps = [
-        "//rust/twitter-text:bridge",
+        "//rust/twitter-text:twitter_text_wrapper",
         "//rust_bindings/3rdparty/crates:cxx_cc",
     ],
     copts = ["-v"],
@@ -38,12 +38,11 @@ cc_test(
         "config_test.cpp"
     ],
     data = [":config_test_data"],
-    copts = ["-Iexternal/gtest/include"],
+    copts = ["-Iexternal/gtest/include", "-v"],
     deps = [
-        "//rust/twitter-text:twitter_text",        # Rust implementation FIRST
-        "//rust/twitter-text:bridge",               # C++ glue depends on it
-        "//rust_bindings/3rdparty/crates:cxx_cc",   # CXX runtime
-        ":twitter_text",                            # your C++ wrapper
+        "//rust_bindings/3rdparty/crates:cxx_cc",
+        "//rust/twitter-text:twitter_text_wrapper",
+        ":twitter_text",
         "@googletest//:gtest_main",
     ],
 )

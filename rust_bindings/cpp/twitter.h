@@ -1,5 +1,5 @@
 #pragma once
-#include "bridge.h"
+#include "rust/twitter-text/twitter-text.h"
 
 namespace twitter_text {
 
