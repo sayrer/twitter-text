@@ -26,19 +26,32 @@ twitter_text_deps = [
     "//rust_bindings/3rdparty/crates:unicode-normalization",
 ]
 
+# 1) Core Rust crate, no cxx in the public API
 rust_library(
     name = "twitter_text",
+    crate_root = "src/lib.rs",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
     edition = "2021",
 )
 
+# 2) FFI crate, built as a Rust staticlib to be consumed from C++
+# Note: crate_root points at src/ffi.rs
 rust_static_library(
-    name = "twitter_text_static",
-    srcs = twitter_text_srcs,
-    deps = twitter_text_deps,
+    name = "twitter_text_ffi",
+    crate_root = "src/ffi.rs",
+    srcs = [
+        "src/ffi.rs",
+    ],
+    deps = [
+        ":twitter_text",
+        "//rust/config:twitter_text_config",
+        "//rust_bindings/3rdparty/crates:cxx",
+    ],
     edition = "2021",
+    # allocator_libraries left default, per rules_rust docs
 )
+
 
 #rust_shared_library(
 #    name = "twitter_text_shared",

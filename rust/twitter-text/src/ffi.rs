@@ -1,10 +1,5 @@
 // src/ffi.rs
 
-mod core {
-    pub use crate::*; // re-export everything from lib.rs
-}
-
-use core::*; // now TwitterTextParseResults, Validator, etc. are in scope
 use cxx::{CxxVector, UniquePtr};
 
 #[cxx::bridge(namespace = twitter_text)]
@@ -199,13 +194,16 @@ mod ffi {
     }
 }
 
-type RustAutolinker = Autolinker;
-type RustExtractor = Extractor;
-type RustHitHighlighter = HitHighlighter;
-type RustValidator = Validator;
+type RustAutolinker<'a> = twitter_text::autolinker::Autolinker<'a>;
+type RustExtractor = twitter_text::extractor::Extractor;
+type RustExtractResult<'a> = twitter_text::extractor::ExtractResult<'a>;
+type RustMentionResult<'a> = twitter_text::extractor::MentionResult<'a>;
+type RustHitHighlighter = twitter_text::hit_highlighter::HitHighlighter;
+type RustValidator = twitter_text::validator::Validator;
+type RustTwitterTextParseResults = twitter_text::TwitterTextParseResults;
 
 impl ffi::TwitterTextParseResults {
-    fn from(results: TwitterTextParseResults) -> ffi::TwitterTextParseResults {
+    fn from(results: RustTwitterTextParseResults) -> ffi::TwitterTextParseResults {
         ffi::TwitterTextParseResults {
             weighted_length: results.weighted_length,
             permillage: results.permillage,
@@ -217,7 +215,7 @@ impl ffi::TwitterTextParseResults {
 }
 
 impl ffi::ExtractResult {
-    fn from(result: ExtractResult) -> ffi::ExtractResult {
+    fn from(result: RustExtractResult) -> ffi::ExtractResult {
         ffi::ExtractResult {
             parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
             entities: result
@@ -230,7 +228,7 @@ impl ffi::ExtractResult {
 }
 
 impl ffi::MentionResult {
-    fn from(result: MentionResult) -> ffi::MentionResult {
+    fn from(result: RustMentionResult) -> ffi::MentionResult {
         ffi::MentionResult {
             parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
             mention: match result.mention {
@@ -702,27 +700,27 @@ pub fn parse_ffi(
     ffi::TwitterTextParseResults::from(parse(text, &ffi::Configuration::to(config), extract_urls))
 }
 
-pub fn default_config() -> ffi::AutolinkerConfig {
+pub fn default_autolinkerconfig() -> ffi::AutolinkerConfig {
     ffi::AutolinkerConfig {
         no_follow: false,
         url_class: "".to_string(),
         url_target: "".to_string(),
         symbol_tag: "".to_string(),
         text_with_symbol_tag: "".to_string(),
-        list_class: DEFAULT_LIST_CLASS.to_string(),
-        username_class: DEFAULT_USERNAME_CLASS.to_string(),
-        hashtag_class: DEFAULT_HASHTAG_CLASS.to_string(),
-        cashtag_class: DEFAULT_CASHTAG_CLASS.to_string(),
-        username_url_base: DEFAULT_USERNAME_URL_BASE.to_string(),
-        list_url_base: DEFAULT_LIST_URL_BASE.to_string(),
-        hashtag_url_base: DEFAULT_HASHTAG_URL_BASE.to_string(),
-        cashtag_url_base: DEFAULT_CASHTAG_URL_BASE.to_string(),
-        invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
+        list_class: twitter_text::autolinker::DEFAULT_LIST_CLASS.to_string(),
+        username_class: twitter_text::autolinker::DEFAULT_USERNAME_CLASS.to_string(),
+        hashtag_class: twitter_text::autolinker::DEFAULT_HASHTAG_CLASS.to_string(),
+        cashtag_class: twitter_text::autolinker::DEFAULT_CASHTAG_CLASS.to_string(),
+        username_url_base: twitter_text::autolinker::DEFAULT_USERNAME_URL_BASE.to_string(),
+        list_url_base: twitter_text::autolinker::DEFAULT_LIST_URL_BASE.to_string(),
+        hashtag_url_base: twitter_text::autolinker::DEFAULT_HASHTAG_URL_BASE.to_string(),
+        cashtag_url_base: twitter_text::autolinker::DEFAULT_CASHTAG_URL_BASE.to_string(),
+        invisible_tag_attrs: twitter_text::autolinker::DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
         username_include_symbol: false,
     }
 }
 
-pub fn new_with_config(config: &'a ffi::AutolinkerConfig) -> Autolinker<'a> {
+pub fn new_with_config<'a>(config: &'a ffi::AutolinkerConfig) -> Autolinker<'a> {
     let mut extractor = Extractor::new();
     extractor.set_extract_url_without_protocol(false);
     Autolinker {
