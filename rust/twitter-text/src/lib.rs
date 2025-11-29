@@ -2,94 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-pub mod extractor;
-pub mod hit_highlighter;
-pub mod autolinker;
-pub mod entity;
-pub mod validator;
-
-use twitter_text_config::Configuration;
-use twitter_text_config::Range;
-use twitter_text_config::WeightedRange;
-use autolinker::Autolinker;
-use entity::Entity;
-use extractor::{Extract, Extractor, ExtractResult, MentionResult, ValidatingExtractor};
-use hit_highlighter::HitHighlighter;
-use validator::Validator;
-use cxx::{CxxVector, UniquePtr};
-use std::path::PathBuf;
-
-/// A struct that represents a parsed tweet containing the length of the tweet,
-/// its validity, display ranges etc. The name mirrors Twitter's Java implementation.
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
-pub struct TwitterTextParseResults {
-    /// The weighted length is the number used to determine the tweet's length for the purposes of Twitter's limit of 280. Most characters count
-    /// for 2 units, while a few ranges (like ASCII and Latin-1) count for 1. See [Twitter's blog post](https://blog.twitter.com/official/en_us/topics/product/2017/Giving-you-more-characters-to-express-yourself.html).
-    pub weighted_length: i32,
-
-    /// The weighted length expressed as a number relative to a limit of 1000.
-    /// This value makes it easier to implement UI like Twitter's tweet-length meter.
-    pub permillage: i32,
-
-    /// Whether the tweet is valid: its weighted length must be under the configured limit, it must
-    /// not be empty, and it must not contain invalid characters.
-    pub is_valid: bool,
-
-    /// The display range expressed in UTF-16.
-    pub display_text_range: Range,
-
-    /// The valid display range expressed in UTF-16. After the end of the valid range, clients
-    /// typically stop highlighting entities, etc.
-    pub valid_text_range: Range
-}
-
-impl TwitterTextParseResults {
-    /// A new TwitterTextParseResults struct with all fields supplied as arguments.
-    pub fn new(weighted_length: i32,
-               permillage: i32,
-               is_valid: bool,
-               display_text_range: Range,
-               valid_text_range: Range) -> TwitterTextParseResults {
-        TwitterTextParseResults {
-            weighted_length,
-            permillage,
-            is_valid,
-            display_text_range,
-            valid_text_range
-        }
-    }
-
-    /// An invalid TwitterTextParseResults struct. This function produces the return value when
-    /// empty text or invalid UTF-8 is supplied to parse().
-    pub fn empty() -> TwitterTextParseResults {
-        TwitterTextParseResults {
-            weighted_length: 0,
-            permillage: 0,
-            is_valid: false,
-            display_text_range: Range::empty(),
-            valid_text_range: Range::empty()
-        }
-    }
-}
-
-/// Produce a [TwitterTextParseResults] struct from a [str]. If extract_urls is true, the weighted
-/// length will give all URLs the weight supplied in [Configuration](twitter_text_configuration::Configuration),
-/// regardless of their length.
-/// 
-/// This function will allocate an NFC-normalized copy of the input string. If the text is already
-/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
-pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
-    let mut extractor = ValidatingExtractor::new(config);
-    let input = extractor.prep_input(text);
-    if extract_urls {
-        extractor.extract_urls_with_indices(input.as_str()).parse_results
-    } else {
-        extractor.extract_scan(input.as_str()).parse_results
-    }
-}
-
 #[cxx::bridge(namespace = twitter_text)]
-pub mod ffi {
+mod ffi {
     #[derive(Copy, Clone)]
     pub struct Range {
         pub start: i32,
@@ -99,7 +13,7 @@ pub mod ffi {
     #[derive(Copy, Clone)]
     pub struct WeightedRange {
         pub range: Range,
-        pub weight: i32
+        pub weight: i32,
     }
 
     pub struct Configuration {
@@ -130,9 +44,9 @@ pub mod ffi {
         pub username_include_symbol: bool,
     }
 
-    pub struct Hit { 
-        start: usize, 
-        end: usize
+    pub struct Hit {
+        start: usize,
+        end: usize,
     }
 
     pub struct Entity {
@@ -142,11 +56,11 @@ pub mod ffi {
         pub value: String,
         pub list_slug: String,
         pub display_url: String,
-        pub expanded_url: String
+        pub expanded_url: String,
     }
 
     pub struct ExtractorString {
-        s: String
+        s: String,
     }
 
     pub struct TwitterTextParseResults {
@@ -154,13 +68,13 @@ pub mod ffi {
         pub permillage: i32,
         pub is_valid: bool,
         pub display_text_range: Range,
-        pub valid_text_range: Range
+        pub valid_text_range: Range,
     }
 
     // Entities and validation data returned by [ValidatingExtractor].
     pub struct ExtractResult {
         pub parse_results: TwitterTextParseResults,
-        pub entities: Vec<Entity>
+        pub entities: Vec<Entity>,
     }
 
     // A mention entity and validation data returned by [ValidatingExtractor].
@@ -169,7 +83,7 @@ pub mod ffi {
         pub mention: UniquePtr<Entity>,
     }
 
-    extern "C++" {
+    unsafe extern "C++" {
         include!("cxx.h");
     }
 
@@ -195,11 +109,15 @@ pub mod ffi {
         type RustExtractor;
         fn make_extractor() -> Box<RustExtractor>;
         fn get_extract_url_without_protocol(r: &RustExtractor) -> bool;
-        fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_without_protocol: bool);
+        fn set_extract_url_without_protocol(
+            r: &mut RustExtractor,
+            extract_url_without_protocol: bool,
+        );
         fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
         fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
-        fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
-        fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str)  -> Vec<Entity>;
+        fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str)
+            -> Vec<Entity>;
+        fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
         fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<Entity>;
         fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
         fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
@@ -212,16 +130,40 @@ pub mod ffi {
         type RustValidatingExtractor;
         fn make_validating_extractor(config: &Configuration) -> Box<RustValidatingExtractor>;
         fn get_extract_url_without_protocol_validated(e: &RustValidatingExtractor) -> bool;
-        fn set_extract_url_without_protocol_validated(e: &mut RustValidatingExtractor, extract_url_without_protocol: bool);
+        fn set_extract_url_without_protocol_validated(
+            e: &mut RustValidatingExtractor,
+            extract_url_without_protocol: bool,
+        );
         fn get_normalize(e: &RustValidatingExtractor) -> bool;
         fn set_normalize(e: &mut RustValidatingExtractor, normalize: bool);
-        fn extract_entities_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
-        fn extract_mentioned_screennames_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
-        fn extract_mentions_or_lists_with_indices_validated(e: &RustValidatingExtractor, text: &str)  -> UniquePtr<ExtractResult>;
-        fn extract_reply_username_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<MentionResult>;
-        fn extract_urls_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
-        fn extract_hashtags_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
-        fn extract_cashtags_with_indices_validated(e: &RustValidatingExtractor, text: &str) -> UniquePtr<ExtractResult>;
+        fn extract_entities_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_mentioned_screennames_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_mentions_or_lists_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_reply_username_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<MentionResult>;
+        fn extract_urls_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_hashtags_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_cashtags_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
 
         // HitHighlighter
         type RustHitHighlighter;
@@ -244,7 +186,101 @@ pub mod ffi {
         fn get_short_url_length_https(validator: &RustValidator) -> i32;
         fn set_short_url_length_https(validator: &mut RustValidator, short_url_length_https: i32);
 
-        fn parse_ffi(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults;
+        fn parse_ffi(
+            text: &str,
+            config: &Configuration,
+            extract_urls: bool,
+        ) -> TwitterTextParseResults;
+    }
+}
+
+pub mod autolinker;
+pub mod entity;
+pub mod extractor;
+pub mod hit_highlighter;
+pub mod validator;
+
+use autolinker::Autolinker;
+use cxx::{CxxVector, UniquePtr};
+use entity::Entity;
+use extractor::{Extract, ExtractResult, Extractor, MentionResult, ValidatingExtractor};
+use hit_highlighter::HitHighlighter;
+use std::path::PathBuf;
+use twitter_text_config::Configuration;
+use twitter_text_config::Range;
+use twitter_text_config::WeightedRange;
+use validator::Validator;
+
+/// A struct that represents a parsed tweet containing the length of the tweet,
+/// its validity, display ranges etc. The name mirrors Twitter's Java implementation.
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
+pub struct TwitterTextParseResults {
+    /// The weighted length is the number used to determine the tweet's length for the purposes of Twitter's limit of 280. Most characters count
+    /// for 2 units, while a few ranges (like ASCII and Latin-1) count for 1. See [Twitter's blog post](https://blog.twitter.com/official/en_us/topics/product/2017/Giving-you-more-characters-to-express-yourself.html).
+    pub weighted_length: i32,
+
+    /// The weighted length expressed as a number relative to a limit of 1000.
+    /// This value makes it easier to implement UI like Twitter's tweet-length meter.
+    pub permillage: i32,
+
+    /// Whether the tweet is valid: its weighted length must be under the configured limit, it must
+    /// not be empty, and it must not contain invalid characters.
+    pub is_valid: bool,
+
+    /// The display range expressed in UTF-16.
+    pub display_text_range: Range,
+
+    /// The valid display range expressed in UTF-16. After the end of the valid range, clients
+    /// typically stop highlighting entities, etc.
+    pub valid_text_range: Range,
+}
+
+impl TwitterTextParseResults {
+    /// A new TwitterTextParseResults struct with all fields supplied as arguments.
+    pub fn new(
+        weighted_length: i32,
+        permillage: i32,
+        is_valid: bool,
+        display_text_range: Range,
+        valid_text_range: Range,
+    ) -> TwitterTextParseResults {
+        TwitterTextParseResults {
+            weighted_length,
+            permillage,
+            is_valid,
+            display_text_range,
+            valid_text_range,
+        }
+    }
+
+    /// An invalid TwitterTextParseResults struct. This function produces the return value when
+    /// empty text or invalid UTF-8 is supplied to parse().
+    pub fn empty() -> TwitterTextParseResults {
+        TwitterTextParseResults {
+            weighted_length: 0,
+            permillage: 0,
+            is_valid: false,
+            display_text_range: Range::empty(),
+            valid_text_range: Range::empty(),
+        }
+    }
+}
+
+/// Produce a [TwitterTextParseResults] struct from a [str]. If extract_urls is true, the weighted
+/// length will give all URLs the weight supplied in [Configuration](twitter_text_configuration::Configuration),
+/// regardless of their length.
+///
+/// This function will allocate an NFC-normalized copy of the input string. If the text is already
+/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
+pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
+    let mut extractor = ValidatingExtractor::new(config);
+    let input = extractor.prep_input(text);
+    if extract_urls {
+        extractor
+            .extract_urls_with_indices(input.as_str())
+            .parse_results
+    } else {
+        extractor.extract_scan(input.as_str()).parse_results
     }
 }
 
@@ -268,7 +304,11 @@ impl ffi::ExtractResult {
     fn from(result: ExtractResult) -> ffi::ExtractResult {
         ffi::ExtractResult {
             parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
-            entities: result.entities.iter().map(|e|{ ffi::Entity::from(e) }).collect(),
+            entities: result
+                .entities
+                .iter()
+                .map(|e| ffi::Entity::from(e))
+                .collect(),
         }
     }
 }
@@ -280,7 +320,7 @@ impl ffi::MentionResult {
             mention: match result.mention {
                 Some(e) => UniquePtr::new(ffi::Entity::from(&e)),
                 None => UniquePtr::null(),
-            }
+            },
         }
     }
 }
@@ -297,7 +337,6 @@ impl ffi::Range {
         Range::new(r.start, r.end)
     }
 }
-
 
 impl ffi::WeightedRange {
     fn from(wr: &WeightedRange) -> ffi::WeightedRange {
@@ -323,8 +362,12 @@ impl ffi::Configuration {
             scale: config.scale,
             default_weight: config.default_weight,
             transformed_url_length: config.transformed_url_length,
-            ranges: config.ranges.iter().map(|r| { ffi::WeightedRange::from(r) }).collect(),
-            emoji_parsing_enabled: config.emoji_parsing_enabled
+            ranges: config
+                .ranges
+                .iter()
+                .map(|r| ffi::WeightedRange::from(r))
+                .collect(),
+            emoji_parsing_enabled: config.emoji_parsing_enabled,
         }
     }
 
@@ -336,8 +379,11 @@ impl ffi::Configuration {
             scale: config.scale,
             default_weight: config.default_weight,
             transformed_url_length: config.transformed_url_length,
-            ranges: ranges.iter().map(|wr| { ffi::WeightedRange::to(&wr) }).collect(),
-            emoji_parsing_enabled: config.emoji_parsing_enabled
+            ranges: ranges
+                .iter()
+                .map(|wr| ffi::WeightedRange::to(&wr))
+                .collect(),
+            emoji_parsing_enabled: config.emoji_parsing_enabled,
         }
     }
 }
@@ -351,7 +397,7 @@ impl ffi::Entity {
             value: String::from(entity.value),
             list_slug: String::from(entity.list_slug),
             display_url: String::from(entity.display_url),
-            expanded_url: String::from(entity.expanded_url)
+            expanded_url: String::from(entity.expanded_url),
         }
     }
 }
@@ -384,11 +430,15 @@ pub fn get_config_weighted_ranges(config: &ffi::Configuration) -> Vec<ffi::Weigh
 
 pub fn configuration_from_path(path: &str) -> UniquePtr<ffi::Configuration> {
     let pathbuf = PathBuf::from(path);
-    UniquePtr::new(ffi::Configuration::from(&Configuration::configuration_from_path(&pathbuf)))
+    UniquePtr::new(ffi::Configuration::from(
+        &Configuration::configuration_from_path(&pathbuf),
+    ))
 }
 
 pub fn configuration_from_json(json: &str) -> UniquePtr<ffi::Configuration> {
-    UniquePtr::new(ffi::Configuration::from(&Configuration::configuration_from_json(json)))
+    UniquePtr::new(ffi::Configuration::from(
+        &Configuration::configuration_from_json(json),
+    ))
 }
 
 pub fn autolink_default_config() -> UniquePtr<ffi::AutolinkerConfig> {
@@ -429,19 +479,34 @@ pub fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_witho
 }
 
 pub fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_entities_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+    r.extract_entities_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 pub fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_mentioned_screennames(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+    r.extract_mentioned_screennames(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
 }
 
-pub fn extract_mentioned_screennames_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_mentioned_screennames_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+pub fn extract_mentioned_screennames_with_indices(
+    r: &RustExtractor,
+    text: &str,
+) -> Vec<ffi::Entity> {
+    r.extract_mentioned_screennames_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 pub fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_mentions_or_lists_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+    r.extract_mentions_or_lists_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::Entity> {
@@ -453,27 +518,45 @@ pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::E
 }
 
 pub fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_urls(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+    r.extract_urls(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
 }
 
 pub fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_urls_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+    r.extract_urls_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 pub fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_hashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+    r.extract_hashtags(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
 }
 
 pub fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_hashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+    r.extract_hashtags_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_cashtags(text).iter().map(|s|{ ffi::ExtractorString::new(s) }).collect()
+    r.extract_cashtags(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
 }
 
 pub fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_cashtags_with_indices(text).iter().map(|e|{ ffi::Entity::from(e) }).collect()
+    r.extract_cashtags_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
 }
 
 // ValidatingExtractor
@@ -484,7 +567,7 @@ pub struct RustValidatingExtractor {
 }
 
 pub fn make_validating_extractor(config: &ffi::Configuration) -> Box<RustValidatingExtractor> {
-    Box::new(RustValidatingExtractor { 
+    Box::new(RustValidatingExtractor {
         config: ffi::Configuration::to(config),
         normalize: true,
         extract_url_without_protocol: true,
@@ -495,7 +578,10 @@ pub fn get_extract_url_without_protocol_validated(fve: &RustValidatingExtractor)
     fve.extract_url_without_protocol
 }
 
-pub fn set_extract_url_without_protocol_validated(fve: &mut RustValidatingExtractor, extract_url_without_protocol: bool) {
+pub fn set_extract_url_without_protocol_validated(
+    fve: &mut RustValidatingExtractor,
+    extract_url_without_protocol: bool,
+) {
     fve.extract_url_without_protocol = extract_url_without_protocol;
 }
 
@@ -507,7 +593,10 @@ pub fn set_normalize(fve: &mut RustValidatingExtractor, normalize: bool) {
     fve.normalize = normalize;
 }
 
-pub fn extract_entities_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_entities_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -516,10 +605,15 @@ pub fn extract_entities_with_indices_validated(fve: &RustValidatingExtractor, te
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_entities_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_entities_with_indices(text),
+    ))
 }
 
-pub fn extract_mentioned_screennames_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_mentioned_screennames_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -528,10 +622,15 @@ pub fn extract_mentioned_screennames_with_indices_validated(fve: &RustValidating
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_mentioned_screennames_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_mentioned_screennames_with_indices(text),
+    ))
 }
 
-pub fn extract_mentions_or_lists_with_indices_validated(fve: &RustValidatingExtractor, text: &str)  -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_mentions_or_lists_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -540,10 +639,15 @@ pub fn extract_mentions_or_lists_with_indices_validated(fve: &RustValidatingExtr
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_mentions_or_lists_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_mentions_or_lists_with_indices(text),
+    ))
 }
 
-pub fn extract_reply_username_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::MentionResult> {
+pub fn extract_reply_username_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::MentionResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -552,10 +656,15 @@ pub fn extract_reply_username_validated(fve: &RustValidatingExtractor, text: &st
         return UniquePtr::new(ffi::MentionResult::from(result));
     }
 
-    UniquePtr::new(ffi::MentionResult::from(extractor.extract_reply_username(text)))
+    UniquePtr::new(ffi::MentionResult::from(
+        extractor.extract_reply_username(text),
+    ))
 }
 
-pub fn extract_urls_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_urls_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -564,10 +673,15 @@ pub fn extract_urls_with_indices_validated(fve: &RustValidatingExtractor, text: 
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_urls_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_urls_with_indices(text),
+    ))
 }
 
-pub fn extract_hashtags_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_hashtags_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -576,10 +690,15 @@ pub fn extract_hashtags_with_indices_validated(fve: &RustValidatingExtractor, te
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_hashtags_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_hashtags_with_indices(text),
+    ))
 }
 
-pub fn extract_cashtags_with_indices_validated(fve: &RustValidatingExtractor, text: &str) -> UniquePtr<ffi::ExtractResult> {
+pub fn extract_cashtags_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
     let mut extractor = ValidatingExtractor::new(&fve.config);
     extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
     if fve.normalize {
@@ -588,7 +707,9 @@ pub fn extract_cashtags_with_indices_validated(fve: &RustValidatingExtractor, te
         return UniquePtr::new(ffi::ExtractResult::from(result));
     }
 
-    UniquePtr::new(ffi::ExtractResult::from(extractor.extract_cashtags_with_indices(text)))
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_cashtags_with_indices(text),
+    ))
 }
 
 // HitHighlighter
@@ -637,7 +758,9 @@ pub fn is_valid_url_without_protocol(validator: &Validator, s: &str) -> bool {
     validator.is_valid_url_without_protocol(s)
 }
 
-pub fn get_max_tweet_length() -> i32 { validator::MAX_TWEET_LENGTH }
+pub fn get_max_tweet_length() -> i32 {
+    validator::MAX_TWEET_LENGTH
+}
 
 pub fn get_short_url_length(validator: &Validator) -> i32 {
     validator.get_short_url_length()
@@ -655,6 +778,10 @@ pub fn set_short_url_length_https(validator: &mut Validator, short_url_length_ht
     validator.set_short_url_length_https(short_url_length_https);
 }
 
-pub fn parse_ffi(text: &str, config: &ffi::Configuration, extract_urls: bool) -> ffi::TwitterTextParseResults {
+pub fn parse_ffi(
+    text: &str,
+    config: &ffi::Configuration,
+    extract_urls: bool,
+) -> ffi::TwitterTextParseResults {
     ffi::TwitterTextParseResults::from(parse(text, &ffi::Configuration::to(config), extract_urls))
 }

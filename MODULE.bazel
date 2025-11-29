@@ -5,6 +5,7 @@ module(
 
 # -- bazel_dep definitions -- #
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "cxx.rs", version = "1.0.188")
@@ -13,6 +14,7 @@ bazel_dep(name = "rules_apple", version = "4.3.2")
 bazel_dep(name = "rules_java", version = "8.14.0")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
+bazel_dep(name = "platforms", version = "1.0.0")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -49,7 +51,7 @@ filegroup(
 )
 
 ###############################################################################
-# Hermetic LLVM wrapper repo (symlinks + clang_lld wrapper)
+# Hermetic LLVM wrapper
 ###############################################################################
 
 bazel_dep(name = "toolchains_llvm", version = "1.5.0")
@@ -81,10 +83,6 @@ use_repo(rust_ext, "rust_toolchains")
 
 # This registers the standard rules_rust toolchains (rustc, cargo, etc.)
 register_toolchains("@rust_toolchains//:all")
-
-# NOTE: C/C++ is still using Bazel's default toolchain for now.
-# When you're ready to wire in C++ platform toolchains, you'll add
-# register_toolchains() calls for those here.
 
 ###############################################################################
 # R U S T  C R A T E S
@@ -148,4 +146,17 @@ cxxbridge_cmd_deps.from_cargo(
 use_repo(
     cxxbridge_cmd_deps,
     "cxxbridge_cmd_deps",
+)
+
+###############################################################################
+# C++
+###############################################################################
+
+http_archive(
+    name = "com_github_jbeder_yaml_cpp",
+    sha256 = "fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16",
+    strip_prefix = "yaml-cpp-0.8.0",
+    urls = [
+        "https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz",
+    ],
 )

@@ -26,9 +26,10 @@ cc_library(
         "twitter.cpp"
     ],
     deps = [
-        "//rust/twitter-text:twitter_text_wrapper",
+        "//rust/twitter-text:bridge",
+        "//rust_bindings/3rdparty/crates:cxx_cc",
     ],
-    linkstatic = True,
+    copts = ["-v"],
 )
 
 cc_test(
@@ -39,8 +40,11 @@ cc_test(
     data = [":config_test_data"],
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        ":twitter_text",
-        "@gtest//:main",
+        "//rust/twitter-text:twitter_text",        # Rust implementation FIRST
+        "//rust/twitter-text:bridge",               # C++ glue depends on it
+        "//rust_bindings/3rdparty/crates:cxx_cc",   # CXX runtime
+        ":twitter_text",                            # your C++ wrapper
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -53,7 +57,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":twitter_text",
-        "@gtest//:main",
+        "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
     data = [
@@ -70,7 +74,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":twitter_text",
-        "@gtest//:main",
+        "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
     data = [
@@ -86,7 +90,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":twitter_text",
-        "@gtest//:main",
+        "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
     data = [
@@ -103,7 +107,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         ":twitter_text",
-        "@gtest//:main",
+        "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
     data = [

@@ -4,33 +4,27 @@ load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library", "rust_
 load("//rust_bindings/3rdparty/cxxbridge:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 twitter_text_srcs = [
+    "src/lib.rs",
     "src/autolinker.rs",
     "src/entity.rs",
     "src/extractor.rs",
     "src/hit_highlighter.rs",
     "src/validator.rs",
-    "src/lib.rs",
 ]
 
 twitter_text_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
-    "//rust_bindings/3rdparty/crates:cxx",
+    "//rust_bindings/3rdparty/crates:cxx",   # Rust side of CXX
     "//rust_bindings/3rdparty/crates:idna",
     "//rust_bindings/3rdparty/crates:pest",
     "//rust_bindings/3rdparty/crates:unicode-normalization",
-]
-
-twitter_text_data = [
-    ":bridge/include",
-    "//rust_bindings/3rdparty/crates:cxx_cc",
 ]
 
 rust_library(
     name = "twitter_text",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
-    data = twitter_text_data,
     edition = "2021",
 )
 
@@ -38,71 +32,21 @@ rust_static_library(
     name = "twitter_text_static",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
-    data = twitter_text_data,
     edition = "2021",
 )
-
-rust_test(
-    name = "twitter_text_test",
-    crate = ":twitter_text",
-)
-
-#genrule(
-#    name = "cxxbridge",
-#    outs = ["cxx.h"],
-#    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) --header > $(location cxx.h)",
-#    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
-#)
-#
-#genrule(
-#    name = "twitter_text_h",
-#    srcs = [
-#        "//rust/twitter-text:twitter_text_main",
-#    ],
-#    outs = ["twitter-text.h"],
-#    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
-#    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
-#)
-#
-#genrule(
-#    name = "twitter_text_cpp",
-#    srcs = [
-#        ":twitter_text",
-#        "//rust/twitter-text:twitter_text_main",
-#    ],
-#    outs = ["twitter-text.cpp"],
-#    cmd = "$(location //rust_bindings/3rdparty/crates:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
-#    tools = ["//rust_bindings/3rdparty/crates:cxxbridge-cmd"],
-#)
 
 rust_cxx_bridge(
     name = "bridge",
     src = "src/lib.rs",
     deps = [
         "//rust_bindings/3rdparty/crates:cxx_cc",
-    ],
-)
-
-rust_static_library(
-    name = "cxx_wrapper",
-    srcs = ["cxx_wrapper.rs"],
-    deps = [
         "//rust_bindings/3rdparty/crates:cxx",
     ],
-    edition = "2021",
-    #crate_type = "staticlib",
+    visibility = ["//visibility:public"],
 )
 
-cc_library(
-    name = "twitter_text_wrapper",
-    hdrs = [
-        ":bridge/include",
-    ],
-    srcs = [
-        ":bridge",
-        ":cxx_wrapper",
-        ":twitter_text_static",
-        "//rust_bindings/3rdparty/crates:cxx_cc",
-    ],
-    linkstatic = True,
+
+rust_test(
+    name = "twitter_text_test",
+    crate = ":twitter_text",
 )

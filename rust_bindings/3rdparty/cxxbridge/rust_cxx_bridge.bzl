@@ -1,50 +1,39 @@
-# buildifier: disable=module-docstring
-load("@bazel_skylib//rules:run_binary.bzl", "run_binary")
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_rust//rust:defs.bzl", "rust_library")
 
-def rust_cxx_bridge(name, src, deps = []):
-    """A macro defining a cxx bridge library
-
-    Args:
-        name (string): The name of the new target
-        src (string): The rust source file to generate a bridge for
-        deps (list, optional): A list of dependencies for the underlying cc_library. Defaults to [].
-    """
-    native.alias(
-        name = "%s/header" % name,
-        actual = src + ".h",
-    )
-
-    native.alias(
-        name = "%s/source" % name,
-        actual = src + ".cc",
-    )
-
-    run_binary(
-        name = "%s/generated" % name,
+def rust_cxx_bridge(name, src, deps = [], visibility = None):
+    native.genrule(
+        name = name + "_codegen",
         srcs = [src],
         outs = [
-            src + ".h",
-            src + ".cc",
+            name + ".h",
+            name + ".cc",
         ],
-        args = [
-            "$(location %s)" % src,
-            "-o",
-            "$(location %s.h)" % src,
-            "-o",
-            "$(location %s.cc)" % src,
+        tools = [
+            "@cxxbridge-cmd//:cxxbridge-cmd",
         ],
-        tool = "@cxxbridge-cmd//:cxxbridge-cmd",
+        cmd = """
+            SRC=$(location {src})
+            $(location @cxxbridge-cmd//:cxxbridge-cmd) $$SRC --header > $(@D)/{name}.h
+            $(location @cxxbridge-cmd//:cxxbridge-cmd) $$SRC > $(@D)/{name}.cc
+        """.format(src=src, name=name),
+        visibility = visibility,
     )
 
-    cc_library(
+    rust_library(
+        name = name + "_rlib",
+        srcs = [src],
+        deps = deps,
+        edition = "2021",
+        data = [":" + name + "_codegen"],
+        visibility = visibility,
+    )
+
+    native.cc_library(
         name = name,
-        srcs = [src + ".cc"],
-        linkstatic = True,
-        deps = deps + [":%s/include" % name],
-    )
-
-    cc_library(
-        name = "%s/include" % name,
-        hdrs = [src + ".h"],
+        hdrs = [ name + ".h" ],
+        srcs = [ name + ".cc" ],
+        deps = deps,
+        include_prefix = "",
+        strip_include_prefix = ".",
+        visibility = visibility,
     )

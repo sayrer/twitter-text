@@ -1,5 +1,5 @@
 #pragma once
-#include "rust/twitter-text/twitter-text.h"
+#include "bridge.h"
 
 namespace twitter_text {
 
@@ -12,7 +12,7 @@ public:
     config(config)
   {}
 
-  // TODO: these are fallible, so the return type should change 
+  // TODO: these are fallible, so the return type should change
   static TwitterTextConfiguration* configurationFromPath(std::string path) {
     return new TwitterTextConfiguration(configuration_from_path(path));
   }
@@ -98,8 +98,8 @@ private:
 
 class Autolinker {
 public:
-  Autolinker(): 
-    config(::twitter_text::autolink_default_config()) 
+  Autolinker():
+    config(::twitter_text::autolink_default_config())
   {}
 
   bool getNoFollow();
@@ -158,13 +158,13 @@ private:
 };
 
 template <
-  typename Vec=::rust::Vec<Entity>, 
+  typename Vec=::rust::Vec<Entity>,
   typename EntityType=std::shared_ptr<Entity>
 >
 class Extractor {
 public:
   Extractor():
-    extractor(::twitter_text::make_extractor()) 
+    extractor(::twitter_text::make_extractor())
   {}
 
   bool getExtractUrlWithoutProtocol() {
@@ -231,7 +231,7 @@ class SwigExtractResult {
 public:
   TwitterTextParseResults parseResults;
   std::vector<Entity> entities;
-};  
+};
 
 class SwigMentionResult {
 public:
@@ -243,7 +243,7 @@ template <typename Extract=std::unique_ptr<ExtractResult>, typename Mention=std:
 class ValidatingExtractor {
 public:
   ValidatingExtractor(TwitterTextConfiguration &ttc):
-    extractor(make_validating_extractor(*ttc.config)) 
+    extractor(make_validating_extractor(*ttc.config))
   {}
 
   bool getExtractUrlWithoutProtocol() {
@@ -297,11 +297,11 @@ private:
 class HitHighlighter {
 public:
   HitHighlighter():
-    highlighter(make_default_highlighter()) 
-  {}   
-  
+    highlighter(make_default_highlighter())
+  {}
+
   HitHighlighter(std::string tag_str):
-    highlighter(make_highlighter(tag_str)) 
+    highlighter(make_highlighter(tag_str))
   {}
 
   rust::String highlight(std::string text, std::vector<Hit> &hits) {
@@ -315,7 +315,7 @@ private:
 class Validator {
 public:
   Validator():
-    validator(make_default_validator()) 
+    validator(make_default_validator())
   {}
 
   bool isValidTweet(std::string text) {
