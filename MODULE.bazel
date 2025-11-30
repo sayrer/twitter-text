@@ -19,38 +19,6 @@ bazel_dep(name = "platforms", version = "1.0.0")
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 ###############################################################################
-# RBE / Hermetic LLVM + LLD toolchains
-###############################################################################
-
-http_archive(
-    name = "llvm_linux",
-    build_file_content = """
-filegroup(
-    name = "clang_file",
-    srcs = ["bin/clang"],
-    visibility = ["//visibility:public"],
-)
-""",
-    sha256 = "8ac1aadfa96b87b8747f7383d06ed9579f9d5c32a1af7af947b0cfe29d88ac87",
-    strip_prefix = "LLVM-21.1.6-Linux-X64",
-    urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.6/LLVM-21.1.6-Linux-X64.tar.xz"],
-)
-
-http_archive(
-    name = "llvm_macos",
-    build_file_content = """
-filegroup(
-    name = "clang_file",
-    srcs = ["bin/clang"],
-    visibility = ["//visibility:public"],
-)
-""",
-    sha256 = "bdf036e9987b8706471b565f50178a34218909b1858a82c426269da49780b6ba",
-    strip_prefix = "LLVM-21.1.6-macOS-ARM64",
-    urls = ["https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.6/LLVM-21.1.6-macOS-ARM64.tar.xz"],
-)
-
-###############################################################################
 # Hermetic LLVM wrapper
 ###############################################################################
 
