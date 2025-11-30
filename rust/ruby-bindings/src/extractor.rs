@@ -63,6 +63,44 @@ impl<'a> From<&RustEntity<'a>> for Entity {
     }
 }
 
+#[magnus::wrap(class = "Twittertext::ExtractResult", free_immediately, size)]
+pub struct ExtractResult {
+    entities: RefCell<Vec<Entity>>,
+}
+
+impl ExtractResult {
+    pub fn new(entities: Vec<Entity>) -> Self {
+        ExtractResult {
+            entities: RefCell::new(entities),
+        }
+    }
+
+    pub fn get_entities(&self) -> Result<RArray, Error> {
+        let array = RArray::new();
+        for entity in self.entities.borrow().iter() {
+            array.push(entity.clone())?;
+        }
+        Ok(array)
+    }
+}
+
+#[magnus::wrap(class = "Twittertext::MentionResult", free_immediately, size)]
+pub struct MentionResult {
+    entity: RefCell<Option<Entity>>,
+}
+
+impl MentionResult {
+    pub fn new(entity: Option<Entity>) -> Self {
+        MentionResult {
+            entity: RefCell::new(entity),
+        }
+    }
+
+    pub fn get_entity(&self) -> Option<Entity> {
+        self.entity.borrow().clone()
+    }
+}
+
 #[magnus::wrap(class = "Twittertext::Extractor", free_immediately, size)]
 pub struct Extractor {
     inner: RefCell<RustExtractor>,
@@ -200,77 +238,85 @@ impl Extractor {
 #[magnus::wrap(class = "Twittertext::ValidatingExtractor", free_immediately, size)]
 pub struct ValidatingExtractor {
     config: RustConfiguration,
+    extract_url_without_protocol: std::cell::Cell<bool>,
+    normalize: std::cell::Cell<bool>,
 }
 
 impl ValidatingExtractor {
     pub fn ruby_new(config: &TwitterTextConfiguration) -> Self {
         ValidatingExtractor {
-            config: config.inner().clone(),
+            config: config.inner().borrow().clone(),
+            extract_url_without_protocol: std::cell::Cell::new(true),
+            normalize: std::cell::Cell::new(true),
         }
+    }
+
+    pub fn get_extract_url_without_protocol(&self) -> bool {
+        self.extract_url_without_protocol.get()
+    }
+
+    pub fn set_extract_url_without_protocol(&self, extract: bool) {
+        self.extract_url_without_protocol.set(extract);
+    }
+
+    pub fn get_normalize(&self) -> bool {
+        self.normalize.get()
+    }
+
+    pub fn set_normalize(&self, normalize: bool) {
+        self.normalize.set(normalize);
     }
 
     pub fn extract_mentioned_screennames_with_indices(
         &self,
         text: String,
-    ) -> Result<RArray, Error> {
+    ) -> Result<ExtractResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_mentioned_screennames_with_indices(&input);
-        let array = RArray::new();
-        for entity in result.entities.iter() {
-            array.push(Entity::from(entity))?;
-        }
-        Ok(array)
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
     }
 
-    pub fn extract_mentions_or_lists_with_indices(&self, text: String) -> Result<RArray, Error> {
+    pub fn extract_mentions_or_lists_with_indices(
+        &self,
+        text: String,
+    ) -> Result<ExtractResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_mentions_or_lists_with_indices(&input);
-        let array = RArray::new();
-        for entity in result.entities.iter() {
-            array.push(Entity::from(entity))?;
-        }
-        Ok(array)
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
     }
 
-    pub fn extract_reply_screenname(&self, text: String) -> Result<Option<Entity>, Error> {
+    pub fn extract_reply_screenname(&self, text: String) -> Result<MentionResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_reply_username(&input);
-        Ok(result.mention.map(|e| Entity::from(&e)))
+        Ok(MentionResult::new(result.mention.map(|e| Entity::from(&e))))
     }
 
-    pub fn extract_urls_with_indices(&self, text: String) -> Result<RArray, Error> {
+    pub fn extract_urls_with_indices(&self, text: String) -> Result<ExtractResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_urls_with_indices(&input);
-        let array = RArray::new();
-        for entity in result.entities.iter() {
-            array.push(Entity::from(entity))?;
-        }
-        Ok(array)
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
     }
 
-    pub fn extract_hashtags_with_indices(&self, text: String) -> Result<RArray, Error> {
+    pub fn extract_hashtags_with_indices(&self, text: String) -> Result<ExtractResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_hashtags_with_indices(&input);
-        let array = RArray::new();
-        for entity in result.entities.iter() {
-            array.push(Entity::from(entity))?;
-        }
-        Ok(array)
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
     }
 
-    pub fn extract_cashtags_with_indices(&self, text: String) -> Result<RArray, Error> {
+    pub fn extract_cashtags_with_indices(&self, text: String) -> Result<ExtractResult, Error> {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_cashtags_with_indices(&input);
-        let array = RArray::new();
-        for entity in result.entities.iter() {
-            array.push(Entity::from(entity))?;
-        }
-        Ok(array)
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
     }
 }
