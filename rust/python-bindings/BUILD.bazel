@@ -1,0 +1,47 @@
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_shared_library(
+    name = "twitter_text_cdylib",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    proc_macro_deps = [
+        "//rust_bindings/3rdparty/crates:pyo3-macros",
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//rust_bindings/3rdparty/crates:pyo3",
+    ],
+    edition = "2021",
+    crate_features = ["extension-module"],
+    rustc_flags = [
+        "--cfg=Py_3_10",
+    ] + select({
+        "@platforms//os:macos": [
+            "-C", "link-arg=-undefined",
+            "-C", "link-arg=dynamic_lookup",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+# Copy the shared library to the right name for Python to import
+genrule(
+    name = "twitter_text_so",
+    srcs = [":twitter_text_cdylib"],
+    outs = ["twitter_text.so"],
+    cmd = select({
+        "@platforms//os:macos": "cp $(location :twitter_text_cdylib) $@",
+        "//conditions:default": "cp $(location :twitter_text_cdylib) $@",
+    }),
+)
+
+# Make the .so file available as a target
+filegroup(
+    name = "twitter_text",
+    srcs = [":twitter_text_so"],
+)

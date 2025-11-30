@@ -21,7 +21,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "libc",
+    name = "memoffset",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -40,10 +40,9 @@ rust_library(
     ),
     crate_features = [
         "default",
-        "std",
     ],
     crate_root = "src/lib.rs",
-    edition = "2021",
+    edition = "2015",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -52,7 +51,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=memoffset",
         "manual",
         "noclippy",
         "norustfmt",
@@ -100,9 +99,9 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.177",
+    version = "0.9.1",
     deps = [
-        "@twitter_text__libc-0.2.177//:build_script_build",
+        "@twitter_text__memoffset-0.9.1//:build_script_build",
     ],
 )
 
@@ -127,7 +126,6 @@ cargo_build_script(
     ),
     crate_features = [
         "default",
-        "std",
     ],
     crate_name = "build_script_build",
     crate_root = "build.rs",
@@ -143,8 +141,8 @@ cargo_build_script(
             "WORKSPACE.bazel",
         ],
     ),
-    edition = "2021",
-    pkg_name = "libc",
+    edition = "2015",
+    pkg_name = "memoffset",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -153,13 +151,16 @@ cargo_build_script(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=memoffset",
         "manual",
         "noclippy",
         "norustfmt",
     ],
-    version = "0.2.177",
+    version = "0.9.1",
     visibility = ["//visibility:private"],
+    deps = [
+        "@twitter_text__autocfg-1.5.0//:autocfg",
+    ],
 )
 
 alias(

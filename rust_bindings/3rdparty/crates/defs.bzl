@@ -296,13 +296,14 @@ _NORMAL_DEPENDENCIES = {
     "": {
         _COMMON_CONDITION: {
             "clap": Label("@twitter_text//:clap-4.5.53"),
-            "cxx": Label("@twitter_text//:cxx-1.0.189"),
+            "cxx": Label("@twitter_text//:cxx-1.0.190"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
             "lazy_static": Label("@twitter_text//:lazy_static-1.5.0"),
             "log": Label("@twitter_text//:log-0.4.28"),
             "magnus": Label("@twitter_text//:magnus-0.8.2"),
             "pest": Label("@twitter_text//:pest-2.8.4"),
             "proc-macro-error": Label("@twitter_text//:proc-macro-error-1.0.4"),
+            "pyo3": Label("@twitter_text//:pyo3-0.20.3"),
             "serde": Label("@twitter_text//:serde-1.0.228"),
             "serde_json": Label("@twitter_text//:serde_json-1.0.145"),
             "serde_yaml_ng": Label("@twitter_text//:serde_yaml_ng-0.10.0"),
@@ -332,6 +333,7 @@ _PROC_MACRO_DEPENDENCIES = {
     "": {
         _COMMON_CONDITION: {
             "pest_derive": Label("@twitter_text//:pest_derive-2.8.4"),
+            "pyo3-macros": Label("@twitter_text//:pyo3-macros-0.20.3"),
             "serde_derive": Label("@twitter_text//:serde_derive-1.0.228"),
         },
     },
@@ -391,6 +393,7 @@ _CONDITIONS = {
     "cfg(all(target_arch = \"loongarch64\", target_os = \"linux\"))": [],
     "cfg(any())": [],
     "cfg(any(target_arch = \"aarch64\", target_arch = \"x86_64\", target_arch = \"x86\"))": ["@rules_rust//rust/platform:aarch64-apple-darwin", "@rules_rust//rust/platform:aarch64-apple-ios", "@rules_rust//rust/platform:aarch64-apple-ios-sim", "@rules_rust//rust/platform:aarch64-linux-android", "@rules_rust//rust/platform:aarch64-pc-windows-msvc", "@rules_rust//rust/platform:aarch64-unknown-fuchsia", "@rules_rust//rust/platform:aarch64-unknown-linux-gnu", "@rules_rust//rust/platform:aarch64-unknown-nixos-gnu", "@rules_rust//rust/platform:aarch64-unknown-nto-qnx710", "@rules_rust//rust/platform:aarch64-unknown-uefi", "@rules_rust//rust/platform:i686-apple-darwin", "@rules_rust//rust/platform:i686-linux-android", "@rules_rust//rust/platform:i686-pc-windows-msvc", "@rules_rust//rust/platform:i686-unknown-freebsd", "@rules_rust//rust/platform:i686-unknown-linux-gnu", "@rules_rust//rust/platform:x86_64-apple-darwin", "@rules_rust//rust/platform:x86_64-apple-ios", "@rules_rust//rust/platform:x86_64-linux-android", "@rules_rust//rust/platform:x86_64-pc-windows-msvc", "@rules_rust//rust/platform:x86_64-unknown-freebsd", "@rules_rust//rust/platform:x86_64-unknown-fuchsia", "@rules_rust//rust/platform:x86_64-unknown-linux-gnu", "@rules_rust//rust/platform:x86_64-unknown-nixos-gnu", "@rules_rust//rust/platform:x86_64-unknown-none", "@rules_rust//rust/platform:x86_64-unknown-uefi"],
+    "cfg(target_os = \"redox\")": [],
     "cfg(unix)": ["@rules_rust//rust/platform:aarch64-apple-darwin", "@rules_rust//rust/platform:aarch64-apple-ios", "@rules_rust//rust/platform:aarch64-apple-ios-sim", "@rules_rust//rust/platform:aarch64-linux-android", "@rules_rust//rust/platform:aarch64-unknown-fuchsia", "@rules_rust//rust/platform:aarch64-unknown-linux-gnu", "@rules_rust//rust/platform:aarch64-unknown-nixos-gnu", "@rules_rust//rust/platform:aarch64-unknown-nto-qnx710", "@rules_rust//rust/platform:arm-unknown-linux-gnueabi", "@rules_rust//rust/platform:armv7-linux-androideabi", "@rules_rust//rust/platform:armv7-unknown-linux-gnueabi", "@rules_rust//rust/platform:i686-apple-darwin", "@rules_rust//rust/platform:i686-linux-android", "@rules_rust//rust/platform:i686-unknown-freebsd", "@rules_rust//rust/platform:i686-unknown-linux-gnu", "@rules_rust//rust/platform:powerpc-unknown-linux-gnu", "@rules_rust//rust/platform:riscv64gc-unknown-linux-gnu", "@rules_rust//rust/platform:s390x-unknown-linux-gnu", "@rules_rust//rust/platform:wasm32-unknown-emscripten", "@rules_rust//rust/platform:x86_64-apple-darwin", "@rules_rust//rust/platform:x86_64-apple-ios", "@rules_rust//rust/platform:x86_64-linux-android", "@rules_rust//rust/platform:x86_64-unknown-freebsd", "@rules_rust//rust/platform:x86_64-unknown-fuchsia", "@rules_rust//rust/platform:x86_64-unknown-linux-gnu", "@rules_rust//rust/platform:x86_64-unknown-nixos-gnu"],
     "cfg(windows)": ["@rules_rust//rust/platform:aarch64-pc-windows-msvc", "@rules_rust//rust/platform:i686-pc-windows-msvc", "@rules_rust//rust/platform:x86_64-pc-windows-msvc"],
     "i686-apple-darwin": ["@rules_rust//rust/platform:i686-apple-darwin"],
@@ -492,6 +495,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__autocfg-1.5.0",
+        sha256 = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/autocfg/1.5.0/download"],
+        strip_prefix = "autocfg-1.5.0",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.autocfg-1.5.0.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__bindgen-0.69.5",
         sha256 = "271383c67ccabffb7381723dea0672a673f292304fcb45c01cc648c7a8d58088",
         type = "tar.gz",
@@ -522,12 +535,12 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__cc-1.2.47",
-        sha256 = "cd405d82c84ff7f35739f175f67d8b9fb7687a0e84ccdc78bd3568839827cf07",
+        name = "twitter_text__cc-1.2.48",
+        sha256 = "c481bdbf0ed3b892f6f806287d72acd515b352a4ec27a208489b8c1bc839633a",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cc/1.2.47/download"],
-        strip_prefix = "cc-1.2.47",
-        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cc-1.2.47.bazel"),
+        urls = ["https://static.crates.io/crates/cc/1.2.48/download"],
+        strip_prefix = "cc-1.2.48",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cc-1.2.48.bazel"),
     )
 
     maybe(
@@ -632,42 +645,42 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__cxx-1.0.189",
-        sha256 = "2b788601e7e3e6944d9b37efbae0bee7ee44d9aab533838d4854f631534a1a49",
+        name = "twitter_text__cxx-1.0.190",
+        sha256 = "a7620f6cfc4dcca21f2b085b7a890e16c60fd66f560cd69ee60594908dc72ab1",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxx/1.0.189/download"],
-        strip_prefix = "cxx-1.0.189",
-        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxx-1.0.189.bazel"),
+        urls = ["https://static.crates.io/crates/cxx/1.0.190/download"],
+        strip_prefix = "cxx-1.0.190",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxx-1.0.190.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxx-build-1.0.189",
-        sha256 = "5e11d62eb0de451f6d3aa83f2cec0986af61c23bd7515f1e2d6572c6c9e53c96",
+        name = "twitter_text__cxx-build-1.0.190",
+        sha256 = "7a9bc1a22964ff6a355fbec24cf68266a0ed28f8b84c0864c386474ea3d0e479",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxx-build/1.0.189/download"],
-        strip_prefix = "cxx-build-1.0.189",
-        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxx-build-1.0.189.bazel"),
+        urls = ["https://static.crates.io/crates/cxx-build/1.0.190/download"],
+        strip_prefix = "cxx-build-1.0.190",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxx-build-1.0.190.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxxbridge-flags-1.0.189",
-        sha256 = "a9571a7c69f236d7202f517553241496125ed56a86baa1ce346d02aa72357c74",
+        name = "twitter_text__cxxbridge-flags-1.0.190",
+        sha256 = "d67109015f93f683e364085aa6489a5b2118b4a40058482101d699936a7836d6",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxxbridge-flags/1.0.189/download"],
-        strip_prefix = "cxxbridge-flags-1.0.189",
-        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxxbridge-flags-1.0.189.bazel"),
+        urls = ["https://static.crates.io/crates/cxxbridge-flags/1.0.190/download"],
+        strip_prefix = "cxxbridge-flags-1.0.190",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxxbridge-flags-1.0.190.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxxbridge-macro-1.0.189",
-        sha256 = "eba2aaae28ca1d721d3f364bb29d51811921e7194c08bb9eaf745c8ab8d81309",
+        name = "twitter_text__cxxbridge-macro-1.0.190",
+        sha256 = "d187e019e7b05a1f3e69a8396b70800ee867aa9fc2ab972761173ccee03742df",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxxbridge-macro/1.0.189/download"],
-        strip_prefix = "cxxbridge-macro-1.0.189",
-        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxxbridge-macro-1.0.189.bazel"),
+        urls = ["https://static.crates.io/crates/cxxbridge-macro/1.0.190/download"],
+        strip_prefix = "cxxbridge-macro-1.0.190",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.cxxbridge-macro-1.0.190.bazel"),
     )
 
     maybe(
@@ -758,6 +771,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/hashbrown/0.16.1/download"],
         strip_prefix = "hashbrown-0.16.1",
         build_file = Label("//rust_bindings/3rdparty/crates:BUILD.hashbrown-0.16.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__heck-0.4.1",
+        sha256 = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/heck/0.4.1/download"],
+        strip_prefix = "heck-0.4.1",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.heck-0.4.1.bazel"),
     )
 
     maybe(
@@ -862,6 +885,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__indoc-2.0.7",
+        sha256 = "79cf5c93f93228cf8efb3ba362535fb11199ac548a09ce117c9b1adc3030d706",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/indoc/2.0.7/download"],
+        strip_prefix = "indoc-2.0.7",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.indoc-2.0.7.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__is_terminal_polyfill-1.70.2",
         sha256 = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695",
         type = "tar.gz",
@@ -952,6 +985,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__lock_api-0.4.14",
+        sha256 = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/lock_api/0.4.14/download"],
+        strip_prefix = "lock_api-0.4.14",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.lock_api-0.4.14.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__log-0.4.28",
         sha256 = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432",
         type = "tar.gz",
@@ -992,6 +1035,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__memoffset-0.9.1",
+        sha256 = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/memoffset/0.9.1/download"],
+        strip_prefix = "memoffset-0.9.1",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.memoffset-0.9.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__minimal-lexical-0.2.1",
         sha256 = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a",
         type = "tar.gz",
@@ -1012,12 +1065,42 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__once_cell-1.21.3",
+        sha256 = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/once_cell/1.21.3/download"],
+        strip_prefix = "once_cell-1.21.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.once_cell-1.21.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__once_cell_polyfill-1.70.2",
         sha256 = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe",
         type = "tar.gz",
         urls = ["https://static.crates.io/crates/once_cell_polyfill/1.70.2/download"],
         strip_prefix = "once_cell_polyfill-1.70.2",
         build_file = Label("//rust_bindings/3rdparty/crates:BUILD.once_cell_polyfill-1.70.2.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__parking_lot-0.12.5",
+        sha256 = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/parking_lot/0.12.5/download"],
+        strip_prefix = "parking_lot-0.12.5",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.parking_lot-0.12.5.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__parking_lot_core-0.9.12",
+        sha256 = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/parking_lot_core/0.9.12/download"],
+        strip_prefix = "parking_lot_core-0.9.12",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.parking_lot_core-0.9.12.bazel"),
     )
 
     maybe(
@@ -1062,6 +1145,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__portable-atomic-1.11.1",
+        sha256 = "f84267b20a16ea918e43c6a88433c2d54fa145c92a811b5b047ccbe153674483",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/portable-atomic/1.11.1/download"],
+        strip_prefix = "portable-atomic-1.11.1",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.portable-atomic-1.11.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__potential_utf-0.1.4",
         sha256 = "b73949432f5e2a09657003c25bca5e19a0e9c84f8058ca374f49e0ebe605af77",
         type = "tar.gz",
@@ -1098,6 +1191,56 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/proc-macro2/1.0.103/download"],
         strip_prefix = "proc-macro2-1.0.103",
         build_file = Label("//rust_bindings/3rdparty/crates:BUILD.proc-macro2-1.0.103.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__pyo3-0.20.3",
+        sha256 = "53bdbb96d49157e65d45cc287af5f32ffadd5f4761438b527b055fb0d4bb8233",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/pyo3/0.20.3/download"],
+        strip_prefix = "pyo3-0.20.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.pyo3-0.20.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__pyo3-build-config-0.20.3",
+        sha256 = "deaa5745de3f5231ce10517a1f5dd97d53e5a2fd77aa6b5842292085831d48d7",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/pyo3-build-config/0.20.3/download"],
+        strip_prefix = "pyo3-build-config-0.20.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.pyo3-build-config-0.20.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__pyo3-ffi-0.20.3",
+        sha256 = "62b42531d03e08d4ef1f6e85a2ed422eb678b8cd62b762e53891c05faf0d4afa",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/pyo3-ffi/0.20.3/download"],
+        strip_prefix = "pyo3-ffi-0.20.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.pyo3-ffi-0.20.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__pyo3-macros-0.20.3",
+        sha256 = "7305c720fa01b8055ec95e484a6eca7a83c841267f0dd5280f0c8b8551d2c158",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/pyo3-macros/0.20.3/download"],
+        strip_prefix = "pyo3-macros-0.20.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.pyo3-macros-0.20.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__pyo3-macros-backend-0.20.3",
+        sha256 = "7c7e9b68bb9c3149c5b0cade5d07f953d6d125eb4337723c4ccdb665f1f96185",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/pyo3-macros-backend/0.20.3/download"],
+        strip_prefix = "pyo3-macros-backend-0.20.3",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.pyo3-macros-backend-0.20.3.bazel"),
     )
 
     maybe(
@@ -1142,6 +1285,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__redox_syscall-0.5.18",
+        sha256 = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/redox_syscall/0.5.18/download"],
+        strip_prefix = "redox_syscall-0.5.18",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.redox_syscall-0.5.18.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__regex-1.12.2",
         sha256 = "843bc0191f75f3e22651ae5f1e72939ab2f72a4bc30fa80a066bd66edefc24d4",
         type = "tar.gz",
@@ -1182,12 +1335,32 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__rustversion-1.0.22",
+        sha256 = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/rustversion/1.0.22/download"],
+        strip_prefix = "rustversion-1.0.22",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.rustversion-1.0.22.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__ryu-1.0.20",
         sha256 = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f",
         type = "tar.gz",
         urls = ["https://static.crates.io/crates/ryu/1.0.20/download"],
         strip_prefix = "ryu-1.0.20",
         build_file = Label("//rust_bindings/3rdparty/crates:BUILD.ryu-1.0.20.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__scopeguard-1.2.0",
+        sha256 = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/scopeguard/1.2.0/download"],
+        strip_prefix = "scopeguard-1.2.0",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.scopeguard-1.2.0.bazel"),
     )
 
     maybe(
@@ -1352,6 +1525,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__target-lexicon-0.12.16",
+        sha256 = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/target-lexicon/0.12.16/download"],
+        strip_prefix = "target-lexicon-0.12.16",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.target-lexicon-0.12.16.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__termcolor-1.4.1",
         sha256 = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755",
         type = "tar.gz",
@@ -1438,6 +1621,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/unicode-width/0.2.2/download"],
         strip_prefix = "unicode-width-0.2.2",
         build_file = Label("//rust_bindings/3rdparty/crates:BUILD.unicode-width-0.2.2.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__unindent-0.2.4",
+        sha256 = "7264e107f553ccae879d21fbea1d6724ac785e8c3bfc762137959b5802826ef3",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/unindent/0.2.4/download"],
+        strip_prefix = "unindent-0.2.4",
+        build_file = Label("//rust_bindings/3rdparty/crates:BUILD.unindent-0.2.4.bazel"),
     )
 
     maybe(
@@ -1592,7 +1785,7 @@ def crate_repositories():
 
     return [
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
-        struct(repo = "twitter_text__cxx-1.0.189", is_dev_dep = False),
+        struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
         struct(repo = "twitter_text__lazy_static-1.5.0", is_dev_dep = False),
         struct(repo = "twitter_text__log-0.4.28", is_dev_dep = False),
@@ -1600,6 +1793,8 @@ def crate_repositories():
         struct(repo = "twitter_text__pest-2.8.4", is_dev_dep = False),
         struct(repo = "twitter_text__pest_derive-2.8.4", is_dev_dep = False),
         struct(repo = "twitter_text__proc-macro-error-1.0.4", is_dev_dep = False),
+        struct(repo = "twitter_text__pyo3-0.20.3", is_dev_dep = False),
+        struct(repo = "twitter_text__pyo3-macros-0.20.3", is_dev_dep = False),
         struct(repo = "twitter_text__serde-1.0.228", is_dev_dep = False),
         struct(repo = "twitter_text__serde_derive-1.0.228", is_dev_dep = False),
         struct(repo = "twitter_text__serde_json-1.0.145", is_dev_dep = False),

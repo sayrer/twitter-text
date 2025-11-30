@@ -30,6 +30,7 @@ twitter_text_deps = [
 # 1) Core Rust crate, no cxx in the public API
 rust_library(
     name = "twitter_text_rlib",
+    crate_name = "twitter_text",
     crate_root = "src/lib.rs",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,

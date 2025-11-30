@@ -6,8 +6,11 @@
 #     bazel run @@//rust_bindings/3rdparty:crates_vendor
 ###############################################################################
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
+load(
+    "@rules_rust//cargo:defs.bzl",
+    "cargo_build_script",
+    "cargo_toml_env_vars",
+)
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -18,7 +21,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "cxx",
+    name = "pyo3",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -36,14 +39,18 @@ rust_library(
         ],
     ),
     crate_features = [
-        "alloc",
         "default",
-        "std",
+        "extension-module",
+        "indoc",
+        "macros",
+        "pyo3-macros",
+        "unindent",
     ],
     crate_root = "src/lib.rs",
     edition = "2021",
     proc_macro_deps = [
-        "@twitter_text__cxxbridge-macro-1.0.189//:cxxbridge_macro",
+        "@twitter_text__indoc-2.0.7//:indoc",
+        "@twitter_text__pyo3-macros-0.20.3//:pyo3_macros",
     ],
     rustc_env_files = [
         ":cargo_toml_env_vars",
@@ -53,7 +60,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=cxx",
+        "crate-name=pyo3",
         "manual",
         "noclippy",
         "norustfmt",
@@ -101,22 +108,87 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "1.0.189",
+    version = "0.20.3",
     deps = [
-        ":cxx_cc",
-        "@twitter_text__foldhash-0.2.0//:foldhash",
-        "@twitter_text__link-cplusplus-1.0.12//:link_cplusplus",
+        "@twitter_text__cfg-if-1.0.4//:cfg_if",
+        "@twitter_text__libc-0.2.177//:libc",
+        "@twitter_text__memoffset-0.9.1//:memoffset",
+        "@twitter_text__parking_lot-0.12.5//:parking_lot",
+        "@twitter_text__portable-atomic-1.11.1//:portable_atomic",
+        "@twitter_text__pyo3-0.20.3//:build_script_build",
+        "@twitter_text__pyo3-ffi-0.20.3//:pyo3_ffi",
+        "@twitter_text__unindent-0.2.4//:unindent",
     ],
 )
 
-# Additive BUILD file content
-cc_library(
-    name = "cxx_cc",
-    srcs = ["src/cxx.cc"],
-    hdrs = ["include/cxx.h"],
-    include_prefix = "rust",
-    includes = ["include"],
-    linkstatic = True,
-    strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
+cargo_build_script(
+    name = "_bs",
+    srcs = glob(
+        include = ["**/*.rs"],
+        allow_empty = True,
+    ),
+    compile_data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            "**/*.rs",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    crate_features = [
+        "default",
+        "extension-module",
+        "indoc",
+        "macros",
+        "pyo3-macros",
+        "unindent",
+    ],
+    crate_name = "build_script_build",
+    crate_root = "build.rs",
+    data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    edition = "2021",
+    link_deps = [
+        "@twitter_text__pyo3-ffi-0.20.3//:pyo3_ffi",
+    ],
+    pkg_name = "pyo3",
+    rustc_env_files = [
+        ":cargo_toml_env_vars",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-bazel",
+        "crate-name=pyo3",
+        "manual",
+        "noclippy",
+        "norustfmt",
+    ],
+    version = "0.20.3",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@twitter_text__pyo3-build-config-0.20.3//:pyo3_build_config",
+    ],
+)
+
+alias(
+    name = "build_script_build",
+    actual = ":_bs",
+    tags = ["manual"],
 )

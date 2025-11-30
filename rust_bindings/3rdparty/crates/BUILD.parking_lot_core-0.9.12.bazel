@@ -21,7 +21,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "libc",
+    name = "parking_lot_core",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -38,10 +38,6 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-    ],
     crate_root = "src/lib.rs",
     edition = "2021",
     rustc_env_files = [
@@ -52,7 +48,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=parking_lot_core",
         "manual",
         "noclippy",
         "norustfmt",
@@ -100,10 +96,101 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.177",
+    version = "0.9.12",
     deps = [
-        "@twitter_text__libc-0.2.177//:build_script_build",
-    ],
+        "@twitter_text__cfg-if-1.0.4//:cfg_if",
+        "@twitter_text__parking_lot_core-0.9.12//:build_script_build",
+        "@twitter_text__smallvec-1.15.1//:smallvec",
+    ] + select({
+        "@rules_rust//rust/platform:aarch64-apple-darwin": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-apple-ios": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-apple-ios-sim": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-linux-android": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-pc-windows-msvc": [
+            "@twitter_text__windows-link-0.2.1//:windows_link",  # cfg(windows)
+        ],
+        "@rules_rust//rust/platform:aarch64-unknown-fuchsia": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-unknown-nixos-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:aarch64-unknown-nto-qnx710": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:arm-unknown-linux-gnueabi": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:armv7-linux-androideabi": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:armv7-unknown-linux-gnueabi": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:i686-apple-darwin": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:i686-linux-android": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:i686-pc-windows-msvc": [
+            "@twitter_text__windows-link-0.2.1//:windows_link",  # cfg(windows)
+        ],
+        "@rules_rust//rust/platform:i686-unknown-freebsd": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:i686-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:powerpc-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:riscv64gc-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:s390x-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:wasm32-unknown-emscripten": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-apple-darwin": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-apple-ios": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-linux-android": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-pc-windows-msvc": [
+            "@twitter_text__windows-link-0.2.1//:windows_link",  # cfg(windows)
+        ],
+        "@rules_rust//rust/platform:x86_64-unknown-freebsd": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-unknown-fuchsia": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-unknown-linux-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "@rules_rust//rust/platform:x86_64-unknown-nixos-gnu": [
+            "@twitter_text__libc-0.2.177//:libc",  # cfg(unix)
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 cargo_build_script(
@@ -125,10 +212,6 @@ cargo_build_script(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-    ],
     crate_name = "build_script_build",
     crate_root = "build.rs",
     data = glob(
@@ -144,7 +227,7 @@ cargo_build_script(
         ],
     ),
     edition = "2021",
-    pkg_name = "libc",
+    pkg_name = "parking_lot_core",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -153,12 +236,12 @@ cargo_build_script(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=parking_lot_core",
         "manual",
         "noclippy",
         "norustfmt",
     ],
-    version = "0.2.177",
+    version = "0.9.12",
     visibility = ["//visibility:private"],
 )
 

@@ -160,7 +160,7 @@ cargo_build_script(
     version = "1.0.12",
     visibility = ["//visibility:private"],
     deps = [
-        "@twitter_text__cc-1.2.47//:cc",
+        "@twitter_text__cc-1.2.48//:cc",
     ],
 )
 

@@ -53,6 +53,13 @@ crates_vendor(
         "magnus": crate.spec(
             version = "0.8.2",
         ),
+        "pyo3": crate.spec(
+            version = "0.20",
+            features = ["extension-module"],
+        ),
+        "pyo3-macros": crate.spec(
+            version = "0.20",
+        ),
     },
     repository_name = "twitter_text",
     tags = ["manual"],

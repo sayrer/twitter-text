@@ -11,7 +11,7 @@ load(
     "cargo_build_script",
     "cargo_toml_env_vars",
 )
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -20,8 +20,8 @@ cargo_toml_env_vars(
     src = "Cargo.toml",
 )
 
-rust_library(
-    name = "libc",
+rust_proc_macro(
+    name = "rustversion",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -38,12 +38,8 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-    ],
     crate_root = "src/lib.rs",
-    edition = "2021",
+    edition = "2018",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -52,7 +48,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=rustversion",
         "manual",
         "noclippy",
         "norustfmt",
@@ -100,9 +96,9 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.177",
+    version = "1.0.22",
     deps = [
-        "@twitter_text__libc-0.2.177//:build_script_build",
+        "@twitter_text__rustversion-1.0.22//:build_script_build",
     ],
 )
 
@@ -125,12 +121,8 @@ cargo_build_script(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-    ],
     crate_name = "build_script_build",
-    crate_root = "build.rs",
+    crate_root = "build/build.rs",
     data = glob(
         include = ["**"],
         allow_empty = True,
@@ -143,8 +135,8 @@ cargo_build_script(
             "WORKSPACE.bazel",
         ],
     ),
-    edition = "2021",
-    pkg_name = "libc",
+    edition = "2018",
+    pkg_name = "rustversion",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -153,12 +145,12 @@ cargo_build_script(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=libc",
+        "crate-name=rustversion",
         "manual",
         "noclippy",
         "norustfmt",
     ],
-    version = "0.2.177",
+    version = "1.0.22",
     visibility = ["//visibility:private"],
 )
 

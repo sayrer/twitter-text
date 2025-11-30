@@ -17,7 +17,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "cxxbridge_flags",
+    name = "lock_api",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -35,6 +35,7 @@ rust_library(
         ],
     ),
     crate_features = [
+        "atomic_usize",
         "default",
     ],
     crate_root = "src/lib.rs",
@@ -47,7 +48,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=cxxbridge-flags",
+        "crate-name=lock_api",
         "manual",
         "noclippy",
         "norustfmt",
@@ -95,5 +96,8 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "1.0.189",
+    version = "0.4.14",
+    deps = [
+        "@twitter_text__scopeguard-1.2.0//:scopeguard",
+    ],
 )

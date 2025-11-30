@@ -7,7 +7,7 @@
 ###############################################################################
 
 load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,8 +16,8 @@ cargo_toml_env_vars(
     src = "Cargo.toml",
 )
 
-rust_library(
-    name = "cxx_build",
+rust_proc_macro(
+    name = "pyo3_macros",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -44,7 +44,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=cxx-build",
+        "crate-name=pyo3-macros",
         "manual",
         "noclippy",
         "norustfmt",
@@ -92,14 +92,11 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "1.0.189",
+    version = "0.20.3",
     deps = [
-        "@twitter_text__cc-1.2.47//:cc",
-        "@twitter_text__codespan-reporting-0.13.1//:codespan_reporting",
-        "@twitter_text__indexmap-2.12.1//:indexmap",
         "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
+        "@twitter_text__pyo3-macros-backend-0.20.3//:pyo3_macros_backend",
         "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__scratch-1.0.9//:scratch",
         "@twitter_text__syn-2.0.111//:syn",
     ],
 )
