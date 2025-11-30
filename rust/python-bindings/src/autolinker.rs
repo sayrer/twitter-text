@@ -152,6 +152,22 @@ impl Autolinker {
         self.cashtag_url_base = base;
     }
 
+    fn get_invisible_tag_attrs(&self) -> &str {
+        &self.invisible_tag_attrs
+    }
+
+    fn set_invisible_tag_attrs(&mut self, attrs: String) {
+        self.invisible_tag_attrs = attrs;
+    }
+
+    fn get_username_include_symbol(&self) -> bool {
+        self.username_include_symbol
+    }
+
+    fn set_username_include_symbol(&mut self, include: bool) {
+        self.username_include_symbol = include;
+    }
+
     fn autolink(&self, text: &str) -> String {
         self.to_rust_autolinker().autolink(text)
     }

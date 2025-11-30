@@ -1,0 +1,17 @@
+[package]
+name = "twitter-text-ruby"
+version = "0.2.0"
+authors = ["Robert Sayre <sayrer@gmail.com>"]
+description = "Ruby bindings for twitter-text using Magnus"
+license = "Apache-2.0"
+edition = "2021"
+
+[lib]
+name = "twittertext"
+crate-type = ["cdylib"]
+
+[dependencies]
+magnus = "0.8"
+twitter_text = { path = "../twitter-text", version = "0.2.0", default-features = false }
+twitter_text_config = { path = "../config", version = "0.2.0" }
+twitter_text_parser = { path = "../parser", version = "0.2.0" }

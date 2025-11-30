@@ -8,7 +8,7 @@ rust_test(
         "tests/autolink.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",
@@ -30,7 +30,7 @@ rust_test(
         "tests/emoji.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",
@@ -52,7 +52,7 @@ rust_test(
         "tests/extract.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",
@@ -74,7 +74,7 @@ rust_test(
         "tests/hit_highlighting.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",
@@ -96,7 +96,7 @@ rust_test(
         "tests/tlds.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",
@@ -118,7 +118,7 @@ rust_test(
         "tests/validate.rs",
     ],
     deps = [
-       	"//rust/twitter-text:twitter_text",
+       	"//rust/twitter-text:twitter_text_rlib",
     	"//rust/config:twitter_text_config",
     	"//rust/parser:twitter_text_parser",
         "//rust_bindings/3rdparty/crates:pest",

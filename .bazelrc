@@ -1,0 +1,10 @@
+# Set Ruby build environment for rules_ruby
+# These environment variables are used by ruby-build during Ruby compilation
+build --action_env=RUBY_CONFIGURE_OPTS="--disable-install-doc"
+
+# libyaml paths for Homebrew on macOS
+build --action_env=CPPFLAGS="-I/opt/homebrew/include"
+build --action_env=LDFLAGS="-L/opt/homebrew/lib"
+
+# Point rb-sys to Homebrew's Ruby 3.2 for introspection
+build --action_env=RUBY=/opt/homebrew/opt/ruby@3.2/bin/ruby
