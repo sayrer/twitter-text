@@ -90,10 +90,6 @@ cc_library(
     copts = [
         "-Iexternal/rust_bindings/3rdparty/crates/cxx/include",
     ],
-    linkopts = [
-        "-framework", "Security",
-        "-framework", "CoreFoundation",
-    ],
 )
 
 rust_test(
