@@ -1,9 +1,25 @@
 // src/ffi.rs
 
 use cxx::{CxxVector, UniquePtr};
+use twitter_text::autolinker::Autolinker;
+use twitter_text::entity::Entity;
+use twitter_text::extractor::{
+    Extract, ExtractResult, Extractor, MentionResult, ValidatingExtractor,
+};
+use twitter_text::hit_highlighter::HitHighlighter;
+use twitter_text::validator;
+use twitter_text::validator::Validator;
+use twitter_text::{parse, TwitterTextParseResults};
+use twitter_text_config::Configuration;
+use twitter_text_config::Range;
+use twitter_text_config::WeightedRange;
+
+use std::path::PathBuf;
+
+use self::bridge as ffi;
 
 #[cxx::bridge(namespace = twitter_text)]
-mod ffi {
+pub mod bridge {
     #[derive(Copy, Clone)]
     pub struct Range {
         pub start: i32,
@@ -194,16 +210,12 @@ mod ffi {
     }
 }
 
-type RustAutolinker<'a> = twitter_text::autolinker::Autolinker<'a>;
-type RustExtractor = twitter_text::extractor::Extractor;
-type RustExtractResult<'a> = twitter_text::extractor::ExtractResult<'a>;
-type RustMentionResult<'a> = twitter_text::extractor::MentionResult<'a>;
-type RustHitHighlighter = twitter_text::hit_highlighter::HitHighlighter;
-type RustValidator = twitter_text::validator::Validator;
-type RustTwitterTextParseResults = twitter_text::TwitterTextParseResults;
+pub struct RustExtractor(Extractor);
+pub struct RustHitHighlighter(HitHighlighter);
+pub struct RustValidator(Validator);
 
 impl ffi::TwitterTextParseResults {
-    fn from(results: RustTwitterTextParseResults) -> ffi::TwitterTextParseResults {
+    fn from(results: TwitterTextParseResults) -> ffi::TwitterTextParseResults {
         ffi::TwitterTextParseResults {
             weighted_length: results.weighted_length,
             permillage: results.permillage,
@@ -215,7 +227,7 @@ impl ffi::TwitterTextParseResults {
 }
 
 impl ffi::ExtractResult {
-    fn from(result: RustExtractResult) -> ffi::ExtractResult {
+    fn from(result: ExtractResult) -> ffi::ExtractResult {
         ffi::ExtractResult {
             parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
             entities: result
@@ -228,7 +240,7 @@ impl ffi::ExtractResult {
 }
 
 impl ffi::MentionResult {
-    fn from(result: RustMentionResult) -> ffi::MentionResult {
+    fn from(result: MentionResult) -> ffi::MentionResult {
         ffi::MentionResult {
             parse_results: ffi::TwitterTextParseResults::from(result.parse_results),
             mention: match result.mention {
@@ -356,51 +368,51 @@ pub fn configuration_from_json(json: &str) -> UniquePtr<ffi::Configuration> {
 }
 
 pub fn autolink_default_config() -> UniquePtr<ffi::AutolinkerConfig> {
-    UniquePtr::new(Autolinker::default_config())
+    UniquePtr::new(default_autolinkerconfig())
 }
 
 pub fn autolink_all(text: &str, config: &ffi::AutolinkerConfig) -> String {
-    Autolinker::new_with_config(config).autolink(text)
+    new_with_config(config).autolink(text)
 }
 
 pub fn autolink_usernames_and_lists(text: &str, config: &ffi::AutolinkerConfig) -> String {
-    Autolinker::new_with_config(config).autolink_usernames_and_lists(text)
+    new_with_config(config).autolink_usernames_and_lists(text)
 }
 
 pub fn autolink_hashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
-    Autolinker::new_with_config(config).autolink_hashtags(text)
+    new_with_config(config).autolink_hashtags(text)
 }
 
 pub fn autolink_urls(text: &str, config: &ffi::AutolinkerConfig) -> String {
-    Autolinker::new_with_config(config).autolink_urls(text)
+    new_with_config(config).autolink_urls(text)
 }
 
 pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
-    Autolinker::new_with_config(config).autolink_cashtags(text)
+    new_with_config(config).autolink_cashtags(text)
 }
 
 // Extractor
 pub fn make_extractor() -> Box<RustExtractor> {
-    Box::new(Extractor::new())
+    Box::new(RustExtractor(Extractor::new()))
 }
 
 pub fn get_extract_url_without_protocol(r: &RustExtractor) -> bool {
-    r.get_extract_url_without_protocol()
+    r.0.get_extract_url_without_protocol()
 }
 
 pub fn set_extract_url_without_protocol(r: &mut RustExtractor, extract_url_without_protocol: bool) {
-    r.set_extract_url_without_protocol(extract_url_without_protocol);
+    r.0.set_extract_url_without_protocol(extract_url_without_protocol);
 }
 
 pub fn extract_entities_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_entities_with_indices(text)
+    r.0.extract_entities_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
 }
 
 pub fn extract_mentioned_screennames(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_mentioned_screennames(text)
+    r.0.extract_mentioned_screennames(text)
         .iter()
         .map(|s| ffi::ExtractorString::new(s))
         .collect()
@@ -410,21 +422,21 @@ pub fn extract_mentioned_screennames_with_indices(
     r: &RustExtractor,
     text: &str,
 ) -> Vec<ffi::Entity> {
-    r.extract_mentioned_screennames_with_indices(text)
+    r.0.extract_mentioned_screennames_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
 }
 
 pub fn extract_mentions_or_lists_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_mentions_or_lists_with_indices(text)
+    r.0.extract_mentions_or_lists_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
 }
 
 pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::Entity> {
-    if let Some(entity) = r.extract_reply_username(text) {
+    if let Some(entity) = r.0.extract_reply_username(text) {
         return UniquePtr::new(ffi::Entity::from(&entity));
     }
 
@@ -432,42 +444,42 @@ pub fn extract_reply_username(r: &RustExtractor, text: &str) -> UniquePtr<ffi::E
 }
 
 pub fn extract_urls(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_urls(text)
+    r.0.extract_urls(text)
         .iter()
         .map(|s| ffi::ExtractorString::new(s))
         .collect()
 }
 
 pub fn extract_urls_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_urls_with_indices(text)
+    r.0.extract_urls_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
 }
 
 pub fn extract_hashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_hashtags(text)
+    r.0.extract_hashtags(text)
         .iter()
         .map(|s| ffi::ExtractorString::new(s))
         .collect()
 }
 
 pub fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_hashtags_with_indices(text)
+    r.0.extract_hashtags_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
 }
 
 pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
-    r.extract_cashtags(text)
+    r.0.extract_cashtags(text)
         .iter()
         .map(|s| ffi::ExtractorString::new(s))
         .collect()
 }
 
 pub fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
-    r.extract_cashtags_with_indices(text)
+    r.0.extract_cashtags_with_indices(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
@@ -627,69 +639,73 @@ pub fn extract_cashtags_with_indices_validated(
 }
 
 // HitHighlighter
-pub fn make_default_highlighter() -> Box<HitHighlighter> {
-    Box::new(HitHighlighter::new())
+pub fn make_default_highlighter() -> Box<RustHitHighlighter> {
+    Box::new(RustHitHighlighter(HitHighlighter::new()))
 }
 
-pub fn make_highlighter(highlight_tag: &str) -> Box<HitHighlighter> {
-    Box::new(HitHighlighter::new_with_tag(highlight_tag))
+pub fn make_highlighter(highlight_tag: &str) -> Box<RustHitHighlighter> {
+    Box::new(RustHitHighlighter(HitHighlighter::new_with_tag(
+        highlight_tag,
+    )))
 }
 
-pub fn hit_highlight(hh: &HitHighlighter, text: &str, hits: &CxxVector<ffi::Hit>) -> String {
+pub fn hit_highlight(hh: &RustHitHighlighter, text: &str, hits: &CxxVector<ffi::Hit>) -> String {
     let mut rust_hits: Vec<(usize, usize)> = Vec::with_capacity(hits.len());
     for hit in hits {
         rust_hits.push((hit.start, hit.end));
     }
-    hh.highlight(text, rust_hits)
+    hh.0.highlight(text, rust_hits)
 }
 
 // Validator
-pub fn make_default_validator() -> Box<Validator> {
-    Box::new(Validator::new())
+pub fn make_default_validator() -> Box<RustValidator> {
+    Box::new(RustValidator(Validator::new()))
 }
 
-pub fn is_valid_tweet(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_tweet(s)
+pub fn is_valid_tweet(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_tweet(s)
 }
 
-pub fn is_valid_username(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_username(s)
+pub fn is_valid_username(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_username(s)
 }
 
-pub fn is_valid_list(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_list(s)
+pub fn is_valid_list(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_list(s)
 }
 
-pub fn is_valid_hashtag(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_hashtag(s)
+pub fn is_valid_hashtag(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_hashtag(s)
 }
 
-pub fn is_valid_url(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_url(s)
+pub fn is_valid_url(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_url(s)
 }
 
-pub fn is_valid_url_without_protocol(validator: &Validator, s: &str) -> bool {
-    validator.is_valid_url_without_protocol(s)
+pub fn is_valid_url_without_protocol(validator: &RustValidator, s: &str) -> bool {
+    validator.0.is_valid_url_without_protocol(s)
 }
 
 pub fn get_max_tweet_length() -> i32 {
     validator::MAX_TWEET_LENGTH
 }
 
-pub fn get_short_url_length(validator: &Validator) -> i32 {
-    validator.get_short_url_length()
+pub fn get_short_url_length(validator: &RustValidator) -> i32 {
+    validator.0.get_short_url_length()
 }
 
-pub fn set_short_url_length(validator: &mut Validator, short_url_length: i32) {
-    validator.set_short_url_length(short_url_length);
+pub fn set_short_url_length(validator: &mut RustValidator, short_url_length: i32) {
+    validator.0.set_short_url_length(short_url_length);
 }
 
-pub fn get_short_url_length_https(validator: &Validator) -> i32 {
-    validator.get_short_url_length_https()
+pub fn get_short_url_length_https(validator: &RustValidator) -> i32 {
+    validator.0.get_short_url_length_https()
 }
 
-pub fn set_short_url_length_https(validator: &mut Validator, short_url_length_https: i32) {
-    validator.set_short_url_length_https(short_url_length_https);
+pub fn set_short_url_length_https(validator: &mut RustValidator, short_url_length_https: i32) {
+    validator
+        .0
+        .set_short_url_length_https(short_url_length_https);
 }
 
 pub fn parse_ffi(

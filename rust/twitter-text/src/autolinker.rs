@@ -76,7 +76,7 @@ pub struct Autolinker<'a> {
     pub cashtag_url_base: &'a str,
     pub invisible_tag_attrs: &'a str,
     pub username_include_symbol: bool,
-    extractor: Extractor,
+    pub extractor: Extractor,
 }
 
 impl<'a> Autolinker<'a> {

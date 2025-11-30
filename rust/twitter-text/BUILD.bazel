@@ -4,8 +4,8 @@ load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_
 load("//rust_bindings/3rdparty/cxxbridge:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 filegroup(
-    name = "twitter_text_main",
-    srcs = ["src/lib.rs"],
+    name = "twitter_text_ffi",
+    srcs = ["src/ffi.rs"],
 )
 
 twitter_text_srcs = [
@@ -38,7 +38,7 @@ rust_library(
 # 2) FFI crate, built as a Rust staticlib to be consumed from C++
 # Note: crate_root points at src/ffi.rs
 rust_static_library(
-    name = "twitter_text_ffi",
+    name = "twitter_text_ffi_lib",
     crate_root = "src/ffi.rs",
     srcs = [
         "src/ffi.rs",
@@ -52,60 +52,52 @@ rust_static_library(
     # allocator_libraries left default, per rules_rust docs
 )
 
+genrule(
+    name = "cxxbridge",
+    outs = ["cxx.h"],
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header > $(location cxx.h)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
+)
 
-#rust_shared_library(
-#    name = "twitter_text_shared",
-#    srcs = twitter_text_srcs,
-#    deps = twitter_text_deps,
-#    edition = "2021",
-#)
+genrule(
+    name = "twitter_text_h",
+    srcs = [
+        "//rust/twitter-text:twitter_text_ffi",
+    ],
+    outs = ["twitter-text.h"],
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.h)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
+)
 
-#genrule(
-#    name = "cxxbridge",
-#    outs = ["cxx.h"],
-#    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header > $(location cxx.h)",
-#    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
-#)
-#
-#genrule(
-#    name = "twitter_text_h",
-#    srcs = [
-#        "//rust/twitter-text:twitter_text_main",
-#    ],
-#    outs = ["twitter-text.h"],
-#    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
-#    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
-#)
-#
-#genrule(
-#    name = "twitter_text_cpp",
-#    srcs = [
-#        ":twitter_text",
-#        "//rust/twitter-text:twitter_text_main",
-#    ],
-#    outs = ["twitter-text.cpp"],
-#    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
-#    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
-#)
-#
-#cc_library(
-#    name = "twitter_text_wrapper",
-#    hdrs = [
-#        ":cxxbridge",
-#        ":twitter_text_h",
-#    ],
-#    srcs = [
-#        ":twitter_text_cpp",
-#    ],
-#    deps = [
-#        ":twitter_text_static",
-#        "//rust_bindings/3rdparty/crates:cxx_cc",
-#    ],
-#    linkstatic = True,
-#    copts = [
-#        "-Iexternal/rust_bindings/3rdparty/crates/cxx/include",
-#    ],
-#)
+genrule(
+    name = "twitter_text_cpp",
+    srcs = [
+        ":twitter_text",
+        "//rust/twitter-text:twitter_text_ffi",
+    ],
+    outs = ["twitter-text.cpp"],
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.cpp)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
+)
+
+cc_library(
+    name = "twitter_text_wrapper",
+    hdrs = [
+        ":cxxbridge",
+        ":twitter_text_h",
+    ],
+    srcs = [
+        ":twitter_text_cpp",
+    ],
+    deps = [
+        ":twitter_text_ffi_lib",
+        "//rust_bindings/3rdparty/crates:cxx_cc"
+    ],
+    linkstatic = True,
+    copts = [
+        "-Iexternal/rust_bindings/3rdparty/crates/cxx/include",
+    ],
+)
 
 rust_test(
     name = "twitter_text_test",
