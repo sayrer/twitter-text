@@ -8,8 +8,11 @@ license = "Apache-2.0"
 repository = "https://github.com/sayrer/twitter-text"
 edition = "2018"
 
+[features]
+ffi = []
+
 [dependencies]
-cxx = "0.3.4"
+cxx = "1.0.189"
 unicode-normalization = "0.1.25"
 idna = "1.1.0"
 pest = "2.8.4"

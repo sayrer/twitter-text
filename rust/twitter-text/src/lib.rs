@@ -8,6 +8,9 @@ pub mod extractor;
 pub mod hit_highlighter;
 pub mod validator;
 
+#[cfg(feature = "ffi")]
+pub mod ffi;
+
 use extractor::{Extract, ValidatingExtractor};
 use twitter_text_config::Configuration;
 use twitter_text_config::Range;

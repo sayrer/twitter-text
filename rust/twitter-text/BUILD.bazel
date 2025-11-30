@@ -15,6 +15,7 @@ twitter_text_srcs = [
     "src/extractor.rs",
     "src/hit_highlighter.rs",
     "src/validator.rs",
+    "src/ffi.rs",
 ]
 
 twitter_text_deps = [
@@ -28,28 +29,21 @@ twitter_text_deps = [
 
 # 1) Core Rust crate, no cxx in the public API
 rust_library(
-    name = "twitter_text",
+    name = "twitter_text_rlib",
     crate_root = "src/lib.rs",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
     edition = "2021",
 )
 
-# 2) FFI crate, built as a Rust staticlib to be consumed from C++
-# Note: crate_root points at src/ffi.rs
+# 2) Static library with FFI, built from the same sources but with ffi feature
 rust_static_library(
-    name = "twitter_text_ffi_lib",
-    crate_root = "src/ffi.rs",
-    srcs = [
-        "src/ffi.rs",
-    ],
-    deps = [
-        ":twitter_text",
-        "//rust/config:twitter_text_config",
-        "//rust_bindings/3rdparty/crates:cxx",
-    ],
+    name = "twitter_text",
+    crate_root = "src/lib.rs",
+    srcs = twitter_text_srcs,
+    deps = twitter_text_deps,
+    crate_features = ["ffi"],
     edition = "2021",
-    # allocator_libraries left default, per rules_rust docs
 )
 
 genrule(
@@ -65,7 +59,7 @@ genrule(
         "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.h"],
-    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.h)",
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) | sed 's/\\$$cxxbridge1\\$$0\\$$/\\$$cxxbridge1\\$$189\\$$/g' > $(location twitter-text.h)",
     tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
@@ -76,7 +70,7 @@ genrule(
         "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.cpp"],
-    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.cpp)",
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi) | sed 's/\\$$cxxbridge1\\$$0\\$$/\\$$cxxbridge1\\$$189\\$$/g' > $(location twitter-text.cpp)",
     tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
@@ -90,16 +84,19 @@ cc_library(
         ":twitter_text_cpp",
     ],
     deps = [
-        ":twitter_text_ffi_lib",
+        ":twitter_text",
         "//rust_bindings/3rdparty/crates:cxx_cc"
     ],
-    linkstatic = True,
     copts = [
         "-Iexternal/rust_bindings/3rdparty/crates/cxx/include",
+    ],
+    linkopts = [
+        "-framework", "Security",
+        "-framework", "CoreFoundation",
     ],
 )
 
 rust_test(
     name = "twitter_text_test",
-    crate = ":twitter_text",
+    crate = ":twitter_text_rlib",
 )

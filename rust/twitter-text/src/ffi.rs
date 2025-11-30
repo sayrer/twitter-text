@@ -1,25 +1,21 @@
 // src/ffi.rs
 
+use crate::autolinker::Autolinker;
+use crate::entity::Entity;
+use crate::extractor::{Extract, ExtractResult, Extractor, MentionResult, ValidatingExtractor};
+use crate::hit_highlighter::HitHighlighter;
+use crate::validator;
+use crate::validator::Validator;
+use crate::{parse, TwitterTextParseResults};
 use cxx::{CxxVector, UniquePtr};
-use twitter_text::autolinker::Autolinker;
-use twitter_text::entity::Entity;
-use twitter_text::extractor::{
-    Extract, ExtractResult, Extractor, MentionResult, ValidatingExtractor,
-};
-use twitter_text::hit_highlighter::HitHighlighter;
-use twitter_text::validator;
-use twitter_text::validator::Validator;
-use twitter_text::{parse, TwitterTextParseResults};
 use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_config::WeightedRange;
 
 use std::path::PathBuf;
 
-use self::bridge as ffi;
-
 #[cxx::bridge(namespace = twitter_text)]
-pub mod bridge {
+pub mod ffi {
     #[derive(Copy, Clone)]
     pub struct Range {
         pub start: i32,
@@ -723,15 +719,15 @@ pub fn default_autolinkerconfig() -> ffi::AutolinkerConfig {
         url_target: "".to_string(),
         symbol_tag: "".to_string(),
         text_with_symbol_tag: "".to_string(),
-        list_class: twitter_text::autolinker::DEFAULT_LIST_CLASS.to_string(),
-        username_class: twitter_text::autolinker::DEFAULT_USERNAME_CLASS.to_string(),
-        hashtag_class: twitter_text::autolinker::DEFAULT_HASHTAG_CLASS.to_string(),
-        cashtag_class: twitter_text::autolinker::DEFAULT_CASHTAG_CLASS.to_string(),
-        username_url_base: twitter_text::autolinker::DEFAULT_USERNAME_URL_BASE.to_string(),
-        list_url_base: twitter_text::autolinker::DEFAULT_LIST_URL_BASE.to_string(),
-        hashtag_url_base: twitter_text::autolinker::DEFAULT_HASHTAG_URL_BASE.to_string(),
-        cashtag_url_base: twitter_text::autolinker::DEFAULT_CASHTAG_URL_BASE.to_string(),
-        invisible_tag_attrs: twitter_text::autolinker::DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
+        list_class: crate::autolinker::DEFAULT_LIST_CLASS.to_string(),
+        username_class: crate::autolinker::DEFAULT_USERNAME_CLASS.to_string(),
+        hashtag_class: crate::autolinker::DEFAULT_HASHTAG_CLASS.to_string(),
+        cashtag_class: crate::autolinker::DEFAULT_CASHTAG_CLASS.to_string(),
+        username_url_base: crate::autolinker::DEFAULT_USERNAME_URL_BASE.to_string(),
+        list_url_base: crate::autolinker::DEFAULT_LIST_URL_BASE.to_string(),
+        hashtag_url_base: crate::autolinker::DEFAULT_HASHTAG_URL_BASE.to_string(),
+        cashtag_url_base: crate::autolinker::DEFAULT_CASHTAG_URL_BASE.to_string(),
+        invisible_tag_attrs: crate::autolinker::DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
         username_include_symbol: false,
     }
 }
