@@ -136,5 +136,5 @@ rust_test(
 
 filegroup(
     name = "yaml",
-    srcs = glob(["tests/*.yml"])
+    srcs = glob(["tests/*.yml"], allow_empty = True)
 )
