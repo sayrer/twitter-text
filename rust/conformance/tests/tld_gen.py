@@ -93,7 +93,7 @@ def main():
             print(indent + "  )", file=output_file)
 
     with open(args.output, "w", encoding="utf-8") as output_file:
-        print("tld = _{", file=output_file)
+        print("tld_list = _{", file=output_file)
         print_pest("", root, "  ", output_file)
         print("}", file=output_file)
 

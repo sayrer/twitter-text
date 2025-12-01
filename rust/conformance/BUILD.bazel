@@ -1,6 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@tld_gen_deps//:requirements.bzl", "requirement")
 
 rust_test(
     name = "autolink_test",
@@ -137,4 +139,37 @@ rust_test(
 filegroup(
     name = "yaml",
     srcs = glob(["tests/*.yml"], allow_empty = True)
+)
+
+# Hermetic TLD generator
+py_binary(
+    name = "tld_gen",
+    srcs = ["tests/tld_gen.py"],
+    main = "tests/tld_gen.py",
+    deps = [
+        requirement("PyYAML"),
+        requirement("patricia-trie"),
+    ],
+)
+
+genrule(
+    name = "generate_tld_grammar",
+    srcs = ["tests/tld_lib.yml"],
+    outs = ["generated_tld.pest"],
+    cmd = "$(location :tld_gen) --input $(location tests/tld_lib.yml) --output $@",
+    tools = [":tld_gen"],
+    visibility = ["//visibility:public"],
+)
+
+# Insert generated TLD grammar into the parser file
+genrule(
+    name = "update_parser_with_tlds",
+    srcs = [
+        "//rust/parser:src/twitter_text.pest",
+        ":generated_tld.pest",
+    ],
+    outs = ["twitter_text_with_tlds.pest"],
+    cmd = "$(location tests/insert_tld_grammar.sh) $(location //rust/parser:src/twitter_text.pest) $(location :generated_tld.pest) $@",
+    tools = ["tests/insert_tld_grammar.sh"],
+    visibility = ["//visibility:public"],
 )

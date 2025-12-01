@@ -2,6 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
+exports_files([
+    "src/twitter_text.pest",
+])
+
 rust_library(
     name = "twitter_text_parser",
     srcs = [
