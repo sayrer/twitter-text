@@ -13,15 +13,13 @@ rb_test(
         ":hithighlighter_spec.rb",
         ":validator_spec.rb",
     ],
-    main = "@bundle//:bin/rspec",
+    main = "@bundle//bin:rspec",
     args = [
         "rust_bindings/ruby/spec",
     ],
-    deps = [
-        "@bundle//:bin",
-        "@bundle//:rspec",
-    ],
     data = [
+        "@bundle//bin:rspec",
+        "@bundle//:bundle",
         "//rust_bindings/ruby:twitter_text_shared_library",
         "//rust_bindings/cpp:config_test_data",
         "//rust/conformance:yaml",

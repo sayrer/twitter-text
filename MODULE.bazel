@@ -108,7 +108,21 @@ ruby.toolchain(
     name = "ruby",
     version = "3.2.6",
 )
-use_repo(ruby, "ruby", "ruby_toolchains")
+ruby.bundle_fetch(
+    name = "bundle",
+    gemfile = "//:Gemfile",
+    gemfile_lock = "//:Gemfile.lock",
+    gem_checksums = {
+        "diff-lcs-1.4.4": "bf3a658875f70c1467fe7a3b302b795f074c84b28db6e4a2bd6b1ad6d12a2255",
+        "rspec-3.7.0": "0174cfbed780e42aa181227af623e2ae37511f20a2fdfec48b54f6cf4d7a6404",
+        "rspec-core-3.7.1": "526e0b2d22feae638eb99bd746bbb25b18a4869a8f6ce4e8a87dabd1ab5f727f",
+        "rspec-expectations-3.7.0": "7e571848a5cbdb1661187d04e5c1f29287ec80fcb5a395f9994836892a3780bb",
+        "rspec-mocks-3.7.0": "23f7f0039e17f2841edfb51d678ac9e06c056903a7908db967f5618887f2022c",
+        "rspec-support-3.7.1": "4152975a068756076f10c97317e9d2baf10028f3d25c0cb902945569560783da",
+        "yaml-0.1.0": "c10a32e8d0ab40f97d965c9a9cf35e2106c7edf534311af19bfe1053c81680c9",
+    },
+)
+use_repo(ruby, "ruby", "ruby_toolchains", "bundle")
 
 register_toolchains("@ruby_toolchains//:all")
 

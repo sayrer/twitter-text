@@ -1,4 +1,4 @@
-require 'rust_bindings/ruby/spec/spec_helper'
+require_relative 'spec_helper'
 require 'rust_bindings/ruby/twittertext'
 require 'yaml'
 
