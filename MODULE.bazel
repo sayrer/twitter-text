@@ -18,7 +18,6 @@ bazel_dep(name = "platforms", version = "1.0.0")
 
 # Java toolchains
 java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
-use_repo(java_toolchains)
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -98,7 +97,7 @@ pip.parse(
     python_version = "3.10",
     requirements_lock = "//rust_bindings/python/test:requirements.txt",
 )
-use_repo(pip, "tld_gen_deps", "rust_python_test_deps")
+use_repo(pip, "rust_python_test_deps", "tld_gen_deps")
 
 ###############################################################################
 # Ruby for Magnus
@@ -110,8 +109,6 @@ ruby.toolchain(
 )
 ruby.bundle_fetch(
     name = "bundle",
-    gemfile = "//:Gemfile",
-    gemfile_lock = "//:Gemfile.lock",
     gem_checksums = {
         "diff-lcs-1.4.4": "bf3a658875f70c1467fe7a3b302b795f074c84b28db6e4a2bd6b1ad6d12a2255",
         "rspec-3.7.0": "0174cfbed780e42aa181227af623e2ae37511f20a2fdfec48b54f6cf4d7a6404",
@@ -121,8 +118,10 @@ ruby.bundle_fetch(
         "rspec-support-3.7.1": "4152975a068756076f10c97317e9d2baf10028f3d25c0cb902945569560783da",
         "yaml-0.1.0": "c10a32e8d0ab40f97d965c9a9cf35e2106c7edf534311af19bfe1053c81680c9",
     },
+    gemfile = "//:Gemfile",
+    gemfile_lock = "//:Gemfile.lock",
 )
-use_repo(ruby, "ruby", "ruby_toolchains", "bundle")
+use_repo(ruby, "bundle", "ruby", "ruby_toolchains")
 
 register_toolchains("@ruby_toolchains//:all")
 
@@ -137,6 +136,7 @@ use_repo(
     "twitter_text__cxx-1.0.190",
     "twitter_text__idna-1.1.0",
     "twitter_text__lazy_static-1.5.0",
+    "twitter_text__libc-0.2.178",
     "twitter_text__log-0.4.28",
     "twitter_text__magnus-0.8.2",
     "twitter_text__pest-2.8.4",
@@ -216,35 +216,33 @@ jdk23_ext = use_extension("//tools:jdk23_and_jextract.bzl", "jdk23_ext")
 
 jdk23_ext.add_jdk(
     name = "jdk23_macos_arm64",
+    cpu = "arm64",
+    os = "macos",
+    sha256 = "749993e751f085c7ae713140066a90800075e4aeedfac50a5ed0c5457131c5a0",
+    strip_prefix = "jdk-23.0.2+7",
     urls = [
         "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.2_7.tar.gz",
     ],
-    sha256 = "749993e751f085c7ae713140066a90800075e4aeedfac50a5ed0c5457131c5a0",
-    strip_prefix = "jdk-23.0.2+7",
-    os = "macos",
-    cpu = "arm64",
 )
-
 jdk23_ext.add_jdk(
     name = "jdk23_linux_x86_64",
+    cpu = "x86_64",
+    os = "linux",
+    sha256 = "716b0451e90a321e4f54bc5fe763bd877d83d3d2f502fb551563da28e112670a",
+    strip_prefix = "jdk-23.0.2+7",
     urls = [
         "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_x64_linux_hotspot_23.0.2_7.tar.gz",
     ],
-    sha256 = "716b0451e90a321e4f54bc5fe763bd877d83d3d2f502fb551563da28e112670a",
-    strip_prefix = "jdk-23.0.2+7",
-    os = "linux",
-    cpu = "x86_64",
 )
-
 jdk23_ext.add_jdk(
     name = "jdk23_linux_arm64",
+    cpu = "arm64",
+    os = "linux",
+    sha256 = "2ff2fa69a415364948ec383b7d33a78e3c3a8b74e958c630c1099a182fe4df19",
+    strip_prefix = "jdk-23.0.2+7",
     urls = [
         "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_linux_hotspot_23.0.2_7.tar.gz",
     ],
-    sha256 = "2ff2fa69a415364948ec383b7d33a78e3c3a8b74e958c630c1099a182fe4df19",
-    strip_prefix = "jdk-23.0.2+7",
-    os = "linux",
-    cpu = "arm64",
 )
 
 # --- Hermetic jextract --------------------------------
@@ -252,46 +250,43 @@ jdk23_ext.add_jdk(
 
 jdk23_ext.add_jextract(
     name = "jextract_macos_arm64",
+    cpu = "arm64",
+    os = "macos",
+    sha256 = "f8b0cb60dd2f70373189f6ba79c6f1c353f336b5a2de3c445692ba1091d651bb",
+    strip_prefix = "jextract-25-jextract+2-4",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_macos-aarch64_bin.tar.gz",
     ],
-    sha256 = "f8b0cb60dd2f70373189f6ba79c6f1c353f336b5a2de3c445692ba1091d651bb",
-    strip_prefix = "jextract-25-jextract+2-4",
-    os = "macos",
-    cpu = "arm64",
 )
-
 jdk23_ext.add_jextract(
     name = "jextract_linux_x86_64",
+    cpu = "x86_64",
+    os = "linux",
+    sha256 = "de64f1c73d15677bd04a26a92be3bf847f639fa705f2d97efa07559b498b6f64",
+    strip_prefix = "jextract-25-jextract+2-4",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-x64_bin.tar.gz",
     ],
-    sha256 = "de64f1c73d15677bd04a26a92be3bf847f639fa705f2d97efa07559b498b6f64",
-    strip_prefix = "jextract-25-jextract+2-4",
-    os = "linux",
-    cpu = "x86_64",
 )
-
 jdk23_ext.add_jextract(
     name = "jextract_linux_arm64",
+    cpu = "arm64",
+    os = "linux",
+    sha256 = "9154a515d5c8e91ebe749570540f29792e16958d6063beda02e7da8cca3fb881",
+    strip_prefix = "jextract-25-jextract+2-4",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-aarch64_bin.tar.gz",
     ],
-    sha256 = "9154a515d5c8e91ebe749570540f29792e16958d6063beda02e7da8cca3fb881",
-    strip_prefix = "jextract-25-jextract+2-4",
-    os = "linux",
-    cpu = "arm64",
 )
-
 use_repo(
     jdk23_ext,
-    "jdk23_toolchains",
-    "jdk23_macos_arm64_repo",
-    "jdk23_linux_x86_64_repo",
     "jdk23_linux_arm64_repo",
-    "jextract_macos_arm64_repo",
-    "jextract_linux_x86_64_repo",
+    "jdk23_linux_x86_64_repo",
+    "jdk23_macos_arm64_repo",
+    "jdk23_toolchains",
     "jextract_linux_arm64_repo",
+    "jextract_linux_x86_64_repo",
+    "jextract_macos_arm64_repo",
 )
 
 register_toolchains("@jdk23_toolchains//:all")

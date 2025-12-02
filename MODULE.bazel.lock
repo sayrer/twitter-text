@@ -210,7 +210,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%rust_deps": {
       "general": {
-        "bzlTransitiveDigest": "UvSbJrVv0gKoqAS0Qe3SkK+tC9pbabTzBiAMujS5gCc=",
+        "bzlTransitiveDigest": "0v31WeBqjZ0cpyh3ZqLCk2bTATmOAYzwjbHC/jS1YHg=",
         "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -835,16 +835,16 @@
               "build_file": "@@//3rdparty/crates:BUILD.lazycell-1.3.0.bazel"
             }
           },
-          "twitter_text__libc-0.2.177": {
+          "twitter_text__libc-0.2.178": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
-              "sha256": "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976",
+              "sha256": "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091",
               "type": "tar.gz",
               "urls": [
-                "https://static.crates.io/crates/libc/0.2.177/download"
+                "https://static.crates.io/crates/libc/0.2.178/download"
               ],
-              "strip_prefix": "libc-0.2.177",
-              "build_file": "@@//3rdparty/crates:BUILD.libc-0.2.177.bazel"
+              "strip_prefix": "libc-0.2.178",
+              "build_file": "@@//3rdparty/crates:BUILD.libc-0.2.178.bazel"
             }
           },
           "twitter_text__libloading-0.8.9": {
@@ -1851,6 +1851,7 @@
             "twitter_text__cxx-1.0.190",
             "twitter_text__idna-1.1.0",
             "twitter_text__lazy_static-1.5.0",
+            "twitter_text__libc-0.2.178",
             "twitter_text__log-0.4.28",
             "twitter_text__magnus-0.8.2",
             "twitter_text__pest-2.8.4",
@@ -1900,7 +1901,7 @@
     "//tools:jdk23_and_jextract.bzl%jdk23_ext": {
       "general": {
         "bzlTransitiveDigest": "YKUACIOjJCFWhJpwXZzWmnDT9msoPHnRVh3tDIW3DbM=",
-        "usagesDigest": "MDrrO8RAWb+Osb+RLFYKMa5IzvhZSem25sp+OrZ2LRs=",
+        "usagesDigest": "u5EApC4u4VKTy/SZAnTMN5idEHo6TYJsymZxcBJ0nok=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

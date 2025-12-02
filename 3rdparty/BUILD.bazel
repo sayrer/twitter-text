@@ -62,6 +62,9 @@ crates_vendor(
         "pyo3-macros": crate.spec(
             version = "0.20",
         ),
+        "libc": crate.spec(
+            version = "0.2.178",
+        ),
     },
     repository_name = "twitter_text",
     tags = ["manual"],
