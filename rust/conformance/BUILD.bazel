@@ -4,6 +4,10 @@ load("@rules_rust//rust:defs.bzl", "rust_test")
 load("@rules_python//python:defs.bzl", "py_binary")
 load("@tld_gen_deps//:requirements.bzl", "requirement")
 
+exports_files([
+    "tests/tld_gen_requirements.txt",
+])
+
 rust_test(
     name = "autolink_test",
     srcs = [

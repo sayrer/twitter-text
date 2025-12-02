@@ -93,7 +93,12 @@ pip.parse(
     python_version = "3.10",
     requirements_lock = "//rust/conformance/tests:tld_gen_requirements.txt",
 )
-use_repo(pip, "tld_gen_deps")
+pip.parse(
+    hub_name = "rust_python_test_deps",
+    python_version = "3.10",
+    requirements_lock = "//rust_bindings/python/test:requirements.txt",
+)
+use_repo(pip, "tld_gen_deps", "rust_python_test_deps")
 
 ###############################################################################
 # Ruby for Magnus

@@ -8,3 +8,8 @@ build --action_env=LDFLAGS="-L/opt/homebrew/lib"
 
 # Point rb-sys to Homebrew's Ruby 3.2 for introspection
 build --action_env=RUBY=/opt/homebrew/opt/ruby@3.2/bin/ruby
+
+# JDK
+build --java_runtime_version=remote
+build --java_language_version=23
+build --tool_java_runtime_version=remote

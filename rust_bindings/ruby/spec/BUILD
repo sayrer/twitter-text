@@ -1,10 +1,9 @@
 load(
-    "@build_bazel_rules_ruby//ruby:defs.bzl",
-    "ruby_rspec",
-    "ruby_test",
+    "@rules_ruby//ruby:defs.bzl",
+    "rb_test",
 )
 
-ruby_test(
+rb_test(
     name = "twittertext-rspec-test",
     srcs = [
         ":spec_helper.rb",
