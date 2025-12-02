@@ -1,0 +1,39 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+
+# Rust C-ABI library for Java FFM
+rust_shared_library(
+    name = "twitter_text_java_ffm",
+    srcs = ["src/lib.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//rust_bindings/3rdparty/crates:serde",
+        "//rust_bindings/3rdparty/crates:serde_json",
+        "//rust_bindings/3rdparty/crates:libc",
+    ],
+    edition = "2021",
+)
+
+# TODO: Add rules for:
+# 1. Running jextract to generate Java bindings
+# 2. Compiling Java wrapper classes
+# 3. Running JUnit tests
+#
+# Example genrule for jextract:
+# genrule(
+#     name = "generate_java_bindings",
+#     srcs = ["include/twitter_text_c.h"],
+#     outs = ["generated/com/twitter/twittertext/ffi/twitter_text_c.java"],
+#     cmd = """
+#         jextract \
+#             --source \
+#             -t com.twitter.twittertext.ffi \
+#             -l twitter_text_java_ffm \
+#             $(location include/twitter_text_c.h) \
+#             -d $(@D)/generated
+#     """,
+#     tools = ["@jextract//:jextract"],  # Need to add jextract to WORKSPACE/MODULE.bazel
+# )

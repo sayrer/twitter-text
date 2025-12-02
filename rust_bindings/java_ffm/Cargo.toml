@@ -1,0 +1,19 @@
+[package]
+name = "twitter-text-java-ffm"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+twitter-text = { path = "../../rust/twitter-text" }
+twitter-text-config = { path = "../../rust/config" }
+twitter-text-parser = { path = "../../rust/parser" }
+
+# For JSON serialization if needed
+serde = "1.0"
+serde_json = "1.0"
+
+# For C string handling
+libc = "0.2"

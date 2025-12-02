@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+
+# Build the C shared library
+cc_binary(
+    name = "libmath.so",
+    srcs = [
+        "math.c",
+        "math.h",
+    ],
+    linkshared = True,
+    visibility = ["//visibility:public"],
+)
+
+# Java bindings library
+java_library(
+    name = "math_bindings",
+    srcs = ["MathBindings.java"],
+    javacopts = [
+        "--release 23",
+    ],
+)
+
+# Main Java application
+java_binary(
+    name = "main",
+    srcs = ["Main.java"],
+    jvm_flags = [
+        "--enable-native-access=ALL-UNNAMED",
+    ],
+    main_class = "Main",
+    deps = [":math_bindings"],
+    data = [":libmath.so"],
+)

@@ -1897,6 +1897,94 @@
         ]
       }
     },
+    "//tools:jdk23_and_jextract.bzl%jdk23_ext": {
+      "general": {
+        "bzlTransitiveDigest": "YKUACIOjJCFWhJpwXZzWmnDT9msoPHnRVh3tDIW3DbM=",
+        "usagesDigest": "MDrrO8RAWb+Osb+RLFYKMa5IzvhZSem25sp+OrZ2LRs=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "jdk23_macos_arm64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.2_7.tar.gz"
+              ],
+              "sha256": "749993e751f085c7ae713140066a90800075e4aeedfac50a5ed0c5457131c5a0",
+              "strip_prefix": "jdk-23.0.2+7",
+              "build_file_content": "\nload(\"@rules_java//java:defs.bzl\", \"java_runtime\")\n\nfilegroup(\n    name = \"jdk_files\",\n    srcs = glob(\n        [\"**\"],\n        exclude = [\"**/*src.zip\"],\n    ),\n)\n\njava_runtime(\n    name = \"runtime\",\n    java_home = \"Contents/Home\",\n    java = \"Contents/Home/bin/java\",\n    srcs = [\":jdk_files\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jdk23_linux_x86_64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_x64_linux_hotspot_23.0.2_7.tar.gz"
+              ],
+              "sha256": "716b0451e90a321e4f54bc5fe763bd877d83d3d2f502fb551563da28e112670a",
+              "strip_prefix": "jdk-23.0.2+7",
+              "build_file_content": "\nload(\"@rules_java//java:defs.bzl\", \"java_runtime\")\n\nfilegroup(\n    name = \"jdk_files\",\n    srcs = glob(\n        [\"**\"],\n        exclude = [\"**/*src.zip\"],\n    ),\n)\n\njava_runtime(\n    name = \"runtime\",\n    java_home = \".\",\n    java = \"bin/java\",\n    srcs = [\":jdk_files\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jdk23_linux_arm64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_linux_hotspot_23.0.2_7.tar.gz"
+              ],
+              "sha256": "2ff2fa69a415364948ec383b7d33a78e3c3a8b74e958c630c1099a182fe4df19",
+              "strip_prefix": "jdk-23.0.2+7",
+              "build_file_content": "\nload(\"@rules_java//java:defs.bzl\", \"java_runtime\")\n\nfilegroup(\n    name = \"jdk_files\",\n    srcs = glob(\n        [\"**\"],\n        exclude = [\"**/*src.zip\"],\n    ),\n)\n\njava_runtime(\n    name = \"runtime\",\n    java_home = \".\",\n    java = \"bin/java\",\n    srcs = [\":jdk_files\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jextract_macos_arm64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_macos-aarch64_bin.tar.gz"
+              ],
+              "sha256": "f8b0cb60dd2f70373189f6ba79c6f1c353f336b5a2de3c445692ba1091d651bb",
+              "strip_prefix": "jextract-25-jextract+2-4",
+              "build_file_content": "\nfilegroup(\n    name = \"jextract_bin\",\n    srcs = [\"bin/jextract\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jextract_linux_x86_64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-x64_bin.tar.gz"
+              ],
+              "sha256": "de64f1c73d15677bd04a26a92be3bf847f639fa705f2d97efa07559b498b6f64",
+              "strip_prefix": "jextract-25-jextract+2-4",
+              "build_file_content": "\nfilegroup(\n    name = \"jextract_bin\",\n    srcs = [\"bin/jextract\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jextract_linux_arm64_repo": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-aarch64_bin.tar.gz"
+              ],
+              "sha256": "9154a515d5c8e91ebe749570540f29792e16958d6063beda02e7da8cca3fb881",
+              "strip_prefix": "jextract-25-jextract+2-4",
+              "build_file_content": "\nfilegroup(\n    name = \"jextract_bin\",\n    srcs = [\"bin/jextract\"],\n    visibility = [\"//visibility:public\"],\n)\n"
+            }
+          },
+          "jdk23_toolchains": {
+            "repoRuleId": "@@//tools:jdk23_and_jextract.bzl%_create_toolchains_repo",
+            "attributes": {}
+          }
+        },
+        "recordedRepoMappingEntries": [
+          [
+            "",
+            "bazel_tools",
+            "bazel_tools"
+          ]
+        ]
+      }
+    },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
         "bzlTransitiveDigest": "OlvsB0HsvxbR8ZN+J9Vf00X/+WVz/Y/5Xrq2LgcVfdo=",
