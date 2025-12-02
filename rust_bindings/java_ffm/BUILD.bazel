@@ -10,9 +10,9 @@ rust_shared_library(
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
         "//rust/parser:twitter_text_parser",
-        "//rust_bindings/3rdparty/crates:serde",
-        "//rust_bindings/3rdparty/crates:serde_json",
-        "//rust_bindings/3rdparty/crates:libc",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
+        "//3rdparty/crates:libc",
     ],
     edition = "2021",
 )

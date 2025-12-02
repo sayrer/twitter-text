@@ -185,7 +185,7 @@ cxxbridge_cmd_deps.splicing_config(
 )
 cxxbridge_cmd_deps.from_cargo(
     name = "cxxbridge_cmd_deps",
-    cargo_lockfile = "//rust_bindings/3rdparty/cxxbridge:Cargo.lock",
+    cargo_lockfile = "//3rdparty/cxxbridge:Cargo.lock",
     manifests = ["@cxxbridge-cmd//:Cargo.toml"],
 )
 use_repo(

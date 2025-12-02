@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_static_library", "rust_test")
-load("//rust_bindings/3rdparty/cxxbridge:rust_cxx_bridge.bzl", "rust_cxx_bridge")
+load("//3rdparty/cxxbridge:rust_cxx_bridge.bzl", "rust_cxx_bridge")
 
 filegroup(
     name = "twitter_text_ffi",
@@ -21,10 +21,10 @@ twitter_text_srcs = [
 twitter_text_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
-    "//rust_bindings/3rdparty/crates:cxx",   # Rust side of CXX
-    "//rust_bindings/3rdparty/crates:idna",
-    "//rust_bindings/3rdparty/crates:pest",
-    "//rust_bindings/3rdparty/crates:unicode-normalization",
+    "//3rdparty/crates:cxx",   # Rust side of CXX
+    "//3rdparty/crates:idna",
+    "//3rdparty/crates:pest",
+    "//3rdparty/crates:unicode-normalization",
 ]
 
 # 1) Core Rust crate, no cxx in the public API
@@ -86,10 +86,10 @@ cc_library(
     ],
     deps = [
         ":twitter_text",
-        "//rust_bindings/3rdparty/crates:cxx_cc"
+        "//3rdparty/crates:cxx_cc"
     ],
     copts = [
-        "-Iexternal/rust_bindings/3rdparty/crates/cxx/include",
+        "-Iexternal/3rdparty/crates/cxx/include",
     ],
 )
 

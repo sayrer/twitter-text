@@ -1,7 +1,7 @@
 """This module loads crate dependencies"""
 
 # rename the default name "crate_repositories" in case you import multiple vendored folders.
-load("//rust_bindings/3rdparty/crates:defs.bzl", crate_repositories = "crate_repositories")
+load("//3rdparty/crates:defs.bzl", crate_repositories = "crate_repositories")
 
 def sys_deps():
     """

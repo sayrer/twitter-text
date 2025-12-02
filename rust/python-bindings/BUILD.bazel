@@ -8,13 +8,13 @@ rust_shared_library(
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/lib.rs",
     proc_macro_deps = [
-        "//rust_bindings/3rdparty/crates:pyo3-macros",
+        "//3rdparty/crates:pyo3-macros",
     ],
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
         "//rust/parser:twitter_text_parser",
-        "//rust_bindings/3rdparty/crates:pyo3",
+        "//3rdparty/crates:pyo3",
     ],
     edition = "2021",
     crate_features = ["extension-module"],

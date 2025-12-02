@@ -46,7 +46,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        "//rust_bindings/3rdparty/crates:cxx_cc",
+        "//3rdparty/crates:cxx_cc",
         "//rust/twitter-text:twitter_text_wrapper",
         "//rust_bindings/cpp:twitter_text",
         "@googletest//:gtest_main",

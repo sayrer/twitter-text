@@ -18,10 +18,10 @@ rust_library(
         "src/twitter_text.pest",
     ],
     deps = [
-        "//rust_bindings/3rdparty/crates:pest",
+        "//3rdparty/crates:pest",
     ],
     edition = "2021",
     proc_macro_deps = [
-        "//rust_bindings/3rdparty/crates:pest_derive",
+        "//3rdparty/crates:pest_derive",
     ],
 )

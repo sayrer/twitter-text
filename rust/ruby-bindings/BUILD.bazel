@@ -10,7 +10,7 @@ rust_shared_library(
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
         "//rust/parser:twitter_text_parser",
-        "//rust_bindings/3rdparty/crates:magnus",
+        "//3rdparty/crates:magnus",
     ],
     edition = "2021",
     rustc_env = {
