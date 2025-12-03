@@ -90,7 +90,7 @@ pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     hub_name = "tld_gen_deps",
     python_version = "3.10",
-    requirements_lock = "//rust/conformance/tests:tld_gen_requirements.txt",
+    requirements_lock = "//rust/conformance:tests/tld_gen_requirements.txt",
 )
 pip.parse(
     hub_name = "rust_python_test_deps",
