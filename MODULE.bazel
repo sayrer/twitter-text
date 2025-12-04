@@ -172,10 +172,10 @@ rust_binary(
     ),
 )
     """,
-    sha256 = "6a368ed4a0fd83ebd3f2808613842d942a409c41cc24cd9d83f1696a00d78afe",
-    strip_prefix = "cxxbridge-cmd-1.0.189",
+    sha256 = "b1f29a879d35f7906e3c9b77d7a1005a6a0787d330c09dfe4ffb5f617728cb44",
+    strip_prefix = "cxxbridge-cmd-1.0.190",
     type = "tar.gz",
-    urls = ["https://static.crates.io/crates/cxxbridge-cmd/cxxbridge-cmd-1.0.189.crate"],
+    urls = ["https://static.crates.io/crates/cxxbridge-cmd/cxxbridge-cmd-1.0.190.crate"],
 )
 
 cxxbridge_cmd_deps = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")

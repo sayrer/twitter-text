@@ -2331,8 +2331,8 @@
         "bzlTransitiveDigest": "6DG8sn3YiXtPLKCpgmwjZPvuC++agRRBkn62FETZtiU=",
         "usagesDigest": "7QTThtUDcroHuIP7YGR6scF2yVSY8foQKPPk6MJNNDw=",
         "recordedFileInputs": {
-          "@@+_repo_rules+cxxbridge-cmd//Cargo.toml": "40e1d37b81cb55af84175679d9fc31ee147d3aae72468097f0f1cc28c3e4c2b0",
-          "@@//3rdparty/cxxbridge/Cargo.lock": "a6bc8c5758ee6ff5ac0d93eeade606ff18b8e314113b01582afc818d6e6a8117"
+          "@@+_repo_rules+cxxbridge-cmd//Cargo.toml": "e1ea8d7de8a76a9f8534902c3feee69bf09981dfab9a7b1ca18e5380631bc4d1",
+          "@@//3rdparty/cxxbridge/Cargo.lock": "0c5fe3dc580d275436fac1cdd2e1b80a5bed8cf36814697a6538aaed427227c0"
         },
         "recordedDirentsInputs": {},
         "envVariables": {
