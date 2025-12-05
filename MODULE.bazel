@@ -154,6 +154,9 @@ use_repo(
 #
 # The codegen tool needed by cxx.
 #
+
+CXX_BRIDGE_VERSION = "1.0.190"
+
 http_archive(
     name = "cxxbridge-cmd",
     build_file_content = """
@@ -170,12 +173,13 @@ rust_binary(
     deps = all_crate_deps(
         normal = True,
     ),
+    version = "%s",
 )
-    """,
+    """ % CXX_BRIDGE_VERSION,
     sha256 = "b1f29a879d35f7906e3c9b77d7a1005a6a0787d330c09dfe4ffb5f617728cb44",
-    strip_prefix = "cxxbridge-cmd-1.0.190",
+    strip_prefix = "cxxbridge-cmd-" + CXX_BRIDGE_VERSION,
     type = "tar.gz",
-    urls = ["https://static.crates.io/crates/cxxbridge-cmd/cxxbridge-cmd-1.0.190.crate"],
+    urls = ["https://static.crates.io/crates/cxxbridge-cmd/cxxbridge-cmd-" + CXX_BRIDGE_VERSION + ".crate"],
 )
 
 cxxbridge_cmd_deps = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")

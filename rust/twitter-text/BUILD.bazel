@@ -60,7 +60,7 @@ genrule(
         "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.h"],
-    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) | sed 's/\\$$cxxbridge1\\$$0\\$$/\\$$cxxbridge1\\$$190\\$$/g' > $(location twitter-text.h)",
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.h)",
     tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
@@ -71,7 +71,7 @@ genrule(
         "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.cpp"],
-    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi) | sed 's/\\$$cxxbridge1\\$$0\\$$/\\$$cxxbridge1\\$$190\\$$/g' > $(location twitter-text.cpp)",
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi)> $(location twitter-text.cpp)",
     tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
