@@ -1,8 +1,14 @@
+use crate::CRange;
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
+use twitter_text_config::Configuration;
+
 /* ============================================================================
  * C-compatible Configuration types
  * ========================================================================= */
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct CWeightedRange {
     range: CRange,
     weight: i32,

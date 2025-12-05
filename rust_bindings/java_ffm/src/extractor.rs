@@ -1,3 +1,8 @@
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
+use twitter_text::extractor::Extractor;
+use twitter_text_config::Configuration;
+
 /* ============================================================================
  * C-compatible Entity types
  * ========================================================================= */
@@ -44,16 +49,17 @@ pub struct CStringArray {
  * ========================================================================= */
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct CRange {
-    start: i32,
-    end: i32,
+    pub start: i32,
+    pub end: i32,
 }
 
 impl From<twitter_text_config::Range> for CRange {
     fn from(r: twitter_text_config::Range) -> Self {
         CRange {
-            start: r.start,
-            end: r.end,
+            start: r.start(),
+            end: r.end(),
         }
     }
 }

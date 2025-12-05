@@ -104,14 +104,7 @@ pub extern "C" fn twitter_text_hit_highlighter_highlight(
  * Free function for returned strings
  * ========================================================================= */
 
-#[no_mangle]
-pub extern "C" fn twitter_text_string_free(s: *mut c_char) {
-    if !s.is_null() {
-        unsafe {
-            let _ = CString::from_raw(s);
-        }
-    }
-}
+// Note: twitter_text_string_free is defined in autolink.rs and shared across modules
 
 /* ============================================================================
  * Default constant

@@ -133,8 +133,13 @@ alias(
     }),
 )
 
-# Filegroup for the generated Java sources
-filegroup(
+# Java library from the generated sources
+java_library(
     name = "generated_java_sources",
-    srcs = [":generate_java_bindings"],
+    srcs = [":twitter_text_bindings.srcjar"],
+    javacopts = [
+        "--enable-preview",
+        "--release",
+        "23",
+    ],
 )
