@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 typedef struct TwitterTextConfiguration TwitterTextConfiguration;

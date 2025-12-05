@@ -256,30 +256,30 @@ jdk23_ext.add_jextract(
     name = "jextract_macos_arm64",
     cpu = "arm64",
     os = "macos",
-    sha256 = "f8b0cb60dd2f70373189f6ba79c6f1c353f336b5a2de3c445692ba1091d651bb",
-    strip_prefix = "jextract-25-jextract+2-4",
+    sha256 = "",  # TODO: Add checksum
+    strip_prefix = "jextract-25",
     urls = [
-        "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_macos-aarch64_bin.tar.gz",
+        "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_macos-aarch64_bin.tar.gz",
     ],
 )
 jdk23_ext.add_jextract(
     name = "jextract_linux_x86_64",
     cpu = "x86_64",
     os = "linux",
-    sha256 = "de64f1c73d15677bd04a26a92be3bf847f639fa705f2d97efa07559b498b6f64",
-    strip_prefix = "jextract-25-jextract+2-4",
+    sha256 = "",  # TODO: Add checksum
+    strip_prefix = "jextract-25",
     urls = [
-        "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-x64_bin.tar.gz",
+        "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-x64_bin.tar.gz",
     ],
 )
 jdk23_ext.add_jextract(
     name = "jextract_linux_arm64",
     cpu = "arm64",
     os = "linux",
-    sha256 = "9154a515d5c8e91ebe749570540f29792e16958d6063beda02e7da8cca3fb881",
-    strip_prefix = "jextract-25-jextract+2-4",
+    sha256 = "",  # TODO: Add checksum
+    strip_prefix = "jextract-25",
     urls = [
-        "https://download.java.net/java/early_access/jextract/25/binaries/jextract-25-jextract+2-4_linux-aarch64_bin.tar.gz",
+        "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-aarch64_bin.tar.gz",
     ],
 )
 use_repo(

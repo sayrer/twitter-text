@@ -40,17 +40,64 @@ pub struct CStringArray {
 }
 
 /* ============================================================================
- * Extractor API
+ * Parse Results types
+ * ========================================================================= */
+
+#[repr(C)]
+pub struct CRange {
+    start: i32,
+    end: i32,
+}
+
+impl From<twitter_text_config::Range> for CRange {
+    fn from(r: twitter_text_config::Range) -> Self {
+        CRange {
+            start: r.start,
+            end: r.end,
+        }
+    }
+}
+
+#[repr(C)]
+pub struct CParseResults {
+    weighted_length: i32,
+    permillage: i32,
+    is_valid: bool,
+    display_text_range: CRange,
+    valid_text_range: CRange,
+}
+
+impl From<twitter_text::TwitterTextParseResults> for CParseResults {
+    fn from(r: twitter_text::TwitterTextParseResults) -> Self {
+        CParseResults {
+            weighted_length: r.weighted_length,
+            permillage: r.permillage,
+            is_valid: r.is_valid,
+            display_text_range: r.display_text_range.into(),
+            valid_text_range: r.valid_text_range.into(),
+        }
+    }
+}
+
+#[repr(C)]
+pub struct CExtractResult {
+    parse_results: CParseResults,
+    entities: CEntityArray,
+}
+
+#[repr(C)]
+pub struct CMentionResult {
+    parse_results: CParseResults,
+    mention: *mut CEntity,
+}
+
+/* ============================================================================
+ * Basic Extractor API (no validation)
  * ========================================================================= */
 
 #[no_mangle]
-pub extern "C" fn twitter_text_extractor_new(config: *mut Configuration) -> *mut Extractor {
-    if config.is_null() {
-        return std::ptr::null_mut();
-    }
-
-    let config_ref = unsafe { &*config };
-    Box::into_raw(Box::new(Extractor::new(config_ref.clone())))
+pub extern "C" fn twitter_text_extractor_new() -> *mut Extractor {
+    Box::into_raw(Box::new(Extractor::new()))
 }
 
 #[no_mangle]
@@ -60,6 +107,28 @@ pub extern "C" fn twitter_text_extractor_free(extractor: *mut Extractor) {
             let _ = Box::from_raw(extractor);
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_extractor_set_extract_url_without_protocol(
+    extractor: *mut Extractor,
+    extract_url_without_protocol: bool,
+) {
+    if !extractor.is_null() {
+        unsafe {
+            (*extractor).set_extract_url_without_protocol(extract_url_without_protocol);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_extractor_get_extract_url_without_protocol(
+    extractor: *mut Extractor,
+) -> bool {
+    if extractor.is_null() {
+        return false;
+    }
+    unsafe { (*extractor).get_extract_url_without_protocol() }
 }
 
 #[no_mangle]
@@ -518,5 +587,397 @@ pub extern "C" fn twitter_text_string_array_free(array: CStringArray) {
                 }
             }
         }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_extract_result_free(result: CExtractResult) {
+    twitter_text_entity_array_free(result.entities);
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_mention_result_free(result: CMentionResult) {
+    if !result.mention.is_null() {
+        twitter_text_entity_free(result.mention);
+    }
+}
+
+/* ============================================================================
+ * Validating Extractor API (with parse results)
+ * ========================================================================= */
+
+use twitter_text::extractor::{Extract, ValidatingExtractor};
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_new(
+    config: *mut Configuration,
+) -> *mut ValidatingExtractor<'static> {
+    if config.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    // Leak the config to give it 'static lifetime
+    let config_ref: &'static Configuration = unsafe { &*(config as *const Configuration) };
+    Box::into_raw(Box::new(ValidatingExtractor::new(config_ref)))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_free(extractor: *mut ValidatingExtractor) {
+    if !extractor.is_null() {
+        unsafe {
+            let _ = Box::from_raw(extractor);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_set_extract_url_without_protocol(
+    extractor: *mut ValidatingExtractor,
+    extract_url_without_protocol: bool,
+) {
+    if !extractor.is_null() {
+        unsafe {
+            (*extractor).set_extract_url_without_protocol(extract_url_without_protocol);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_get_extract_url_without_protocol(
+    extractor: *mut ValidatingExtractor,
+) -> bool {
+    if extractor.is_null() {
+        return false;
+    }
+    unsafe { (*extractor).get_extract_url_without_protocol() }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_prep_input(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> *mut c_char {
+    if extractor.is_null() || text.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let extractor_ref = unsafe { &mut *extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let normalized = extractor_ref.prep_input(text_str);
+    CString::new(normalized).unwrap_or_default().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_urls_with_indices(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CExtractResult {
+    if extractor.is_null() || text.is_null() {
+        return CExtractResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            entities: CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            },
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CExtractResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                entities: CEntityArray {
+                    entities: std::ptr::null_mut(),
+                    length: 0,
+                },
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_urls_with_indices(text_str);
+    let length = result.entities.len();
+
+    let entities = if length == 0 {
+        CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        }
+    } else {
+        let mut c_entities: Vec<CEntity> = result.entities.into_iter().map(|e| e.into()).collect();
+        let entities_ptr = c_entities.as_mut_ptr();
+        std::mem::forget(c_entities);
+        CEntityArray {
+            entities: entities_ptr,
+            length,
+        }
+    };
+
+    CExtractResult {
+        parse_results: result.parse_results.into(),
+        entities,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_hashtags_with_indices(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CExtractResult {
+    if extractor.is_null() || text.is_null() {
+        return CExtractResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            entities: CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            },
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CExtractResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                entities: CEntityArray {
+                    entities: std::ptr::null_mut(),
+                    length: 0,
+                },
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_hashtags_with_indices(text_str);
+    let length = result.entities.len();
+
+    let entities = if length == 0 {
+        CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        }
+    } else {
+        let mut c_entities: Vec<CEntity> = result.entities.into_iter().map(|e| e.into()).collect();
+        let entities_ptr = c_entities.as_mut_ptr();
+        std::mem::forget(c_entities);
+        CEntityArray {
+            entities: entities_ptr,
+            length,
+        }
+    };
+
+    CExtractResult {
+        parse_results: result.parse_results.into(),
+        entities,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_cashtags_with_indices(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CExtractResult {
+    if extractor.is_null() || text.is_null() {
+        return CExtractResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            entities: CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            },
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CExtractResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                entities: CEntityArray {
+                    entities: std::ptr::null_mut(),
+                    length: 0,
+                },
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_cashtags_with_indices(text_str);
+    let length = result.entities.len();
+
+    let entities = if length == 0 {
+        CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        }
+    } else {
+        let mut c_entities: Vec<CEntity> = result.entities.into_iter().map(|e| e.into()).collect();
+        let entities_ptr = c_entities.as_mut_ptr();
+        std::mem::forget(c_entities);
+        CEntityArray {
+            entities: entities_ptr,
+            length,
+        }
+    };
+
+    CExtractResult {
+        parse_results: result.parse_results.into(),
+        entities,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_mentioned_screennames_with_indices(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CExtractResult {
+    if extractor.is_null() || text.is_null() {
+        return CExtractResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            entities: CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            },
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CExtractResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                entities: CEntityArray {
+                    entities: std::ptr::null_mut(),
+                    length: 0,
+                },
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_mentioned_screennames_with_indices(text_str);
+    let length = result.entities.len();
+
+    let entities = if length == 0 {
+        CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        }
+    } else {
+        let mut c_entities: Vec<CEntity> = result.entities.into_iter().map(|e| e.into()).collect();
+        let entities_ptr = c_entities.as_mut_ptr();
+        std::mem::forget(c_entities);
+        CEntityArray {
+            entities: entities_ptr,
+            length,
+        }
+    };
+
+    CExtractResult {
+        parse_results: result.parse_results.into(),
+        entities,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_entities_with_indices(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CExtractResult {
+    if extractor.is_null() || text.is_null() {
+        return CExtractResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            entities: CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            },
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CExtractResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                entities: CEntityArray {
+                    entities: std::ptr::null_mut(),
+                    length: 0,
+                },
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_entities_with_indices(text_str);
+    let length = result.entities.len();
+
+    let entities = if length == 0 {
+        CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        }
+    } else {
+        let mut c_entities: Vec<CEntity> = result.entities.into_iter().map(|e| e.into()).collect();
+        let entities_ptr = c_entities.as_mut_ptr();
+        std::mem::forget(c_entities);
+        CEntityArray {
+            entities: entities_ptr,
+            length,
+        }
+    };
+
+    CExtractResult {
+        parse_results: result.parse_results.into(),
+        entities,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validating_extractor_extract_reply_username(
+    extractor: *mut ValidatingExtractor,
+    text: *const c_char,
+) -> CMentionResult {
+    if extractor.is_null() || text.is_null() {
+        return CMentionResult {
+            parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+            mention: std::ptr::null_mut(),
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CMentionResult {
+                parse_results: twitter_text::TwitterTextParseResults::empty().into(),
+                mention: std::ptr::null_mut(),
+            }
+        }
+    };
+
+    let result = extractor_ref.extract_reply_username(text_str);
+
+    let mention = match result.mention {
+        Some(entity) => {
+            let c_entity: CEntity = entity.into();
+            Box::into_raw(Box::new(c_entity))
+        }
+        None => std::ptr::null_mut(),
+    };
+
+    CMentionResult {
+        parse_results: result.parse_results.into(),
+        mention,
     }
 }

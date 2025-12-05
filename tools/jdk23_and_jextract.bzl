@@ -237,18 +237,67 @@ java_runtime(
 
         # Create one repo per jextract
         for t in mod.tags.add_jextract:
+            # Determine the JDK repo name based on platform
+            jdk_repo_map = {
+                ("macos", "arm64"): ("@jdk23_macos_arm64_repo//:runtime", "jdk23_macos_arm64_repo"),
+                ("linux", "x86_64"): ("@jdk23_linux_x86_64_repo//:runtime", "jdk23_linux_x86_64_repo"),
+                ("linux", "arm64"): ("@jdk23_linux_arm64_repo//:runtime", "jdk23_linux_arm64_repo"),
+            }
+            jdk_target, jdk_target_short = jdk_repo_map.get((t.os, t.cpu), ("@jdk23_macos_arm64_repo//:runtime", "jdk23_macos_arm64_repo"))
+
+            build_content = """
+genrule(
+    name = "jextract_wrapper_gen",
+    outs = ["jextract_wrapper.sh"],
+    cmd = \"\"\"cat > $@ << 'EOF'
+#!/bin/bash
+set -e
+# Find the runfiles directory and JDK
+SCRIPT_DIR="$$(cd "$$(dirname "$$0")" && pwd)"
+RUNFILES="$$SCRIPT_DIR/../.."
+echo "DEBUG: SCRIPT_DIR=$$SCRIPT_DIR" >&2
+echo "DEBUG: RUNFILES=$$RUNFILES" >&2
+echo "DEBUG: Looking for JDK in $$RUNFILES" >&2
+JDK_BIN="$$(find "$$RUNFILES" -path "*%s/bin/java" -o -path "*%s/Contents/Home/bin/java" 2>/dev/null | head -1)"
+if [[ -z "$$JDK_BIN" ]]; then
+  echo "Error: Could not find JDK java binary" >&2
+  echo "DEBUG: Contents of RUNFILES:" >&2
+  ls -la "$$RUNFILES" >&2 || true
+  exit 1
+fi
+export JAVA_HOME="$$(dirname "$$(dirname "$$JDK_BIN")")"
+echo "DEBUG: JAVA_HOME=$$JAVA_HOME" >&2
+# Look for jextract in the runfiles directory
+JEXTRACT_BIN="$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/bin/jextract"
+echo "DEBUG: Looking for JEXTRACT_BIN at $$JEXTRACT_BIN" >&2
+if [[ ! -f "$$JEXTRACT_BIN" ]]; then
+  echo "Error: Could not find jextract binary at $$JEXTRACT_BIN" >&2
+  echo "DEBUG: Contents of jextract_bin.runfiles:" >&2
+  ls -la "$$SCRIPT_DIR/jextract_bin.runfiles/" 2>&1 | head -20 >&2 || true
+  echo "DEBUG: Contents of jextract_macos_arm64_repo:" >&2
+  ls -la "$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/" 2>&1 | head -20 >&2 || true
+  exit 1
+fi
+exec "$$JEXTRACT_BIN" "$$@"
+EOF
+chmod +x $@
+\"\"\",
+)
+
+sh_binary(
+    name = "jextract_bin",
+    srcs = [":jextract_wrapper.sh"],
+    data = ["%s"] + glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+""" % (jdk_target_short, jdk_target_short, jdk_target)
+
             http_archive(
                 name = t.name + "_repo",
                 urls = t.urls,
                 sha256 = t.sha256,
                 strip_prefix = t.strip_prefix,
-                build_file_content = """
-filegroup(
-    name = "jextract_bin",
-    srcs = ["bin/jextract"],
-    visibility = ["//visibility:public"],
-)
-""",
+                build_file_content = build_content,
             )
 
     # Create the central toolchains repo
