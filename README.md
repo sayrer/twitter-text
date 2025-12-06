@@ -9,6 +9,22 @@ To run the tests, [install Rust](https://www.rust-lang.org/tools/install), and t
 > cargo test
 ```
 
+### Ruby Bindings
+
+The Ruby bindings require **Ruby 3.3 or higher**. If you're on macOS with the system Ruby (2.6.x), you'll need to install a newer version:
+
+**Option 1: Homebrew (simplest)**
+```bash
+brew install ruby
+```
+
+**Option 2: Ruby version manager**
+* [rbenv](https://github.com/rbenv/rbenv)
+* [rvm](https://rvm.io/)
+* [asdf](https://asdf-vm.com/)
+
+The Ruby bindings use the [magnus](https://github.com/matsadler/magnus) crate which requires Ruby 3.3+ APIs.
+
 The original Twitter README content is below.
 
 twitter-text
