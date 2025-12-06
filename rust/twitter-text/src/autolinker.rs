@@ -58,6 +58,13 @@ pub const DEFAULT_CASHTAG_URL_BASE: &str = "https://twitter.com/search?q=%24";
 pub const DEFAULT_INVISIBLE_TAG_ATTRS: &str = "style='position:absolute;left:-9999px;'";
 
 /**
+ * Trait for modifying HTML attributes on generated links.
+ */
+pub trait LinkAttributeModifier {
+    fn modify(&self, entity: &Entity, attributes: &mut Attributes);
+}
+
+/**
  * Adds HTML links to hashtag, username and list references in Tweet text.
  */
 pub struct Autolinker<'a> {
@@ -77,6 +84,7 @@ pub struct Autolinker<'a> {
     pub invisible_tag_attrs: &'a str,
     pub username_include_symbol: bool,
     pub extractor: Extractor,
+    pub link_attribute_modifier: Option<Box<dyn LinkAttributeModifier + 'a>>,
 }
 
 impl<'a> Autolinker<'a> {
@@ -101,12 +109,13 @@ impl<'a> Autolinker<'a> {
             invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS,
             username_include_symbol: false,
             extractor,
+            link_attribute_modifier: None,
         }
     }
 
     fn link_to_text(
         &self,
-        _entity: &Entity,
+        entity: &Entity,
         original_text: &str,
         attributes: &mut Attributes,
         buf: &mut String,
@@ -115,11 +124,13 @@ impl<'a> Autolinker<'a> {
             attributes.push((String::from("rel"), String::from("nofollow")));
         }
 
+        // Call link attribute modifier if set
+        if let Some(ref modifier) = self.link_attribute_modifier {
+            modifier.modify(entity, attributes);
+        }
+
         let text = original_text;
         /*
-           if (linkAttributeModifier != null) {
-               linkAttributeModifier.modify(entity, attributes);
-           }
            if (linkTextModifier != null) {
                text = linkTextModifier.modify(entity, originalText);
             }
@@ -485,5 +496,97 @@ mod tests {
     fn test_escape_brackets() {
         let s = "foo <bar> baz & 'hmm' or \"hmm\"";
         assert_eq!("foo &lt;bar&gt; baz & 'hmm' or \"hmm\"", escape_brackets(s));
+    }
+
+    // Test modifier that adds custom attributes
+    struct TestAttributeModifier {
+        add_for_hashtags: bool,
+    }
+
+    impl LinkAttributeModifier for TestAttributeModifier {
+        fn modify(&self, entity: &Entity, attributes: &mut Vec<(String, String)>) {
+            if self.add_for_hashtags && entity.t == entity::Type::HASHTAG {
+                attributes.push(("data-test".to_string(), "hashtag-value".to_string()));
+            }
+        }
+    }
+
+    #[test]
+    fn test_link_attribute_modifier_adds_attribute_to_hashtag() {
+        let mut linker = Autolinker::new(false);
+        linker.link_attribute_modifier = Some(Box::new(TestAttributeModifier {
+            add_for_hashtags: true,
+        }));
+
+        let result = linker.autolink_hashtags("Check out #rust");
+
+        // Should contain the custom attribute
+        assert!(result.contains("data-test=\"hashtag-value\""));
+        // Should still contain the standard hashtag link
+        assert!(result.contains("href=\"https://twitter.com/search?q=%23rust\""));
+    }
+
+    #[test]
+    fn test_link_attribute_modifier_not_applied_to_mentions() {
+        let mut linker = Autolinker::new(false);
+        linker.link_attribute_modifier = Some(Box::new(TestAttributeModifier {
+            add_for_hashtags: true,
+        }));
+
+        let result = linker.autolink_usernames_and_lists("Hello @user");
+
+        // Should NOT contain the custom attribute (it's only for hashtags)
+        assert!(!result.contains("data-test"), "Result: {}", result);
+        // Should still contain a link (the @ symbol is wrapped)
+        assert!(result.contains("href="), "Result: {}", result);
+        assert!(result.contains("user"), "Result: {}", result);
+    }
+
+    #[test]
+    fn test_link_attribute_modifier_with_autolink() {
+        let mut linker = Autolinker::new(true);
+        linker.link_attribute_modifier = Some(Box::new(TestAttributeModifier {
+            add_for_hashtags: true,
+        }));
+
+        let result = linker.autolink("#hashtag and @mention");
+
+        // Hashtag should have the custom attribute
+        assert!(
+            result.contains("data-test=\"hashtag-value\""),
+            "Result: {}",
+            result
+        );
+        // Hashtag should have nofollow
+        assert!(result.contains("rel=\"nofollow\""), "Result: {}", result);
+        // The custom attribute should only appear once (only on hashtag, not mention)
+        assert_eq!(result.matches("data-test").count(), 1, "Result: {}", result);
+    }
+
+    // Test modifier that modifies existing attributes
+    struct OverrideModifier;
+
+    impl LinkAttributeModifier for OverrideModifier {
+        fn modify(&self, _entity: &Entity, attributes: &mut Vec<(String, String)>) {
+            // Change the class attribute
+            for (key, value) in attributes.iter_mut() {
+                if key == "class" {
+                    *value = "custom-class".to_string();
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_link_attribute_modifier_can_override_class() {
+        let mut linker = Autolinker::new(false);
+        linker.link_attribute_modifier = Some(Box::new(OverrideModifier));
+
+        let result = linker.autolink_hashtags("#test");
+
+        // Should contain the overridden class
+        assert!(result.contains("class=\"custom-class\""));
+        // Should not contain the default class
+        assert!(!result.contains("tweet-url hashtag"));
     }
 }
