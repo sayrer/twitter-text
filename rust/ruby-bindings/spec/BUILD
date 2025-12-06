@@ -15,12 +15,12 @@ rb_test(
     ],
     main = "@bundle//bin:rspec",
     args = [
-        "rust_bindings/ruby/spec",
+        "rust/ruby-bindings/spec",
     ],
     data = [
         "@bundle//bin:rspec",
         "@bundle//:bundle",
-        "//rust_bindings/ruby:twitter_text_shared_library",
+        "//rust/ruby-bindings:twittertext",
         "//rust_bindings/cpp:config_test_data",
         "//rust/conformance:yaml",
     ],
