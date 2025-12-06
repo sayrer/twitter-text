@@ -257,6 +257,18 @@ pub extern "C" fn twitter_text_autolinker_set_username_include_symbol(
     }
 }
 
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_set_no_follow(
+    autolinker: *mut Autolinker,
+    no_follow: bool,
+) {
+    if !autolinker.is_null() {
+        unsafe {
+            (*autolinker).no_follow = no_follow;
+        }
+    }
+}
+
 /* ============================================================================
  * Autolinking functions
  * ========================================================================= */

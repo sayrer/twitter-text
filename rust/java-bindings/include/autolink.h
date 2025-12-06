@@ -81,6 +81,11 @@ void twitter_text_autolinker_set_username_include_symbol(
     bool username_include_symbol
 );
 
+void twitter_text_autolinker_set_no_follow(
+    TwitterTextAutolinker* autolinker,
+    bool no_follow
+);
+
 /* Autolinking functions - all return HTML strings that must be freed */
 
 /* Auto-link all entities (URLs, hashtags, mentions, cashtags) */

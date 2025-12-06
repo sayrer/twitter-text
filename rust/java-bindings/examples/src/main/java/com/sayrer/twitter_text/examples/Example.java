@@ -1,6 +1,6 @@
 package com.sayrer.twitter_text.examples;
 
-import com.sayrer.twitter_text.Autolinker;
+import com.sayrer.twitter_text.Autolink;
 import com.sayrer.twitter_text.Extractor;
 import com.sayrer.twitter_text.Validator;
 
@@ -25,22 +25,23 @@ public class Example {
     private static void autolinkExample() {
         System.out.println("--- Autolinker Example ---");
 
-        String text = "Check out https://example.com, follow @twitter, use #java, and invest in $TWTR!";
+        String text =
+            "Check out https://example.com, follow @twitter, use #java, and invest in $TWTR!";
         System.out.println("Input: " + text);
 
-        try (Autolinker autolinker = Autolinker.create(true)) {
+        try (Autolink autolink = Autolink.create(true)) {
             // Configure the autolinker
-            autolinker.setUrlClass("tweet-url");
-            autolinker.setHashtagClass("tweet-hashtag");
-            autolinker.setUsernameClass("tweet-mention");
-            autolinker.setCashtagClass("tweet-cashtag");
+            autolink.setUrlClass("tweet-url");
+            autolink.setHashtagClass("tweet-hashtag");
+            autolink.setUsernameClass("tweet-mention");
+            autolink.setCashtagClass("tweet-cashtag");
 
             // Auto-link all entities
-            String linked = autolinker.autolink(text);
+            String linked = autolink.autolink(text);
             System.out.println("Output: " + linked);
 
             // Auto-link only URLs
-            String urlsLinked = autolinker.autolinkUrls(text);
+            String urlsLinked = autolink.autolinkUrls(text);
             System.out.println("URLs only: " + urlsLinked);
         }
 
@@ -50,7 +51,8 @@ public class Example {
     private static void extractorExample() {
         System.out.println("--- Extractor Example ---");
 
-        String text = "RT @user: Check out https://example.com and https://test.org! #awesome #cool $AAPL $GOOGL";
+        String text =
+            "RT @user: Check out https://example.com and https://test.org! #awesome #cool $AAPL $GOOGL";
         System.out.println("Input: " + text);
 
         try (Extractor extractor = Extractor.create()) {
@@ -101,37 +103,61 @@ public class Example {
             String validTweet = "This is a valid tweet!";
             String tooLong = "a".repeat(300);
 
-            System.out.println("Is valid tweet '" + validTweet + "': " +
-                validator.isValidTweet(validTweet));
-            System.out.println("Is valid tweet (300 chars): " +
-                validator.isValidTweet(tooLong));
+            System.out.println(
+                "Is valid tweet '" +
+                    validTweet +
+                    "': " +
+                    validator.isValidTweet(validTweet)
+            );
+            System.out.println(
+                "Is valid tweet (300 chars): " + validator.isValidTweet(tooLong)
+            );
 
             // Validate usernames
-            System.out.println("Is valid username 'twitter': " +
-                validator.isValidUsername("twitter"));
-            System.out.println("Is valid username 'inv@lid': " +
-                validator.isValidUsername("inv@lid"));
+            System.out.println(
+                "Is valid username 'twitter': " +
+                    validator.isValidUsername("twitter")
+            );
+            System.out.println(
+                "Is valid username 'inv@lid': " +
+                    validator.isValidUsername("inv@lid")
+            );
 
             // Validate hashtags
-            System.out.println("Is valid hashtag 'java': " +
-                validator.isValidHashtag("java"));
-            System.out.println("Is valid hashtag '#invalid': " +
-                validator.isValidHashtag("#invalid"));
+            System.out.println(
+                "Is valid hashtag 'java': " + validator.isValidHashtag("java")
+            );
+            System.out.println(
+                "Is valid hashtag '#invalid': " +
+                    validator.isValidHashtag("#invalid")
+            );
 
             // Validate URLs
-            System.out.println("Is valid URL 'https://example.com': " +
-                validator.isValidUrl("https://example.com"));
-            System.out.println("Is valid URL 'not a url': " +
-                validator.isValidUrl("not a url"));
+            System.out.println(
+                "Is valid URL 'https://example.com': " +
+                    validator.isValidUrl("https://example.com")
+            );
+            System.out.println(
+                "Is valid URL 'not a url': " + validator.isValidUrl("not a url")
+            );
 
             // Validate URLs without protocol
-            System.out.println("Is valid URL without protocol 'example.com': " +
-                validator.isValidUrlWithoutProtocol("example.com"));
+            System.out.println(
+                "Is valid URL without protocol 'example.com': " +
+                    validator.isValidUrlWithoutProtocol("example.com")
+            );
 
             // Get configuration
-            System.out.println("Max tweet length: " + validator.getMaxTweetLength());
-            System.out.println("Short URL length: " + validator.getShortUrlLength());
-            System.out.println("Short URL length (HTTPS): " + validator.getShortUrlLengthHttps());
+            System.out.println(
+                "Max tweet length: " + validator.getMaxTweetLength()
+            );
+            System.out.println(
+                "Short URL length: " + validator.getShortUrlLength()
+            );
+            System.out.println(
+                "Short URL length (HTTPS): " +
+                    validator.getShortUrlLengthHttps()
+            );
         }
 
         System.out.println();
