@@ -15,3 +15,7 @@ twitter-text.iml
 /bazel-out
 /bazel-twitter-text
 /.vscode
+
+# Python and Ruby bindings artifacts
+*.so
+*.bundle

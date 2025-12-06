@@ -20,6 +20,7 @@ rb_test(
     data = [
         "@bundle//bin:rspec",
         "@bundle//:bundle",
+        "//rust/ruby-bindings:check_ruby_version",
         "//rust/ruby-bindings:twittertext",
         "//rust_bindings/cpp:config_test_data",
         "//rust/conformance:yaml",
