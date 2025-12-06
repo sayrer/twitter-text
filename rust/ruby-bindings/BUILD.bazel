@@ -16,7 +16,8 @@ genrule(
             echo "Found: Ruby $$RUBY_VERSION" >&2
             echo "" >&2
             echo "The magnus crate (0.8.2) used by these bindings requires Ruby 3.3+ APIs." >&2
-            echo "Please upgrade your Ruby installation or use a Ruby version manager like:" >&2
+            echo "Please upgrade your Ruby installation:" >&2
+            echo "  - Homebrew: brew install ruby" >&2
             echo "  - rbenv: https://github.com/rbenv/rbenv" >&2
             echo "  - rvm: https://rvm.io/" >&2
             echo "  - asdf: https://asdf-vm.com/" >&2
