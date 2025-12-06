@@ -25,15 +25,13 @@ rust_shared_library(
     }),
 )
 
-# Copy the shared library to the right name for Ruby to import
+# Copy the shared library to the right name for Ruby to import (macOS only)
 genrule(
     name = "twittertext_bundle",
     srcs = [":twittertext_cdylib"],
     outs = ["twittertext.bundle"],
-    cmd = select({
-        "@platforms//os:macos": "cp $(location :twittertext_cdylib) $@",
-        "//conditions:default": "cp $(location :twittertext_cdylib) $@ && mv $@ $(@D)/twittertext.so",
-    }),
+    cmd = "cp $(location :twittertext_cdylib) $@",
+    target_compatible_with = ["@platforms//os:macos"],
 )
 
 # For Linux, create .so file
