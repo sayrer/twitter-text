@@ -65,11 +65,13 @@ namespace twitter_text {
 TEST(HithighlighterTest, Ctor) {
   HitHighlighter *highlighter = new HitHighlighter();
   ASSERT_NE(highlighter, nullptr);
+  delete highlighter;
 }
 
 TEST(HithighlighterTest, CtorWithString) {
   HitHighlighter *highlighter = new HitHighlighter("hmm");
   ASSERT_NE(highlighter, nullptr);
+  delete highlighter;
 }
 
 TEST(HithighlighterTest, Yaml) {
@@ -85,6 +87,8 @@ TEST(HithighlighterTest, Yaml) {
   for (HighlightTestCase test : with_links) {
   	ASSERT_EQ(test.expected, std::string(highlighter->highlight(test.text, test.hits)));
   }
+
+  delete highlighter;
 }
 
 } // twitter_text

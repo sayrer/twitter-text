@@ -163,9 +163,15 @@ TEST(ValidatorTest, Weighted) {
   auto emoji_tests = readYaml<WeightedTweetTestCase>(map["tests"]["WeightedTweetsWithDiscountedEmojiCounterTest"]);
   auto directional_marker_tests = readYaml<WeightedTweetTestCase>(map["tests"]["UnicodeDirectionalMarkerCounterTest"]);
 
-  validateWeighting(counter_tests, *TwitterTextConfiguration::configV2());
-  validateWeighting(emoji_tests, *TwitterTextConfiguration::configV3());
-  validateWeighting(directional_marker_tests, *TwitterTextConfiguration::configV3());
+  auto config_v2 = TwitterTextConfiguration::configV2();
+  auto config_v3 = TwitterTextConfiguration::configV3();
+
+  validateWeighting(counter_tests, *config_v2);
+  validateWeighting(emoji_tests, *config_v3);
+  validateWeighting(directional_marker_tests, *config_v3);
+
+  delete config_v2;
+  delete config_v3;
 }
 
 } // twitter_text

@@ -47,6 +47,7 @@ TEST(TwitterTextConfigurationTest, Json) {
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Version) {
@@ -54,6 +55,7 @@ TEST(TwitterTextConfigurationTest, Version) {
   ASSERT_EQ(config->getVersion(), 3);
   config->setVersion(199);
   ASSERT_EQ(config->getVersion(), 199);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, MaxWeightedTweetLength) {
@@ -61,6 +63,7 @@ TEST(TwitterTextConfigurationTest, MaxWeightedTweetLength) {
   ASSERT_EQ(config->getMaxWeightedTweetLength(), 280);
   config->setMaxWeightedTweetLength(199);
   ASSERT_EQ(config->getMaxWeightedTweetLength(), 199);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Scale) {
@@ -68,6 +71,7 @@ TEST(TwitterTextConfigurationTest, Scale) {
   ASSERT_EQ(config->getScale(), 100);
   config->setScale(199);
   ASSERT_EQ(config->getScale(), 199);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, DefaultWeight) {
@@ -75,6 +79,7 @@ TEST(TwitterTextConfigurationTest, DefaultWeight) {
   ASSERT_EQ(config->getDefaultWeight(), 200);
   config->setDefaultWeight(199);
   ASSERT_EQ(config->getDefaultWeight(), 199);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, TransformedUrlLength) {
@@ -82,6 +87,7 @@ TEST(TwitterTextConfigurationTest, TransformedUrlLength) {
   ASSERT_EQ(config->getTransformedUrlLength(), 23);
   config->setTransformedUrlLength(199);
   ASSERT_EQ(config->getTransformedUrlLength(), 199);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, EmojiParsingEnabled) {
@@ -89,6 +95,7 @@ TEST(TwitterTextConfigurationTest, EmojiParsingEnabled) {
   ASSERT_EQ(config->getEmojiParsingEnabled(), true);
   config->setEmojiParsingEnabled(false);
   ASSERT_EQ(config->getEmojiParsingEnabled(), false);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Ranges) {
@@ -111,6 +118,7 @@ TEST(TwitterTextConfigurationTest, Ranges) {
   ASSERT_EQ(wr.range.start, 8242);
   ASSERT_EQ(wr.range.end, 8247);
   ASSERT_EQ(wr.weight, 100);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, V2) {
@@ -119,6 +127,7 @@ TEST(TwitterTextConfigurationTest, V2) {
   ASSERT_EQ(config->getEmojiParsingEnabled(), false);
   std::vector<WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 4);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, V1) {
@@ -127,6 +136,7 @@ TEST(TwitterTextConfigurationTest, V1) {
   ASSERT_EQ(config->getEmojiParsingEnabled(), false);
   std::vector<WeightedRange> stdv = config->getRanges();
   ASSERT_EQ(stdv.size(), 0);
+  delete config;
 }
 
 } // twitter_text
