@@ -5,9 +5,11 @@
 #include <stdlib.h>
 
 typedef struct TwitterTextValidator TwitterTextValidator;
+typedef struct TwitterTextConfiguration TwitterTextConfiguration;
 
 /* Validator API */
 TwitterTextValidator* twitter_text_validator_new(void);
+TwitterTextValidator* twitter_text_validator_with_config(const TwitterTextConfiguration* config);
 void twitter_text_validator_free(TwitterTextValidator* validator);
 
 /* Validation functions - return true if valid, false otherwise */

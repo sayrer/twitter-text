@@ -2,30 +2,40 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use twitter_text_config;
 use crate::parse;
+use twitter_text_config;
 
-use twitter_text_parser::twitter_text::TwitterTextParser;
-use twitter_text_parser::twitter_text::Rule;
 use pest::Parser;
+use twitter_text_parser::twitter_text::Rule;
+use twitter_text_parser::twitter_text::TwitterTextParser;
 
 pub const MAX_TWEET_LENGTH: i32 = 280;
 
 pub struct Validator {
     short_url_length: i32,
     short_url_length_https: i32,
+    config: twitter_text_config::Configuration,
 }
 
 impl Validator {
     pub fn new() -> Validator {
         Validator {
             short_url_length: 23,
-            short_url_length_https: 23
+            short_url_length_https: 23,
+            config: twitter_text_config::config_v1().clone(),
+        }
+    }
+
+    pub fn with_config(config: twitter_text_config::Configuration) -> Validator {
+        Validator {
+            short_url_length: 23,
+            short_url_length_https: 23,
+            config,
         }
     }
 
     pub fn is_valid_tweet(&self, s: &str) -> bool {
-        parse(s, &twitter_text_config::config_v1(), false).is_valid
+        parse(s, &self.config, false).is_valid
     }
 
     pub fn is_valid_username(&self, s: &str) -> bool {
@@ -48,7 +58,9 @@ impl Validator {
         TwitterTextParser::parse(Rule::url_without_protocol, s).is_ok()
     }
 
-    pub fn get_max_tweet_length(&self) -> i32 { MAX_TWEET_LENGTH }
+    pub fn get_max_tweet_length(&self) -> i32 {
+        MAX_TWEET_LENGTH
+    }
 
     pub fn get_short_url_length(&self) -> i32 {
         self.short_url_length

@@ -1,6 +1,7 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use twitter_text::validator::Validator;
+use twitter_text_config::Configuration;
 
 /* ============================================================================
  * Validator API
@@ -9,6 +10,18 @@ use twitter_text::validator::Validator;
 #[no_mangle]
 pub extern "C" fn twitter_text_validator_new() -> *mut Validator {
     Box::into_raw(Box::new(Validator::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_validator_with_config(
+    config: *const Configuration,
+) -> *mut Validator {
+    if config.is_null() {
+        return Box::into_raw(Box::new(Validator::new()));
+    }
+
+    let config_ref = unsafe { &*config };
+    Box::into_raw(Box::new(Validator::with_config(config_ref.clone())))
 }
 
 #[no_mangle]

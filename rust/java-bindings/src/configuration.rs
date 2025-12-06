@@ -50,6 +50,11 @@ pub extern "C" fn twitter_text_config_default() -> *mut Configuration {
 }
 
 #[no_mangle]
+pub extern "C" fn twitter_text_config_v3() -> *mut Configuration {
+    Box::into_raw(Box::new(twitter_text_config::config_v3().clone()))
+}
+
+#[no_mangle]
 pub extern "C" fn twitter_text_config_from_json(json: *const c_char) -> *mut Configuration {
     if json.is_null() {
         return std::ptr::null_mut();

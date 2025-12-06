@@ -25,17 +25,41 @@ public final class Validator implements AutoCloseable {
     }
 
     /**
-     * Create a new Validator instance.
+     * Create a new Validator instance with default configuration.
      *
      * @return a new Validator instance
      */
     public static Validator create() {
         try {
-            MemorySegment ptr =
-                (MemorySegment) validator_h.twitter_text_validator_new$handle().invoke();
+            MemorySegment ptr = (MemorySegment) validator_h
+                .twitter_text_validator_new$handle()
+                .invoke();
             return new Validator(ptr);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to create Validator", t);
+        }
+    }
+
+    /**
+     * Create a new Validator instance with a custom configuration.
+     *
+     * @param config the Configuration to use
+     * @return a new Validator instance
+     */
+    public static Validator withConfig(Configuration config) {
+        if (config == null) {
+            return create();
+        }
+        try {
+            MemorySegment ptr = (MemorySegment) validator_h
+                .twitter_text_validator_with_config$handle()
+                .invoke(config.getHandle());
+            return new Validator(ptr);
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to create Validator with config",
+                t
+            );
         }
     }
 
@@ -49,8 +73,10 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            return (boolean) validator_h.twitter_text_validator_is_valid_tweet$handle()
+            boolean result = (boolean) validator_h
+                .twitter_text_validator_is_valid_tweet$handle()
                 .invoke(handle, textSegment);
+            return result;
         } catch (Throwable t) {
             throw new RuntimeException("Failed to validate tweet", t);
         }
@@ -66,7 +92,8 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment usernameSegment = arena.allocateFrom(username);
-            return (boolean) validator_h.twitter_text_validator_is_valid_username$handle()
+            return (boolean) validator_h
+                .twitter_text_validator_is_valid_username$handle()
                 .invoke(handle, usernameSegment);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to validate username", t);
@@ -83,7 +110,8 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment listSegment = arena.allocateFrom(list);
-            return (boolean) validator_h.twitter_text_validator_is_valid_list$handle()
+            return (boolean) validator_h
+                .twitter_text_validator_is_valid_list$handle()
                 .invoke(handle, listSegment);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to validate list", t);
@@ -100,7 +128,8 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment hashtagSegment = arena.allocateFrom(hashtag);
-            return (boolean) validator_h.twitter_text_validator_is_valid_hashtag$handle()
+            return (boolean) validator_h
+                .twitter_text_validator_is_valid_hashtag$handle()
                 .invoke(handle, hashtagSegment);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to validate hashtag", t);
@@ -117,7 +146,8 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment urlSegment = arena.allocateFrom(url);
-            return (boolean) validator_h.twitter_text_validator_is_valid_url$handle()
+            return (boolean) validator_h
+                .twitter_text_validator_is_valid_url$handle()
                 .invoke(handle, urlSegment);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to validate URL", t);
@@ -134,10 +164,14 @@ public final class Validator implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment urlSegment = arena.allocateFrom(url);
-            return (boolean) validator_h.twitter_text_validator_is_valid_url_without_protocol$handle()
+            return (boolean) validator_h
+                .twitter_text_validator_is_valid_url_without_protocol$handle()
                 .invoke(handle, urlSegment);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to validate URL without protocol", t);
+            throw new RuntimeException(
+                "Failed to validate URL without protocol",
+                t
+            );
         }
     }
 
@@ -149,7 +183,8 @@ public final class Validator implements AutoCloseable {
     public int getMaxTweetLength() {
         checkNotClosed();
         try {
-            return (int) validator_h.twitter_text_validator_get_max_tweet_length$handle()
+            return (int) validator_h
+                .twitter_text_validator_get_max_tweet_length$handle()
                 .invoke(handle);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to get max tweet length", t);
@@ -164,7 +199,8 @@ public final class Validator implements AutoCloseable {
     public int getShortUrlLength() {
         checkNotClosed();
         try {
-            return (int) validator_h.twitter_text_validator_get_short_url_length$handle()
+            return (int) validator_h
+                .twitter_text_validator_get_short_url_length$handle()
                 .invoke(handle);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to get short URL length", t);
@@ -179,10 +215,14 @@ public final class Validator implements AutoCloseable {
     public int getShortUrlLengthHttps() {
         checkNotClosed();
         try {
-            return (int) validator_h.twitter_text_validator_get_short_url_length_https$handle()
+            return (int) validator_h
+                .twitter_text_validator_get_short_url_length_https$handle()
                 .invoke(handle);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to get short URL length HTTPS", t);
+            throw new RuntimeException(
+                "Failed to get short URL length HTTPS",
+                t
+            );
         }
     }
 
@@ -194,7 +234,8 @@ public final class Validator implements AutoCloseable {
     public void setShortUrlLength(int length) {
         checkNotClosed();
         try {
-            validator_h.twitter_text_validator_set_short_url_length$handle()
+            validator_h
+                .twitter_text_validator_set_short_url_length$handle()
                 .invoke(handle, length);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to set short URL length", t);
@@ -209,10 +250,14 @@ public final class Validator implements AutoCloseable {
     public void setShortUrlLengthHttps(int length) {
         checkNotClosed();
         try {
-            validator_h.twitter_text_validator_set_short_url_length_https$handle()
+            validator_h
+                .twitter_text_validator_set_short_url_length_https$handle()
                 .invoke(handle, length);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to set short URL length HTTPS", t);
+            throw new RuntimeException(
+                "Failed to set short URL length HTTPS",
+                t
+            );
         }
     }
 
