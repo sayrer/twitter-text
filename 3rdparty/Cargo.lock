@@ -274,29 +274,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "direct-cargo-bazel-deps"
-version = "0.0.1"
-dependencies = [
- "clap",
- "cxx",
- "idna",
- "lazy_static",
- "libc",
- "log",
- "magnus",
- "pest",
- "pest_derive",
- "proc-macro-error",
- "pyo3",
- "pyo3-macros",
- "serde",
- "serde_derive",
- "serde_json",
- "serde_yaml_ng",
- "unicode-normalization",
-]
-
-[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1083,6 +1060,28 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "twitter_text_bindings_cargo"
+version = "0.2.0"
+dependencies = [
+ "clap",
+ "cxx",
+ "idna",
+ "lazy_static",
+ "log",
+ "magnus",
+ "pest",
+ "pest_derive",
+ "proc-macro-error",
+ "pyo3",
+ "pyo3-macros",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_yaml_ng",
+ "unicode-normalization",
+]
 
 [[package]]
 name = "typenum"

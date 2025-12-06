@@ -2,6 +2,14 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use twitter_text::autolinker::Autolinker;
 
+// Re-export the modifier types and functions from ffi-bindings
+pub use twitter_text_ffi::{
+    twitter_text_add_attribute_modifier_free, twitter_text_add_attribute_modifier_new,
+    twitter_text_autolinker_set_add_attribute_modifier,
+    twitter_text_autolinker_set_replace_class_modifier, twitter_text_replace_class_modifier_free,
+    twitter_text_replace_class_modifier_new, TwitterTextEntityType,
+};
+
 /* ============================================================================
  * Autolinker API
  * ========================================================================= */
@@ -424,3 +432,9 @@ pub static TWITTER_TEXT_DEFAULT_CASHTAG_URL_BASE: &str =
 #[no_mangle]
 pub static TWITTER_TEXT_DEFAULT_INVISIBLE_TAG_ATTRS: &str =
     twitter_text::autolinker::DEFAULT_INVISIBLE_TAG_ATTRS;
+
+/* ============================================================================
+ * Link Attribute Modifiers
+ * ========================================================================= */
+
+// Modifier functions are re-exported from ffi-bindings at the top of this file

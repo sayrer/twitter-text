@@ -17,6 +17,7 @@ rust_shared_library(
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
         "//rust/parser:twitter_text_parser",
+        "//ffi-bindings:twitter_text_ffi",
         "//3rdparty/crates:serde",
         "//3rdparty/crates:serde_json",
         "//3rdparty/crates:libc",

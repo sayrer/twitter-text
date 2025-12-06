@@ -752,5 +752,6 @@ pub fn new_with_config<'a>(config: &'a ffi::AutolinkerConfig) -> Autolinker<'a> 
         invisible_tag_attrs: &config.invisible_tag_attrs,
         username_include_symbol: config.username_include_symbol,
         extractor,
+        link_attribute_modifier: None,
     }
 }

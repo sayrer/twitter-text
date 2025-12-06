@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct TwitterTextAutolinker TwitterTextAutolinker;
 
 /* Autolinker API */
@@ -169,3 +173,7 @@ extern const char* TWITTER_TEXT_DEFAULT_LIST_URL_BASE;
 extern const char* TWITTER_TEXT_DEFAULT_HASHTAG_URL_BASE;
 extern const char* TWITTER_TEXT_DEFAULT_CASHTAG_URL_BASE;
 extern const char* TWITTER_TEXT_DEFAULT_INVISIBLE_TAG_ATTRS;
+
+#ifdef __cplusplus
+}
+#endif

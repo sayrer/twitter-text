@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 twitter-text = { path = "../../rust/twitter-text" }
 twitter-text-config = { path = "../../rust/config" }
 twitter-text-parser = { path = "../../rust/parser" }
+twitter_text_ffi = { path = "../../ffi-bindings" }
 
 # For JSON serialization if needed
 serde = "1.0"

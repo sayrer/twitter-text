@@ -1,12 +1,15 @@
 import os
-import pytest
 import sys
+
+import pytest
 import twitter_text
 import yaml
+
 
 def test_ctor():
     autolinker = twitter_text.Autolinker()
     assert autolinker is not None
+
 
 def test_accessors():
     autolinker = twitter_text.Autolinker()
@@ -55,7 +58,10 @@ def test_accessors():
     autolinker.set_cashtag_url_base("https://example.com/search?q=%24")
     assert autolinker.get_cashtag_url_base() == "https://example.com/search?q=%24"
 
-    assert autolinker.get_invisible_tag_attrs() == "style='position:absolute;left:-9999px;'"
+    assert (
+        autolinker.get_invisible_tag_attrs()
+        == "style='position:absolute;left:-9999px;'"
+    )
     autolinker.set_invisible_tag_attrs("")
     assert autolinker.get_invisible_tag_attrs() == ""
 
@@ -63,25 +69,31 @@ def test_accessors():
     autolinker.set_username_include_symbol(True)
     assert autolinker.get_username_include_symbol() is True
 
+
 def test_emoji():
     autolinker = twitter_text.Autolinker()
     assert autolinker.get_url_class() == ""
     autolinker.set_url_class("foo 👳🏿‍♀️")
     assert autolinker.get_url_class() == "foo 👳🏿‍♀️"
 
+
 def test_yaml():
     autolinker = twitter_text.Autolinker()
 
-    with open (r"rust/conformance/tests/autolink.yml") as file:
+    with open(r"rust/conformance/tests/autolink.yml") as file:
         testmap = yaml.load(file, Loader=yaml.FullLoader)
 
         assert len(testmap["tests"]["usernames"]) > 0
         for test in testmap["tests"]["usernames"]:
-            assert test["expected"] == autolinker.autolink_usernames_and_lists(test["text"])
+            assert test["expected"] == autolinker.autolink_usernames_and_lists(
+                test["text"]
+            )
 
         assert len(testmap["tests"]["lists"]) > 0
         for test in testmap["tests"]["lists"]:
-            assert test["expected"] == autolinker.autolink_usernames_and_lists(test["text"])
+            assert test["expected"] == autolinker.autolink_usernames_and_lists(
+                test["text"]
+            )
 
         assert len(testmap["tests"]["hashtags"]) > 0
         for test in testmap["tests"]["hashtags"]:
@@ -98,6 +110,55 @@ def test_yaml():
         assert len(testmap["tests"]["all"]) > 0
         for test in testmap["tests"]["all"]:
             assert test["expected"] == autolinker.autolink(test["text"])
+
+
+def test_add_attribute_modifier():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that adds data-custom="test" to hashtags
+    modifier = twitter_text.AddAttributeModifier(["HASHTAG"], "data-custom", "test")
+    autolinker.set_add_attribute_modifier(modifier)
+
+    result = autolinker.autolink("#test")
+    assert 'data-custom="test"' in result
+    assert "#test" in result
+
+
+def test_add_attribute_modifier_multiple_types():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that adds data-track="true" to both hashtags and mentions
+    modifier = twitter_text.AddAttributeModifier(
+        ["HASHTAG", "MENTION"], "data-track", "true"
+    )
+    autolinker.set_add_attribute_modifier(modifier)
+
+    result = autolinker.autolink("#hashtag @mention")
+    assert result.count('data-track="true"') == 2
+
+
+def test_replace_class_modifier():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that replaces the class attribute
+    modifier = twitter_text.ReplaceClassModifier("custom-link")
+    autolinker.set_replace_class_modifier(modifier)
+
+    result = autolinker.autolink_hashtags("#test")
+    assert 'class="custom-link"' in result
+    assert "tweet-url hashtag" not in result
+
+
+def test_add_attribute_modifier_urls():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that adds target="_blank" to URLs
+    modifier = twitter_text.AddAttributeModifier(["URL"], "target", "_blank")
+    autolinker.set_add_attribute_modifier(modifier)
+
+    result = autolinker.autolink_urls("http://example.com")
+    assert 'target="_blank"' in result
+
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__]))

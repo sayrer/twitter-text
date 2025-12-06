@@ -67,33 +67,79 @@ RSpec.describe Twittertext::Autolinker do
         yaml = YAML.load_file("rust/conformance/tests/autolink.yml")
 
         expect(yaml["tests"]["usernames"].length).to be > 0
-        yaml["tests"]["usernames"].each { |test| 
+        yaml["tests"]["usernames"].each { |test|
             expect(autolinker.autolink_usernames_and_lists(test["text"])).to eq(test["expected"])
         }
 
         expect(yaml["tests"]["lists"].length).to be > 0
-        yaml["tests"]["lists"].each { |test| 
+        yaml["tests"]["lists"].each { |test|
             expect(autolinker.autolink_usernames_and_lists(test["text"])).to eq(test["expected"])
         }
 
         expect(yaml["tests"]["hashtags"].length).to be > 0
-        yaml["tests"]["hashtags"].each { |test| 
+        yaml["tests"]["hashtags"].each { |test|
             expect(autolinker.autolink_hashtags(test["text"])).to eq(test["expected"])
         }
 
         expect(yaml["tests"]["urls"].length).to be > 0
-        yaml["tests"]["urls"].each { |test| 
+        yaml["tests"]["urls"].each { |test|
             expect(autolinker.autolink_urls(test["text"])).to eq(test["expected"])
         }
 
         expect(yaml["tests"]["cashtags"].length).to be > 0
-        yaml["tests"]["cashtags"].each { |test| 
+        yaml["tests"]["cashtags"].each { |test|
             expect(autolinker.autolink_cashtags(test["text"])).to eq(test["expected"])
         }
 
         expect(yaml["tests"]["all"].length).to be > 0
-        yaml["tests"]["all"].each { |test| 
+        yaml["tests"]["all"].each { |test|
             expect(autolinker.autolink(test["text"])).to eq(test["expected"])
         }
+    end
+
+    it 'can add custom attributes to hashtags' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that adds data-custom="test" to hashtags
+        modifier = Twittertext::AddAttributeModifier.new(["HASHTAG"], "data-custom", "test")
+        autolinker.set_add_attribute_modifier(modifier)
+
+        result = autolinker.autolink("#test")
+        expect(result).to include("data-custom=\"test\"")
+        expect(result).to include("#test")
+    end
+
+    it 'can add custom attributes to multiple entity types' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that adds data-track="true" to both hashtags and mentions
+        modifier = Twittertext::AddAttributeModifier.new(["HASHTAG", "MENTION"], "data-track", "true")
+        autolinker.set_add_attribute_modifier(modifier)
+
+        result = autolinker.autolink("#hashtag @mention")
+        expect(result.scan(/data-track="true"/).length).to eq(2)
+    end
+
+    it 'can replace class attribute' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that replaces the class attribute
+        modifier = Twittertext::ReplaceClassModifier.new("custom-link")
+        autolinker.set_replace_class_modifier(modifier)
+
+        result = autolinker.autolink_hashtags("#test")
+        expect(result).to include("class=\"custom-link\"")
+        expect(result).not_to include("tweet-url hashtag")
+    end
+
+    it 'can add custom attributes to URLs' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that adds target="_blank" to URLs
+        modifier = Twittertext::AddAttributeModifier.new(["URL"], "target", "_blank")
+        autolinker.set_add_attribute_modifier(modifier)
+
+        result = autolinker.autolink_urls("http://example.com")
+        expect(result).to include("target=\"_blank\"")
     end
 end

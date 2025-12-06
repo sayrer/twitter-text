@@ -211,62 +211,59 @@ public class AutolinkTest {
 
     @Test
     public void testLinkAttributeModifier() {
-        linker.setLinkAttributeModifier(
-            new Autolink.LinkAttributeModifier() {
-                public void modify(
-                    Entity entity,
-                    Map<String, String> attributes
-                ) {
-                    if (entity.type == Entity.Type.HASHTAG) {
-                        attributes.put("dummy-hash-attr", "test");
-                    }
-                }
-            }
-        );
+        // Test adding attribute to hashtags only
+        try (
+            AddAttributeModifier modifier = new AddAttributeModifier(
+                new Entity.Type[] { Entity.Type.HASHTAG },
+                "dummy-hash-attr",
+                "test"
+            )
+        ) {
+            linker.setAddAttributeModifier(modifier);
 
-        String result = linker.autoLink("#hash @mention");
-        assertTrue(
-            "HtmlAttributeModifier should be applied to hashtag",
-            Pattern.matches(
-                ".*<a[^>]+hashtag[^>]+dummy-hash-attr=\"test\"[^>]*>.*",
-                result
-            )
-        );
-        assertFalse(
-            "HtmlAttributeModifier should not be applied to mention",
-            Pattern.matches(
-                ".*<a[^>]+username[^>]+dummy-hash-attr=\"test\"[^>]*>.*",
-                result
-            )
-        );
+            String result = linker.autoLink("#hash @mention");
+            assertTrue(
+                "AddAttributeModifier should be applied to hashtag",
+                Pattern.matches(
+                    ".*<a[^>]+hashtag[^>]+dummy-hash-attr=\"test\"[^>]*>.*",
+                    result
+                )
+            );
+            assertFalse(
+                "AddAttributeModifier should not be applied to mention",
+                Pattern.matches(
+                    ".*<a[^>]+username[^>]+dummy-hash-attr=\"test\"[^>]*>.*",
+                    result
+                )
+            );
+        }
 
-        linker.setLinkAttributeModifier(
-            new Autolink.LinkAttributeModifier() {
-                public void modify(
-                    Entity entity,
-                    Map<String, String> attributes
-                ) {
-                    if (entity.type == Entity.Type.URL) {
-                        attributes.put("dummy-url-attr", entity.value);
-                    }
-                }
-            }
-        );
-        result = linker.autoLink("@mention http://twitter.com/");
-        assertFalse(
-            "HtmlAttributeModifier should not be applied to mention",
-            Pattern.matches(
-                ".*<a[^>]+username[^>]+dummy-url-attr[^>]*>.*",
-                result
+        // Test adding attribute to URLs only
+        try (
+            AddAttributeModifier modifier = new AddAttributeModifier(
+                new Entity.Type[] { Entity.Type.URL },
+                "dummy-url-attr",
+                "http://twitter.com/"
             )
-        );
-        assertTrue(
-            "htmlAttributeBlock should be applied to URL",
-            Pattern.matches(
-                ".*<a[^>]+dummy-url-attr=\"http://twitter.com/\".*",
-                result
-            )
-        );
+        ) {
+            linker.setAddAttributeModifier(modifier);
+
+            String result = linker.autoLink("@mention http://twitter.com/");
+            assertFalse(
+                "AddAttributeModifier should not be applied to mention",
+                Pattern.matches(
+                    ".*<a[^>]+username[^>]+dummy-url-attr[^>]*>.*",
+                    result
+                )
+            );
+            assertTrue(
+                "AddAttributeModifier should be applied to URL",
+                Pattern.matches(
+                    ".*<a[^>]+dummy-url-attr=\"http://twitter.com/\".*",
+                    result
+                )
+            );
+        }
     }
 
     @Test

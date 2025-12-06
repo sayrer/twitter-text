@@ -1,9 +1,12 @@
 use pyo3::prelude::*;
 use twitter_text::autolinker::{
-    Autolinker as RustAutolinker, DEFAULT_CASHTAG_CLASS, DEFAULT_CASHTAG_URL_BASE,
-    DEFAULT_HASHTAG_CLASS, DEFAULT_HASHTAG_URL_BASE, DEFAULT_INVISIBLE_TAG_ATTRS,
-    DEFAULT_LIST_CLASS, DEFAULT_LIST_URL_BASE, DEFAULT_USERNAME_CLASS, DEFAULT_USERNAME_URL_BASE,
+    AddAttributeModifier as RustAddAttributeModifier, Autolinker as RustAutolinker,
+    ReplaceClassModifier as RustReplaceClassModifier, DEFAULT_CASHTAG_CLASS,
+    DEFAULT_CASHTAG_URL_BASE, DEFAULT_HASHTAG_CLASS, DEFAULT_HASHTAG_URL_BASE,
+    DEFAULT_INVISIBLE_TAG_ATTRS, DEFAULT_LIST_CLASS, DEFAULT_LIST_URL_BASE, DEFAULT_USERNAME_CLASS,
+    DEFAULT_USERNAME_URL_BASE,
 };
+use twitter_text::entity;
 use twitter_text::extractor::{Extract, Extractor};
 
 #[pyclass]
@@ -23,6 +26,8 @@ pub struct Autolinker {
     cashtag_url_base: String,
     invisible_tag_attrs: String,
     username_include_symbol: bool,
+    add_attribute_modifier: Option<AddAttributeModifier>,
+    replace_class_modifier: Option<ReplaceClassModifier>,
 }
 
 #[pymethods]
@@ -45,6 +50,8 @@ impl Autolinker {
             cashtag_url_base: DEFAULT_CASHTAG_URL_BASE.to_string(),
             invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
             username_include_symbol: false,
+            add_attribute_modifier: None,
+            replace_class_modifier: None,
         }
     }
 
@@ -168,6 +175,14 @@ impl Autolinker {
         self.username_include_symbol = include;
     }
 
+    fn set_add_attribute_modifier(&mut self, modifier: AddAttributeModifier) {
+        self.add_attribute_modifier = Some(modifier);
+    }
+
+    fn set_replace_class_modifier(&mut self, modifier: ReplaceClassModifier) {
+        self.replace_class_modifier = Some(modifier);
+    }
+
     fn autolink(&self, text: &str) -> String {
         self.to_rust_autolinker().autolink(text)
     }
@@ -194,6 +209,22 @@ impl Autolinker {
         let mut extractor = Extractor::new();
         extractor.set_extract_url_without_protocol(false);
 
+        let link_attribute_modifier: Option<
+            Box<dyn twitter_text::autolinker::LinkAttributeModifier>,
+        > = if let Some(ref modifier) = self.add_attribute_modifier {
+            Some(Box::new(RustAddAttributeModifier {
+                entity_types: modifier.entity_types.clone(),
+                key: modifier.key.clone(),
+                value: modifier.value.clone(),
+            }))
+        } else if let Some(ref modifier) = self.replace_class_modifier {
+            Some(Box::new(RustReplaceClassModifier {
+                new_class: modifier.new_class.clone(),
+            }))
+        } else {
+            None
+        };
+
         RustAutolinker {
             no_follow: self.no_follow,
             url_class: &self.url_class,
@@ -211,6 +242,56 @@ impl Autolinker {
             invisible_tag_attrs: &self.invisible_tag_attrs,
             username_include_symbol: self.username_include_symbol,
             extractor,
+            link_attribute_modifier,
         }
+    }
+}
+
+/* ============================================================================
+ * Link Attribute Modifiers
+ * ========================================================================= */
+
+#[pyclass]
+#[derive(Clone)]
+pub struct AddAttributeModifier {
+    entity_types: Vec<entity::Type>,
+    key: String,
+    value: String,
+}
+
+#[pymethods]
+impl AddAttributeModifier {
+    #[new]
+    fn new(entity_types: Vec<String>, key: String, value: String) -> PyResult<Self> {
+        let types: Vec<entity::Type> = entity_types
+            .iter()
+            .filter_map(|s| match s.to_uppercase().as_str() {
+                "URL" => Some(entity::Type::URL),
+                "HASHTAG" => Some(entity::Type::HASHTAG),
+                "MENTION" => Some(entity::Type::MENTION),
+                "CASHTAG" => Some(entity::Type::CASHTAG),
+                _ => None,
+            })
+            .collect();
+
+        Ok(AddAttributeModifier {
+            entity_types: types,
+            key,
+            value,
+        })
+    }
+}
+
+#[pyclass]
+#[derive(Clone)]
+pub struct ReplaceClassModifier {
+    new_class: String,
+}
+
+#[pymethods]
+impl ReplaceClassModifier {
+    #[new]
+    fn new(new_class: String) -> Self {
+        ReplaceClassModifier { new_class }
     }
 }

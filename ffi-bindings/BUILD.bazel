@@ -1,0 +1,18 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "twitter_text_ffi",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+    ],
+    edition = "2021",
+)
+
+filegroup(
+    name = "modifier_headers",
+    srcs = ["include/twitter_text_modifiers.h"],
+)

@@ -371,12 +371,49 @@ public final class Autolink implements AutoCloseable {
     }
 
     /**
-     * Set a callback to modify link attributes.
-     * TODO: Not yet implemented in FFM bindings.
+     * Set a modifier to add custom attributes to links.
+     *
+     * @param modifier The AddAttributeModifier to use
      */
+    public void setAddAttributeModifier(AddAttributeModifier modifier) {
+        try {
+            autolink_h
+                .twitter_text_autolinker_set_add_attribute_modifier$handle()
+                .invoke(handle, modifier.getHandle());
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to set add attribute modifier",
+                t
+            );
+        }
+    }
+
+    /**
+     * Set a modifier to replace the class attribute.
+     *
+     * @param modifier The ReplaceClassModifier to use
+     */
+    public void setReplaceClassModifier(ReplaceClassModifier modifier) {
+        try {
+            autolink_h
+                .twitter_text_autolinker_set_replace_class_modifier$handle()
+                .invoke(handle, modifier.getHandle());
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to set replace class modifier",
+                t
+            );
+        }
+    }
+
+    /**
+     * Set a callback to modify link attributes.
+     * @deprecated Use setAddAttributeModifier or setReplaceClassModifier instead
+     */
+    @Deprecated
     public void setLinkAttributeModifier(LinkAttributeModifier modifier) {
         throw new UnsupportedOperationException(
-            "setLinkAttributeModifier not yet implemented"
+            "setLinkAttributeModifier not yet implemented. Use setAddAttributeModifier or setReplaceClassModifier instead."
         );
     }
 

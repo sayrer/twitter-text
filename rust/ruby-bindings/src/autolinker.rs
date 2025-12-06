@@ -1,9 +1,12 @@
 use std::cell::{Cell, RefCell};
 use twitter_text::autolinker::{
-    Autolinker as RustAutolinker, DEFAULT_CASHTAG_CLASS, DEFAULT_CASHTAG_URL_BASE,
-    DEFAULT_HASHTAG_CLASS, DEFAULT_HASHTAG_URL_BASE, DEFAULT_INVISIBLE_TAG_ATTRS,
-    DEFAULT_LIST_CLASS, DEFAULT_LIST_URL_BASE, DEFAULT_USERNAME_CLASS, DEFAULT_USERNAME_URL_BASE,
+    AddAttributeModifier as RustAddAttributeModifier, Autolinker as RustAutolinker,
+    ReplaceClassModifier as RustReplaceClassModifier, DEFAULT_CASHTAG_CLASS,
+    DEFAULT_CASHTAG_URL_BASE, DEFAULT_HASHTAG_CLASS, DEFAULT_HASHTAG_URL_BASE,
+    DEFAULT_INVISIBLE_TAG_ATTRS, DEFAULT_LIST_CLASS, DEFAULT_LIST_URL_BASE, DEFAULT_USERNAME_CLASS,
+    DEFAULT_USERNAME_URL_BASE,
 };
+use twitter_text::entity;
 
 #[magnus::wrap(class = "Twittertext::Autolinker", free_immediately, size)]
 pub struct Autolinker {
@@ -22,6 +25,8 @@ pub struct Autolinker {
     cashtag_url_base: RefCell<String>,
     invisible_tag_attrs: RefCell<String>,
     username_include_symbol: Cell<bool>,
+    add_attribute_modifier: RefCell<Option<AddAttributeModifier>>,
+    replace_class_modifier: RefCell<Option<ReplaceClassModifier>>,
 }
 
 macro_rules! with_autolinker {
@@ -40,6 +45,22 @@ macro_rules! with_autolinker {
         let cashtag_url_base = $self.cashtag_url_base.borrow().clone();
         let invisible_tag_attrs = $self.invisible_tag_attrs.borrow().clone();
 
+        let link_attribute_modifier: Option<
+            Box<dyn twitter_text::autolinker::LinkAttributeModifier>,
+        > = if let Some(ref modifier) = *$self.add_attribute_modifier.borrow() {
+            Some(Box::new(RustAddAttributeModifier {
+                entity_types: modifier.entity_types.clone(),
+                key: modifier.key.clone(),
+                value: modifier.value.clone(),
+            }))
+        } else if let Some(ref modifier) = *$self.replace_class_modifier.borrow() {
+            Some(Box::new(RustReplaceClassModifier {
+                new_class: modifier.new_class.clone(),
+            }))
+        } else {
+            None
+        };
+
         let mut autolinker = RustAutolinker::new($self.no_follow.get());
         autolinker.url_class = &url_class;
         autolinker.url_target = &url_target;
@@ -55,6 +76,7 @@ macro_rules! with_autolinker {
         autolinker.cashtag_url_base = &cashtag_url_base;
         autolinker.invisible_tag_attrs = &invisible_tag_attrs;
         autolinker.username_include_symbol = $self.username_include_symbol.get();
+        autolinker.link_attribute_modifier = link_attribute_modifier;
         autolinker.$method($text)
     }};
 }
@@ -77,6 +99,8 @@ impl Autolinker {
             cashtag_url_base: RefCell::new(DEFAULT_CASHTAG_URL_BASE.to_string()),
             invisible_tag_attrs: RefCell::new(DEFAULT_INVISIBLE_TAG_ATTRS.to_string()),
             username_include_symbol: Cell::new(false),
+            add_attribute_modifier: RefCell::new(None),
+            replace_class_modifier: RefCell::new(None),
         }
     }
 
@@ -218,5 +242,58 @@ impl Autolinker {
 
     pub fn autolink_cashtags(&self, text: String) -> String {
         with_autolinker!(self, &text, autolink_cashtags)
+    }
+
+    pub fn set_add_attribute_modifier(&self, modifier: &AddAttributeModifier) {
+        *self.add_attribute_modifier.borrow_mut() = Some(modifier.clone());
+    }
+
+    pub fn set_replace_class_modifier(&self, modifier: &ReplaceClassModifier) {
+        *self.replace_class_modifier.borrow_mut() = Some(modifier.clone());
+    }
+}
+
+/* ============================================================================
+ * Link Attribute Modifiers
+ * ========================================================================= */
+
+#[derive(Clone)]
+#[magnus::wrap(class = "Twittertext::AddAttributeModifier", free_immediately, size)]
+pub struct AddAttributeModifier {
+    entity_types: Vec<entity::Type>,
+    key: String,
+    value: String,
+}
+
+impl AddAttributeModifier {
+    pub fn ruby_new(entity_types: Vec<String>, key: String, value: String) -> Self {
+        let types: Vec<entity::Type> = entity_types
+            .iter()
+            .filter_map(|s| match s.to_uppercase().as_str() {
+                "URL" => Some(entity::Type::URL),
+                "HASHTAG" => Some(entity::Type::HASHTAG),
+                "MENTION" => Some(entity::Type::MENTION),
+                "CASHTAG" => Some(entity::Type::CASHTAG),
+                _ => None,
+            })
+            .collect();
+
+        AddAttributeModifier {
+            entity_types: types,
+            key,
+            value,
+        }
+    }
+}
+
+#[derive(Clone)]
+#[magnus::wrap(class = "Twittertext::ReplaceClassModifier", free_immediately, size)]
+pub struct ReplaceClassModifier {
+    new_class: String,
+}
+
+impl ReplaceClassModifier {
+    pub fn ruby_new(new_class: String) -> Self {
+        ReplaceClassModifier { new_class }
     }
 }

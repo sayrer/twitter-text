@@ -65,6 +65,56 @@ pub trait LinkAttributeModifier {
 }
 
 /**
+ * A modifier that adds a custom attribute to links of specific entity types.
+ */
+pub struct AddAttributeModifier {
+    pub entity_types: Vec<entity::Type>,
+    pub key: String,
+    pub value: String,
+}
+
+impl AddAttributeModifier {
+    pub fn new(entity_types: Vec<entity::Type>, key: String, value: String) -> Self {
+        AddAttributeModifier {
+            entity_types,
+            key,
+            value,
+        }
+    }
+}
+
+impl LinkAttributeModifier for AddAttributeModifier {
+    fn modify(&self, entity: &Entity, attributes: &mut Attributes) {
+        if self.entity_types.contains(&entity.t) {
+            attributes.push((self.key.clone(), self.value.clone()));
+        }
+    }
+}
+
+/**
+ * A modifier that replaces the class attribute value.
+ */
+pub struct ReplaceClassModifier {
+    pub new_class: String,
+}
+
+impl ReplaceClassModifier {
+    pub fn new(new_class: String) -> Self {
+        ReplaceClassModifier { new_class }
+    }
+}
+
+impl LinkAttributeModifier for ReplaceClassModifier {
+    fn modify(&self, _entity: &Entity, attributes: &mut Attributes) {
+        for (key, value) in attributes.iter_mut() {
+            if key == "class" {
+                *value = self.new_class.clone();
+            }
+        }
+    }
+}
+
+/**
  * Adds HTML links to hashtag, username and list references in Tweet text.
  */
 pub struct Autolinker<'a> {
@@ -587,6 +637,54 @@ mod tests {
         // Should contain the overridden class
         assert!(result.contains("class=\"custom-class\""));
         // Should not contain the default class
+        assert!(!result.contains("tweet-url hashtag"));
+    }
+
+    #[test]
+    fn test_add_attribute_modifier_for_hashtags() {
+        let mut linker = Autolinker::new(false);
+        let modifier = AddAttributeModifier::new(
+            vec![entity::Type::HASHTAG],
+            "data-entity".to_string(),
+            "hashtag".to_string(),
+        );
+        linker.link_attribute_modifier = Some(Box::new(modifier));
+
+        let result = linker.autolink("#test @user");
+
+        // Hashtag should have the custom attribute
+        assert!(result.contains("data-entity=\"hashtag\""));
+        // Should only appear once (not on the mention)
+        assert_eq!(result.matches("data-entity").count(), 1);
+    }
+
+    #[test]
+    fn test_add_attribute_modifier_for_multiple_types() {
+        let mut linker = Autolinker::new(false);
+        let modifier = AddAttributeModifier::new(
+            vec![entity::Type::HASHTAG, entity::Type::MENTION],
+            "data-tracked".to_string(),
+            "true".to_string(),
+        );
+        linker.link_attribute_modifier = Some(Box::new(modifier));
+
+        let result = linker.autolink("#test @user http://example.com");
+
+        // Both hashtag and mention should have the attribute
+        assert_eq!(result.matches("data-tracked=\"true\"").count(), 2);
+    }
+
+    #[test]
+    fn test_replace_class_modifier() {
+        let mut linker = Autolinker::new(false);
+        let modifier = ReplaceClassModifier::new("my-custom-class".to_string());
+        linker.link_attribute_modifier = Some(Box::new(modifier));
+
+        let result = linker.autolink_hashtags("#test");
+
+        // Should have the custom class
+        assert!(result.contains("class=\"my-custom-class\""));
+        // Should not have the default class
         assert!(!result.contains("tweet-url hashtag"));
     }
 }
