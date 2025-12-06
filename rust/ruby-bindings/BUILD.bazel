@@ -11,11 +11,11 @@ genrule(
         MAJOR=$$(echo $$RUBY_VERSION | cut -d. -f1)
         MINOR=$$(echo $$RUBY_VERSION | cut -d. -f2)
 
-        if [ "$$MAJOR" -lt 3 ] || ([ "$$MAJOR" -eq 3 ] && [ "$$MINOR" -lt 3 ]); then
-            echo "ERROR: Ruby 3.3 or higher is required for twitter-text Ruby bindings." >&2
+        if [ "$$MAJOR" -lt 3 ] || ([ "$$MAJOR" -eq 3 ] && [ "$$MINOR" -lt 2 ]); then
+            echo "ERROR: Ruby 3.2 or higher is required for twitter-text Ruby bindings." >&2
             echo "Found: Ruby $$RUBY_VERSION" >&2
             echo "" >&2
-            echo "The magnus crate (0.8.2) used by these bindings requires Ruby 3.3+ APIs." >&2
+            echo "The magnus crate used by these bindings requires Ruby 3.2+ APIs." >&2
             echo "Please upgrade your Ruby installation:" >&2
             echo "  - Homebrew: brew install ruby" >&2
             echo "  - rbenv: https://github.com/rbenv/rbenv" >&2
