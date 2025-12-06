@@ -10,7 +10,7 @@ public class MathBindings {
     static {
         // Find the library in the runfiles directory
         // Bazel names the shared library libmath.so on all platforms
-        Path libPath = Path.of("rust/java-bindings/example/libmath.so");
+        Path libPath = Path.of("rust/java-bindings/demo/libmath.so");
 
         Linker linker = Linker.nativeLinker();
         SymbolLookup lib = SymbolLookup.libraryLookup(libPath, Arena.global());
