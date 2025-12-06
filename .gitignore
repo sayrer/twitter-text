@@ -9,7 +9,6 @@ twitter-text.iml
 **/*.DS_Store
 **/target
 **/*.rs.bk
-Cargo.lock
 /bazel-genfiles
 /bazel-testlogs
 /bazel-bin
