@@ -28,7 +28,7 @@ cc_test(
     ],
     data = ["//rust_bindings/cpp:config_test_data"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
-        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/linux/libclang_rt.asan-x86_64.so"],
+        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
     copts = [
@@ -39,10 +39,14 @@ cc_test(
     ],
     linkopts = [
         "-fsanitize=address",
-        "-shared-libsan",
     ] + select({
-        "@platforms//os:macos": ["-Wl,-rpath,@loader_path/config_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin"],
-        "@platforms//os:linux": ["-Wl,-rpath,$ORIGIN/config_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/linux"],
+        "@platforms//os:macos": [
+            "-shared-libsan",
+            "-Wl,-rpath,@loader_path/config_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin",
+        ],
+        "@platforms//os:linux": [
+            "-Wl,-rpath,$ORIGIN/config_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu",
+        ],
         "//conditions:default": [],
     }),
     deps = [
@@ -61,7 +65,7 @@ cc_test(
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
-        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/linux/libclang_rt.asan-x86_64.so"],
+        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
     copts = [
@@ -72,10 +76,14 @@ cc_test(
     ],
     linkopts = [
         "-fsanitize=address",
-        "-shared-libsan",
     ] + select({
-        "@platforms//os:macos": ["-Wl,-rpath,@loader_path/autolink_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin"],
-        "@platforms//os:linux": ["-Wl,-rpath,$ORIGIN/autolink_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/linux"],
+        "@platforms//os:macos": [
+            "-shared-libsan",
+            "-Wl,-rpath,@loader_path/autolink_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin",
+        ],
+        "@platforms//os:linux": [
+            "-Wl,-rpath,$ORIGIN/autolink_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu",
+        ],
         "//conditions:default": [],
     }),
     deps = [
@@ -93,7 +101,7 @@ cc_test(
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
-        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/linux/libclang_rt.asan-x86_64.so"],
+        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
     copts = [
@@ -104,10 +112,14 @@ cc_test(
     ],
     linkopts = [
         "-fsanitize=address",
-        "-shared-libsan",
     ] + select({
-        "@platforms//os:macos": ["-Wl,-rpath,@loader_path/extractor_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin"],
-        "@platforms//os:linux": ["-Wl,-rpath,$ORIGIN/extractor_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/linux"],
+        "@platforms//os:macos": [
+            "-shared-libsan",
+            "-Wl,-rpath,@loader_path/extractor_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin",
+        ],
+        "@platforms//os:linux": [
+            "-Wl,-rpath,$ORIGIN/extractor_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu",
+        ],
         "//conditions:default": [],
     }),
     deps = [
@@ -124,7 +136,7 @@ cc_test(
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
-        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/linux/libclang_rt.asan-x86_64.so"],
+        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
     copts = [
@@ -135,10 +147,14 @@ cc_test(
     ],
     linkopts = [
         "-fsanitize=address",
-        "-shared-libsan",
     ] + select({
-        "@platforms//os:macos": ["-Wl,-rpath,@loader_path/hithighlighter_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin"],
-        "@platforms//os:linux": ["-Wl,-rpath,$ORIGIN/hithighlighter_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/linux"],
+        "@platforms//os:macos": [
+            "-shared-libsan",
+            "-Wl,-rpath,@loader_path/hithighlighter_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin",
+        ],
+        "@platforms//os:linux": [
+            "-Wl,-rpath,$ORIGIN/hithighlighter_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu",
+        ],
         "//conditions:default": [],
     }),
     deps = [
@@ -156,7 +172,7 @@ cc_test(
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
-        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/linux/libclang_rt.asan-x86_64.so"],
+        "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
     copts = [
@@ -167,10 +183,14 @@ cc_test(
     ],
     linkopts = [
         "-fsanitize=address",
-        "-shared-libsan",
     ] + select({
-        "@platforms//os:macos": ["-Wl,-rpath,@loader_path/validator_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin"],
-        "@platforms//os:linux": ["-Wl,-rpath,$ORIGIN/validator_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/linux"],
+        "@platforms//os:macos": [
+            "-shared-libsan",
+            "-Wl,-rpath,@loader_path/validator_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/darwin",
+        ],
+        "@platforms//os:linux": [
+            "-Wl,-rpath,$ORIGIN/validator_test_asan.runfiles/toolchains_llvm++llvm+llvm_toolchain_llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu",
+        ],
         "//conditions:default": [],
     }),
     deps = [
