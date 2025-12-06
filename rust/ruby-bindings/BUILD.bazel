@@ -2,10 +2,36 @@ load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Check Ruby version before building
+genrule(
+    name = "check_ruby_version",
+    outs = ["ruby_version_check.txt"],
+    cmd = """
+        RUBY_VERSION=$$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
+        MAJOR=$$(echo $$RUBY_VERSION | cut -d. -f1)
+        MINOR=$$(echo $$RUBY_VERSION | cut -d. -f2)
+
+        if [ "$$MAJOR" -lt 3 ] || ([ "$$MAJOR" -eq 3 ] && [ "$$MINOR" -lt 3 ]); then
+            echo "ERROR: Ruby 3.3 or higher is required for twitter-text Ruby bindings." >&2
+            echo "Found: Ruby $$RUBY_VERSION" >&2
+            echo "" >&2
+            echo "The magnus crate (0.8.2) used by these bindings requires Ruby 3.3+ APIs." >&2
+            echo "Please upgrade your Ruby installation or use a Ruby version manager like:" >&2
+            echo "  - rbenv: https://github.com/rbenv/rbenv" >&2
+            echo "  - rvm: https://rvm.io/" >&2
+            echo "  - asdf: https://asdf-vm.com/" >&2
+            exit 1
+        fi
+
+        echo "Ruby version $$RUBY_VERSION is compatible" > $@
+    """,
+)
+
 rust_shared_library(
     name = "twittertext_cdylib",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs"]) + ["build.rs"],
     crate_root = "src/lib.rs",
+    data = [":check_ruby_version"],
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
