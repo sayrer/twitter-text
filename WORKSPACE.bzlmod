@@ -1,2 +1,0 @@
-load("//:sys_deps.bzl", "sys_deps")
-sys_deps()
