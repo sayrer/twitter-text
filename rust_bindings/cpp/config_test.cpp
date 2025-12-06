@@ -10,6 +10,7 @@ namespace twitter_text {
 TEST(TwitterTextConfigurationTest, Ctor) {
   TwitterTextConfiguration *config = new TwitterTextConfiguration();
   ASSERT_NE(config, nullptr);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Path) {
@@ -26,6 +27,7 @@ TEST(TwitterTextConfigurationTest, Path) {
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
+  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Json) {
