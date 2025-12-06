@@ -2,7 +2,13 @@ package com.sayrer.twitter_text;
 
 import com.sayrer.twitter_text.autolink_h;
 import java.lang.foreign.Arena;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.Linker;
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 /**
  * Java wrapper for TwitterTextAutolinker that provides automatic resource management.
@@ -24,6 +30,9 @@ public final class Autolink implements AutoCloseable {
 
     private final MemorySegment handle;
     private boolean closed;
+    private Arena callbackArena;
+    private MemorySegment linkTextModifierStub;
+    private LinkTextModifier currentModifier;
 
     private Autolink(MemorySegment handle) {
         this.handle = handle;
@@ -419,12 +428,74 @@ public final class Autolink implements AutoCloseable {
 
     /**
      * Set a callback to modify link text.
-     * TODO: Not yet implemented in FFM bindings.
      */
     public void setLinkTextModifier(LinkTextModifier modifier) {
-        throw new UnsupportedOperationException(
-            "setLinkTextModifier not yet implemented"
-        );
+        checkNotClosed();
+
+        // Clean up previous callback if any
+        if (callbackArena != null) {
+            callbackArena.close();
+            callbackArena = null;
+            linkTextModifierStub = null;
+            currentModifier = null;
+        }
+
+        if (modifier == null) {
+            return;
+        }
+
+        try {
+            // Store the modifier
+            currentModifier = modifier;
+
+            // Create an arena for the callback that lives as long as this Autolink
+            callbackArena = Arena.ofShared();
+
+            // Define the callback function descriptor
+            // char* callback(const CEntity* entity, const char* text, void* user_data)
+            FunctionDescriptor callbackDescriptor = FunctionDescriptor.of(
+                ValueLayout.ADDRESS, // return: char*
+                ValueLayout.ADDRESS, // param 1: const CEntity*
+                ValueLayout.ADDRESS, // param 2: const char*
+                ValueLayout.ADDRESS // param 3: void* user_data
+            );
+
+            // Create a MethodHandle for the callback method
+            MethodHandle callbackHandle = MethodHandles.lookup()
+                .findVirtual(
+                    Autolink.class,
+                    "linkTextModifierCallback",
+                    MethodType.methodType(
+                        MemorySegment.class,
+                        MemorySegment.class,
+                        MemorySegment.class,
+                        MemorySegment.class
+                    )
+                )
+                .bindTo(this);
+
+            // Create the upcall stub
+            linkTextModifierStub = Linker.nativeLinker().upcallStub(
+                callbackHandle,
+                callbackDescriptor,
+                callbackArena
+            );
+
+            // Set the callback in the native autolinker
+            autolink_h.twitter_text_autolinker_set_link_text_modifier(
+                handle,
+                linkTextModifierStub,
+                MemorySegment.NULL
+            );
+        } catch (Throwable t) {
+            if (callbackArena != null) {
+                callbackArena.close();
+                callbackArena = null;
+                linkTextModifierStub = null;
+                currentModifier = null;
+            }
+            throw new RuntimeException("Failed to set link text modifier", t);
+        }
     }
 
     /**
@@ -441,6 +512,59 @@ public final class Autolink implements AutoCloseable {
         CharSequence modify(Entity entity, CharSequence text);
     }
 
+    // Private callback method for LinkTextModifier - called from native code
+    private MemorySegment linkTextModifierCallback(
+        MemorySegment entityPtr,
+        MemorySegment textPtr,
+        MemorySegment userData
+    ) {
+        try {
+            System.err.println("DEBUG Java: linkTextModifierCallback entered");
+
+            // The entityPtr has byteSize 0, so we need to reinterpret it with the correct size
+            // CEntity struct has: int32_t entity_type (4 bytes) + int32_t start (4 bytes) + int32_t end (4 bytes) = 12 bytes
+            MemorySegment entitySegment = entityPtr.reinterpret(12);
+
+            // Read entity type from CEntity struct
+            int entityTypeValue = entitySegment.get(ValueLayout.JAVA_INT, 0);
+            Entity.Type entityType = Entity.Type.values()[entityTypeValue];
+            System.err.println("DEBUG Java: entityType=" + entityType);
+
+            // Read start and end from CEntity struct
+            int start = entitySegment.get(ValueLayout.JAVA_INT, 4);
+            int end = entitySegment.get(ValueLayout.JAVA_INT, 8);
+
+            // Read the text - reinterpret as unbounded since we don't know the C string length
+            // Using callbackArena's scope to ensure the segment remains valid
+            String text = textPtr
+                .reinterpret(Long.MAX_VALUE, callbackArena, null)
+                .getString(0);
+            System.err.println("DEBUG Java: input text=" + text);
+
+            // Create Entity object (value is the text itself)
+            Entity entity = new Entity(start, end, text, entityType);
+
+            // Call the Java modifier
+            System.err.println("DEBUG Java: calling currentModifier.modify");
+            CharSequence modifiedText = currentModifier.modify(entity, text);
+            System.err.println("DEBUG Java: modifiedText=" + modifiedText);
+
+            // Allocate and return the modified text as a C string
+            MemorySegment result = callbackArena.allocateFrom(
+                modifiedText.toString()
+            );
+            System.err.println("DEBUG Java: returning result");
+            return result;
+        } catch (Throwable t) {
+            System.err.println(
+                "DEBUG Java: Exception caught: " + t.getMessage()
+            );
+            t.printStackTrace(System.err);
+            // On error, return the original text
+            return textPtr;
+        }
+    }
+
     private void checkNotClosed() {
         if (closed) {
             throw new IllegalStateException("Autolink has been closed");
@@ -451,6 +575,14 @@ public final class Autolink implements AutoCloseable {
     public void close() {
         if (closed) return;
         closed = true;
+
+        // Clean up callback arena if it exists
+        if (callbackArena != null) {
+            callbackArena.close();
+            callbackArena = null;
+            linkTextModifierStub = null;
+        }
+
         try {
             autolink_h.twitter_text_autolinker_free$handle().invoke(handle);
         } catch (Throwable t) {

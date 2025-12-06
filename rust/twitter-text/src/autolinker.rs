@@ -115,6 +115,13 @@ impl LinkAttributeModifier for ReplaceClassModifier {
 }
 
 /**
+ * Trait for modifying the text content of generated links.
+ */
+pub trait LinkTextModifier {
+    fn modify(&self, entity: &Entity, text: &str) -> String;
+}
+
+/**
  * Adds HTML links to hashtag, username and list references in Tweet text.
  */
 pub struct Autolinker<'a> {
@@ -135,6 +142,7 @@ pub struct Autolinker<'a> {
     pub username_include_symbol: bool,
     pub extractor: Extractor,
     pub link_attribute_modifier: Option<Box<dyn LinkAttributeModifier + 'a>>,
+    pub link_text_modifier: Option<Box<dyn LinkTextModifier + 'a>>,
 }
 
 impl<'a> Autolinker<'a> {
@@ -160,6 +168,7 @@ impl<'a> Autolinker<'a> {
             username_include_symbol: false,
             extractor,
             link_attribute_modifier: None,
+            link_text_modifier: None,
         }
     }
 
@@ -179,12 +188,12 @@ impl<'a> Autolinker<'a> {
             modifier.modify(entity, attributes);
         }
 
-        let text = original_text;
-        /*
-           if (linkTextModifier != null) {
-               text = linkTextModifier.modify(entity, originalText);
-            }
-        */
+        // Call link text modifier if set
+        let text = if let Some(ref modifier) = self.link_text_modifier {
+            modifier.modify(entity, original_text)
+        } else {
+            original_text.to_string()
+        };
 
         buf.push_str("<a");
         for (k, v) in attributes {
@@ -195,7 +204,7 @@ impl<'a> Autolinker<'a> {
             buf.push('"');
         }
         buf.push('>');
-        buf.push_str(text);
+        buf.push_str(&text);
         buf.push_str("</a>");
     }
 

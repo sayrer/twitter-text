@@ -27,7 +27,13 @@ pub struct Autolinker {
     username_include_symbol: Cell<bool>,
     add_attribute_modifier: RefCell<Option<AddAttributeModifier>>,
     replace_class_modifier: RefCell<Option<ReplaceClassModifier>>,
+    link_text_modifier: RefCell<Option<LinkTextModifier>>,
 }
+
+// SAFETY: Ruby's GIL ensures single-threaded access to Ruby objects.
+// The contained Proc in LinkTextModifier will only be called from within Ruby code execution.
+unsafe impl Send for Autolinker {}
+unsafe impl Sync for Autolinker {}
 
 macro_rules! with_autolinker {
     ($self:expr, $text:expr, $method:ident) => {{
@@ -61,6 +67,15 @@ macro_rules! with_autolinker {
             None
         };
 
+        let link_text_modifier: Option<Box<dyn twitter_text::autolinker::LinkTextModifier>> =
+            if let Some(ref modifier) = *$self.link_text_modifier.borrow() {
+                Some(Box::new(RustLinkTextModifier {
+                    modifier_proc: modifier.modifier_proc.clone(),
+                }))
+            } else {
+                None
+            };
+
         let mut autolinker = RustAutolinker::new($self.no_follow.get());
         autolinker.url_class = &url_class;
         autolinker.url_target = &url_target;
@@ -77,6 +92,7 @@ macro_rules! with_autolinker {
         autolinker.invisible_tag_attrs = &invisible_tag_attrs;
         autolinker.username_include_symbol = $self.username_include_symbol.get();
         autolinker.link_attribute_modifier = link_attribute_modifier;
+        autolinker.link_text_modifier = link_text_modifier;
         autolinker.$method($text)
     }};
 }
@@ -101,6 +117,7 @@ impl Autolinker {
             username_include_symbol: Cell::new(false),
             add_attribute_modifier: RefCell::new(None),
             replace_class_modifier: RefCell::new(None),
+            link_text_modifier: RefCell::new(None),
         }
     }
 
@@ -251,6 +268,10 @@ impl Autolinker {
     pub fn set_replace_class_modifier(&self, modifier: &ReplaceClassModifier) {
         *self.replace_class_modifier.borrow_mut() = Some(modifier.clone());
     }
+
+    pub fn set_link_text_modifier(&self, modifier: &LinkTextModifier) {
+        *self.link_text_modifier.borrow_mut() = Some(modifier.clone());
+    }
 }
 
 /* ============================================================================
@@ -295,5 +316,62 @@ pub struct ReplaceClassModifier {
 impl ReplaceClassModifier {
     pub fn ruby_new(new_class: String) -> Self {
         ReplaceClassModifier { new_class }
+    }
+}
+
+/* ============================================================================
+ * Link Text Modifiers
+ * ========================================================================= */
+
+use magnus::{block::Proc, TryConvert, Value};
+
+#[derive(Clone)]
+#[magnus::wrap(class = "Twittertext::LinkTextModifier", free_immediately, size)]
+pub struct LinkTextModifier {
+    modifier_proc: Proc,
+}
+
+// SAFETY: Ruby's GIL ensures single-threaded access to Ruby objects.
+// The Proc will only be called from within Ruby code execution.
+unsafe impl Send for LinkTextModifier {}
+unsafe impl Sync for LinkTextModifier {}
+
+impl LinkTextModifier {
+    pub fn ruby_new(modifier_proc: Proc) -> Self {
+        LinkTextModifier { modifier_proc }
+    }
+}
+
+struct RustLinkTextModifier {
+    modifier_proc: Proc,
+}
+
+// SAFETY: Ruby's GIL ensures single-threaded access to Ruby objects.
+unsafe impl Send for RustLinkTextModifier {}
+unsafe impl Sync for RustLinkTextModifier {}
+
+impl twitter_text::autolinker::LinkTextModifier for RustLinkTextModifier {
+    fn modify(&self, entity: &entity::Entity, text: &str) -> String {
+        magnus::Ruby::get()
+            .ok()
+            .and_then(|ruby| {
+                // Create a hash for the entity
+                let entity_hash = ruby.hash_new();
+                let type_str = format!("{:?}", entity.t);
+                let _ = entity_hash.aset(ruby.to_symbol("type"), ruby.str_new(&type_str));
+                let _ = entity_hash.aset(ruby.to_symbol("value"), ruby.str_new(entity.value));
+                let _ = entity_hash.aset(ruby.to_symbol("start"), entity.start);
+                let _ = entity_hash.aset(ruby.to_symbol("end"), entity.end);
+
+                // Call the Ruby proc
+                let result: Value = self
+                    .modifier_proc
+                    .call((entity_hash, ruby.str_new(text)))
+                    .ok()?;
+
+                // Extract the string result
+                TryConvert::try_convert(result).ok()
+            })
+            .unwrap_or_else(|| text.to_string())
     }
 }

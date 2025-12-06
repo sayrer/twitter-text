@@ -53,9 +53,10 @@ cc_test(
     name = "autolink_test",
     srcs = [
         "test_helpers.h",
-        "autolink_test.cpp"
+        "autolink_test.cpp",
+        "//ffi-bindings:modifier_headers"
     ],
-    copts = ["-Iexternal/gtest/include"],
+    copts = ["-Iexternal/gtest/include", "-Iffi-bindings/include"],
     deps = [
         ":twitter_text",
         "@googletest//:gtest_main",

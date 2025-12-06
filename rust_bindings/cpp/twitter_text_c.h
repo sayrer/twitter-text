@@ -130,12 +130,15 @@ typedef struct TwitterTextAddAttributeModifier TwitterTextAddAttributeModifier;
 typedef struct TwitterTextReplaceClassModifier TwitterTextReplaceClassModifier;
 
 /* Entity types for modifier filtering */
+#ifndef TWITTER_TEXT_ENTITY_TYPE_DEFINED
+#define TWITTER_TEXT_ENTITY_TYPE_DEFINED
 typedef enum {
     TWITTER_TEXT_ENTITY_URL = 0,
     TWITTER_TEXT_ENTITY_HASHTAG = 1,
     TWITTER_TEXT_ENTITY_MENTION = 2,
     TWITTER_TEXT_ENTITY_CASHTAG = 3,
 } TwitterTextEntityType;
+#endif
 
 /* Create an AddAttributeModifier that adds a custom attribute to specific entity types */
 TwitterTextAddAttributeModifier* twitter_text_add_attribute_modifier_new(

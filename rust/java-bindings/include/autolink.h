@@ -159,6 +159,31 @@ void twitter_text_autolinker_set_replace_class_modifier(
     TwitterTextReplaceClassModifier* modifier
 );
 
+/* Link Text Modifier - Callback-based API */
+
+/* Entity structure for callbacks */
+typedef struct {
+    TwitterTextEntityType entity_type;
+    int32_t start;
+    int32_t end;
+} TwitterTextCEntity;
+
+/* Callback function type for modifying link text
+ * Returns a new C string that must be freed by the caller using twitter_text_string_free
+ */
+typedef char* (*TwitterTextLinkTextModifierCallback)(
+    const TwitterTextCEntity* entity,
+    const char* text,
+    void* user_data
+);
+
+/* Set a link text modifier callback on an autolinker */
+void twitter_text_autolinker_set_link_text_modifier(
+    TwitterTextAutolinker* autolinker,
+    TwitterTextLinkTextModifierCallback callback,
+    void* user_data
+);
+
 /* Default constants */
 extern const char* TWITTER_TEXT_DEFAULT_LIST_CLASS;
 extern const char* TWITTER_TEXT_DEFAULT_USERNAME_CLASS;

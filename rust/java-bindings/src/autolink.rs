@@ -8,8 +8,10 @@ pub use twitter_text_ffi::{
     twitter_text_autolinker_autolink, twitter_text_autolinker_autolink_hashtags,
     twitter_text_autolinker_free, twitter_text_autolinker_new,
     twitter_text_autolinker_set_add_attribute_modifier,
+    twitter_text_autolinker_set_link_text_modifier,
     twitter_text_autolinker_set_replace_class_modifier, twitter_text_replace_class_modifier_free,
-    twitter_text_replace_class_modifier_new, twitter_text_string_free, TwitterTextEntityType,
+    twitter_text_replace_class_modifier_new, twitter_text_string_free, CEntity,
+    TwitterTextEntityType,
 };
 
 /* ============================================================================

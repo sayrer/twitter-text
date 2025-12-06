@@ -7,7 +7,7 @@ mod hithighlighter;
 mod parser;
 mod validator;
 
-use autolinker::{AddAttributeModifier, Autolinker, ReplaceClassModifier};
+use autolinker::{AddAttributeModifier, Autolinker, LinkTextModifier, ReplaceClassModifier};
 use configuration::TwitterTextConfiguration;
 use extractor::{ExtractResult, Extractor, MentionResult, ValidatingExtractor};
 use hithighlighter::{Hit, HitHighlighter, Hits};
@@ -29,6 +29,7 @@ fn twitter_text(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Autolinker>()?;
     m.add_class::<AddAttributeModifier>()?;
     m.add_class::<ReplaceClassModifier>()?;
+    m.add_class::<LinkTextModifier>()?;
     m.add_class::<Hit>()?;
     m.add_class::<Hits>()?;
     m.add_class::<HitHighlighter>()?;

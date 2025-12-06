@@ -1,6 +1,8 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use twitter_text::autolinker::{AddAttributeModifier, Autolinker, ReplaceClassModifier};
+use twitter_text::autolinker::{
+    AddAttributeModifier, Autolinker, LinkTextModifier, ReplaceClassModifier,
+};
 use twitter_text::entity;
 
 /* ============================================================================
@@ -198,6 +200,98 @@ pub extern "C" fn twitter_text_autolinker_set_add_attribute_modifier(
             value: modifier_ref.value.clone(),
         });
         (*autolinker).link_attribute_modifier = Some(cloned_modifier);
+    }
+}
+
+/* ============================================================================
+ * Link Text Modifier C API (callback-based)
+ * ========================================================================= */
+
+// C-compatible entity representation for callbacks
+#[repr(C)]
+pub struct CEntity {
+    pub entity_type: TwitterTextEntityType,
+    pub start: i32,
+    pub end: i32,
+}
+
+impl From<&entity::Entity<'_>> for CEntity {
+    fn from(entity: &entity::Entity) -> Self {
+        let entity_type = match entity.t {
+            entity::Type::URL => TwitterTextEntityType::URL,
+            entity::Type::HASHTAG => TwitterTextEntityType::HASHTAG,
+            entity::Type::MENTION => TwitterTextEntityType::MENTION,
+            entity::Type::CASHTAG => TwitterTextEntityType::CASHTAG,
+        };
+        CEntity {
+            entity_type,
+            start: entity.start,
+            end: entity.end,
+        }
+    }
+}
+
+// Function pointer type for link text modification callback
+// Returns a new C string that must be freed by the caller
+pub type LinkTextModifierCallback = extern "C" fn(
+    entity: *const CEntity,
+    text: *const c_char,
+    user_data: *mut std::os::raw::c_void,
+) -> *mut c_char;
+
+// Wrapper struct that implements LinkTextModifier trait using a callback
+struct CallbackLinkTextModifier {
+    callback: LinkTextModifierCallback,
+    user_data: *mut std::os::raw::c_void,
+}
+
+impl LinkTextModifier for CallbackLinkTextModifier {
+    fn modify(&self, entity: &entity::Entity, text: &str) -> String {
+        let c_entity = CEntity::from(entity);
+        let c_text = match CString::new(text) {
+            Ok(s) => s,
+            Err(_) => return text.to_string(),
+        };
+
+        let result_ptr = (self.callback)(&c_entity, c_text.as_ptr(), self.user_data);
+
+        if result_ptr.is_null() {
+            return text.to_string();
+        }
+
+        unsafe {
+            let result_cstr = CStr::from_ptr(result_ptr);
+            let result_string = result_cstr.to_string_lossy().into_owned();
+            // Free the string returned by the callback (allocated via malloc/strdup in C)
+            // Use dealloc to free memory allocated by C
+            std::alloc::dealloc(
+                result_ptr as *mut u8,
+                std::alloc::Layout::from_size_align_unchecked(
+                    result_cstr.to_bytes_with_nul().len(),
+                    1,
+                ),
+            );
+            result_string
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_set_link_text_modifier(
+    autolinker: *mut Autolinker,
+    callback: LinkTextModifierCallback,
+    user_data: *mut std::os::raw::c_void,
+) {
+    if autolinker.is_null() {
+        return;
+    }
+
+    unsafe {
+        let modifier = Box::new(CallbackLinkTextModifier {
+            callback,
+            user_data,
+        });
+        (*autolinker).link_text_modifier = Some(modifier);
     }
 }
 

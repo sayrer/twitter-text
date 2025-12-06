@@ -61,7 +61,8 @@ cc_test(
     name = "autolink_test_asan",
     srcs = [
         "//rust_bindings/cpp:test_helpers.h",
-        "//rust_bindings/cpp:autolink_test.cpp"
+        "//rust_bindings/cpp:autolink_test.cpp",
+        "//ffi-bindings:modifier_headers"
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:macos": ["@llvm_toolchain_llvm//:lib/clang/17/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
@@ -70,6 +71,7 @@ cc_test(
     }),
     copts = [
         "-Iexternal/gtest/include",
+        "-Iffi-bindings/include",
         "-fsanitize=address",
         "-fno-omit-frame-pointer",
         "-g",

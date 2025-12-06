@@ -160,5 +160,41 @@ def test_add_attribute_modifier_urls():
     assert 'target="_blank"' in result
 
 
+def test_link_text_modifier():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that changes link text based on entity type
+    def modify_link_text(entity, text):
+        if entity["type"] == "HASHTAG":
+            return "#replaced"
+        else:
+            return f"pre_{text}_post"
+
+    modifier = twitter_text.LinkTextModifier(modify_link_text)
+    autolinker.set_link_text_modifier(modifier)
+
+    result = autolinker.autolink("#hash @mention")
+    assert "#replaced" in result
+    assert "pre_mention_post" in result
+
+
+def test_link_text_modifier_with_symbol_tags():
+    autolinker = twitter_text.Autolinker()
+
+    # Create a modifier that wraps text with pre/post
+    def modify_link_text(entity, text):
+        return f"pre_{text}_post"
+
+    modifier = twitter_text.LinkTextModifier(modify_link_text)
+    autolinker.set_link_text_modifier(modifier)
+    autolinker.set_symbol_tag("s")
+    autolinker.set_text_with_symbol_tag("b")
+    autolinker.set_username_include_symbol(True)
+
+    result = autolinker.autolink("#hash @mention")
+    assert "pre_<s>#</s><b>hash</b>_post" in result
+    assert "pre_<s>@</s><b>mention</b>_post" in result
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__]))

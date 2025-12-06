@@ -1,5 +1,6 @@
 #include "twitter.h"
 #include "twitter_text_c.h"
+#include "twitter_text_modifiers.h"
 #include "gtest/gtest.h"
 #include "test_helpers.h"
 
@@ -159,6 +160,81 @@ TEST(AutolinkTest, ReplaceClassModifierCAPI) {
   
   twitter_text_string_free(result);
   twitter_text_replace_class_modifier_free(modifier);
+  twitter_text_autolinker_free(autolinker);
+}
+
+// Callback function for link text modifier test
+char* link_text_modifier_callback(const TwitterTextCEntity* entity, const char* text, void* user_data) {
+  if (entity == nullptr || text == nullptr) {
+    return nullptr;
+  }
+  
+  std::string result;
+  if (entity->entity_type == TWITTER_TEXT_ENTITY_HASHTAG) {
+    result = "#replaced";
+  } else {
+    result = std::string("pre_") + text + "_post";
+  }
+  
+  // Allocate and return a new C string
+  char* output = (char*)malloc(result.length() + 1);
+  if (output != nullptr) {
+    strcpy(output, result.c_str());
+  }
+  return output;
+}
+
+TEST(AutolinkTest, LinkTextModifierCAPI) {
+  // Test using the C API for LinkTextModifier
+  TwitterTextAutolinker* autolinker = twitter_text_autolinker_new(false);
+  ASSERT_NE(autolinker, nullptr);
+
+  // Set the link text modifier callback
+  twitter_text_autolinker_set_link_text_modifier(autolinker, link_text_modifier_callback, nullptr);
+
+  char* result = twitter_text_autolinker_autolink(autolinker, "#hash @mention");
+  ASSERT_NE(result, nullptr);
+  
+  std::string result_str(result);
+  ASSERT_TRUE(result_str.find("#replaced") != std::string::npos);
+  ASSERT_TRUE(result_str.find("pre_mention_post") != std::string::npos);
+  
+  twitter_text_string_free(result);
+  twitter_text_autolinker_free(autolinker);
+}
+
+// Callback function for link text modifier that adds asterisks
+char* link_text_modifier_asterisks_callback(const TwitterTextCEntity* entity, const char* text, void* user_data) {
+  if (entity == nullptr || text == nullptr) {
+    return nullptr;
+  }
+  
+  std::string result = std::string("**") + text + "**";
+  
+  // Allocate and return a new C string
+  char* output = (char*)malloc(result.length() + 1);
+  if (output != nullptr) {
+    strcpy(output, result.c_str());
+  }
+  return output;
+}
+
+TEST(AutolinkTest, LinkTextModifierAsterisksCAPI) {
+  // Test using the C API for LinkTextModifier with asterisks
+  TwitterTextAutolinker* autolinker = twitter_text_autolinker_new(false);
+  ASSERT_NE(autolinker, nullptr);
+
+  // Set the link text modifier callback
+  twitter_text_autolinker_set_link_text_modifier(autolinker, link_text_modifier_asterisks_callback, nullptr);
+
+  char* result = twitter_text_autolinker_autolink(autolinker, "#hash @mention");
+  ASSERT_NE(result, nullptr);
+  
+  std::string result_str(result);
+  ASSERT_TRUE(result_str.find("**#hash**") != std::string::npos);
+  ASSERT_TRUE(result_str.find("**mention**") != std::string::npos);
+  
+  twitter_text_string_free(result);
   twitter_text_autolinker_free(autolinker);
 }
 

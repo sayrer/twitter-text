@@ -7,7 +7,7 @@ mod hithighlighter;
 mod parser;
 mod validator;
 
-use autolinker::{AddAttributeModifier, Autolinker, ReplaceClassModifier};
+use autolinker::{AddAttributeModifier, Autolinker, LinkTextModifier, ReplaceClassModifier};
 use configuration::{RubyRange, TwitterTextConfiguration, WeightedRange};
 use extractor::{Entity, ExtractResult, Extractor, MentionResult, ValidatingExtractor};
 use hithighlighter::{Hit, HitHighlighter, Hits};
@@ -284,6 +284,10 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
         "set_replace_class_modifier",
         method!(Autolinker::set_replace_class_modifier, 1),
     )?;
+    autolinker_class.define_method(
+        "set_link_text_modifier",
+        method!(Autolinker::set_link_text_modifier, 1),
+    )?;
 
     // Register AddAttributeModifier class
     let add_attribute_modifier_class =
@@ -296,6 +300,11 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
         module.define_class("ReplaceClassModifier", ruby.class_object())?;
     replace_class_modifier_class
         .define_singleton_method("new", function!(ReplaceClassModifier::ruby_new, 1))?;
+
+    // Register LinkTextModifier class
+    let link_text_modifier_class = module.define_class("LinkTextModifier", ruby.class_object())?;
+    link_text_modifier_class
+        .define_singleton_method("new", function!(LinkTextModifier::ruby_new, 1))?;
 
     let hit_class = module.define_class("Hit", ruby.class_object())?;
     hit_class.define_singleton_method("new", function!(Hit::ruby_new, 0))?;

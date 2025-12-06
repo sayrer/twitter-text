@@ -271,6 +271,12 @@ public class AutolinkTest {
         linker.setLinkTextModifier(
             new Autolink.LinkTextModifier() {
                 public CharSequence modify(Entity entity, CharSequence text) {
+                    System.out.println(
+                        "LinkTextModifier.modify called: type=" +
+                            entity.type +
+                            ", text=" +
+                            text
+                    );
                     return entity.type == Entity.Type.HASHTAG
                         ? "#replaced"
                         : "pre_" + text + "_post";
@@ -279,6 +285,7 @@ public class AutolinkTest {
         );
 
         String result = linker.autoLink("#hash @mention");
+        System.out.println("LinkTextModifier result: " + result);
         assertTrue(
             "LinkTextModifier should modify a hashtag link text",
             Pattern.matches(".*<a[^>]+>#replaced</a>.*", result)

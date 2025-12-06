@@ -1,4 +1,6 @@
 use pyo3::prelude::*;
+use pyo3::types::PyFunction;
+use std::sync::Arc;
 use twitter_text::autolinker::{
     AddAttributeModifier as RustAddAttributeModifier, Autolinker as RustAutolinker,
     ReplaceClassModifier as RustReplaceClassModifier, DEFAULT_CASHTAG_CLASS,
@@ -28,6 +30,7 @@ pub struct Autolinker {
     username_include_symbol: bool,
     add_attribute_modifier: Option<AddAttributeModifier>,
     replace_class_modifier: Option<ReplaceClassModifier>,
+    link_text_modifier: Option<LinkTextModifier>,
 }
 
 #[pymethods]
@@ -52,6 +55,7 @@ impl Autolinker {
             username_include_symbol: false,
             add_attribute_modifier: None,
             replace_class_modifier: None,
+            link_text_modifier: None,
         }
     }
 
@@ -183,6 +187,10 @@ impl Autolinker {
         self.replace_class_modifier = Some(modifier);
     }
 
+    fn set_link_text_modifier(&mut self, modifier: LinkTextModifier) {
+        self.link_text_modifier = Some(modifier);
+    }
+
     fn autolink(&self, text: &str) -> String {
         self.to_rust_autolinker().autolink(text)
     }
@@ -225,6 +233,15 @@ impl Autolinker {
             None
         };
 
+        let link_text_modifier: Option<Box<dyn twitter_text::autolinker::LinkTextModifier>> =
+            if let Some(ref modifier) = self.link_text_modifier {
+                Some(Box::new(RustLinkTextModifier {
+                    modifier_fn: modifier.modifier_fn.clone(),
+                }))
+            } else {
+                None
+            };
+
         RustAutolinker {
             no_follow: self.no_follow,
             url_class: &self.url_class,
@@ -243,6 +260,7 @@ impl Autolinker {
             username_include_symbol: self.username_include_symbol,
             extractor,
             link_attribute_modifier,
+            link_text_modifier,
         }
     }
 }
@@ -293,5 +311,60 @@ impl ReplaceClassModifier {
     #[new]
     fn new(new_class: String) -> Self {
         ReplaceClassModifier { new_class }
+    }
+}
+
+/* ============================================================================
+ * Link Text Modifiers
+ * ========================================================================= */
+
+#[pyclass]
+#[derive(Clone)]
+pub struct LinkTextModifier {
+    modifier_fn: Arc<PyObject>,
+}
+
+#[pymethods]
+impl LinkTextModifier {
+    #[new]
+    fn new(py: Python, modifier_fn: PyObject) -> PyResult<Self> {
+        // Verify it's callable
+        if !modifier_fn.as_ref(py).is_callable() {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "modifier_fn must be callable",
+            ));
+        }
+        Ok(LinkTextModifier {
+            modifier_fn: Arc::new(modifier_fn),
+        })
+    }
+}
+
+struct RustLinkTextModifier {
+    modifier_fn: Arc<PyObject>,
+}
+
+impl twitter_text::autolinker::LinkTextModifier for RustLinkTextModifier {
+    fn modify(&self, entity: &entity::Entity, text: &str) -> String {
+        Python::with_gil(|py| {
+            // Convert entity to a Python-friendly format
+            let entity_dict = pyo3::types::PyDict::new(py);
+            entity_dict.set_item("type", format!("{:?}", entity.t)).ok();
+            entity_dict.set_item("value", entity.value).ok();
+            entity_dict.set_item("start", entity.start).ok();
+            entity_dict.set_item("end", entity.end).ok();
+
+            // Call the Python function
+            match self.modifier_fn.as_ref().call1(py, (entity_dict, text)) {
+                Ok(result) => {
+                    // Extract string from result
+                    match result.extract::<String>(py) {
+                        Ok(s) => s,
+                        Err(_) => text.to_string(), // Fallback to original text
+                    }
+                }
+                Err(_) => text.to_string(), // Fallback to original text
+            }
+        })
     }
 }

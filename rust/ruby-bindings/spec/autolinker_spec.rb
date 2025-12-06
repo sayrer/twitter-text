@@ -142,4 +142,39 @@ RSpec.describe Twittertext::Autolinker do
         result = autolinker.autolink_urls("http://example.com")
         expect(result).to include("target=\"_blank\"")
     end
+
+    it 'can modify link text' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that changes link text based on entity type
+        modifier = Twittertext::LinkTextModifier.new(lambda do |entity, text|
+            if entity[:type] == "HASHTAG"
+                "#replaced"
+            else
+                "pre_#{text}_post"
+            end
+        end)
+        autolinker.set_link_text_modifier(modifier)
+
+        result = autolinker.autolink("#hash @mention")
+        expect(result).to match(/<a[^>]+>#replaced<\/a>/)
+        expect(result).to match(/<a[^>]+>pre_mention_post<\/a>/)
+    end
+
+    it 'can modify link text with symbol tags' do
+        autolinker = Twittertext::Autolinker.new
+
+        # Create a modifier that wraps text with pre/post
+        modifier = Twittertext::LinkTextModifier.new(lambda do |entity, text|
+            "pre_#{text}_post"
+        end)
+        autolinker.set_link_text_modifier(modifier)
+        autolinker.set_symbol_tag("s")
+        autolinker.set_text_with_symbol_tag("b")
+        autolinker.set_username_include_symbol(true)
+
+        result = autolinker.autolink("#hash @mention")
+        expect(result).to match(/<a[^>]+>pre_<s>#<\/s><b>hash<\/b>_post<\/a>/)
+        expect(result).to match(/<a[^>]+>pre_<s>@<\/s><b>mention<\/b>_post<\/a>/)
+    end
 end
