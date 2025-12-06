@@ -245,6 +245,9 @@ java_runtime(
             }
             jdk_target, jdk_target_short = jdk_repo_map.get((t.os, t.cpu), ("@jdk23_macos_arm64_repo//:runtime", "jdk23_macos_arm64_repo"))
 
+            # Determine the jextract repo name based on platform
+            jextract_repo_name = "jextract_%s_%s" % (t.os, t.cpu)
+
             build_content = """
 genrule(
     name = "jextract_wrapper_gen",
@@ -267,15 +270,15 @@ if [[ -z "$$JDK_BIN" ]]; then
 fi
 export JAVA_HOME="$$(dirname "$$(dirname "$$JDK_BIN")")"
 echo "DEBUG: JAVA_HOME=$$JAVA_HOME" >&2
-# Look for jextract in the runfiles directory
-JEXTRACT_BIN="$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/bin/jextract"
+# Look for jextract in the runfiles directory (platform-specific)
+JEXTRACT_BIN="$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+%s_repo/bin/jextract"
 echo "DEBUG: Looking for JEXTRACT_BIN at $$JEXTRACT_BIN" >&2
 if [[ ! -f "$$JEXTRACT_BIN" ]]; then
   echo "Error: Could not find jextract binary at $$JEXTRACT_BIN" >&2
   echo "DEBUG: Contents of jextract_bin.runfiles:" >&2
   ls -la "$$SCRIPT_DIR/jextract_bin.runfiles/" 2>&1 | head -20 >&2 || true
-  echo "DEBUG: Contents of jextract_macos_arm64_repo:" >&2
-  ls -la "$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/" 2>&1 | head -20 >&2 || true
+  echo "DEBUG: Contents of %s_repo:" >&2
+  ls -la "$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+%s_repo/" 2>&1 | head -20 >&2 || true
   exit 1
 fi
 exec "$$JEXTRACT_BIN" "$$@"
@@ -290,7 +293,7 @@ sh_binary(
     data = ["%s"] + glob(["**"]),
     visibility = ["//visibility:public"],
 )
-""" % (jdk_target_short, jdk_target_short, jdk_target)
+""" % (jdk_target_short, jdk_target_short, jextract_repo_name, jextract_repo_name, jextract_repo_name, jdk_target)
 
             http_archive(
                 name = t.name + "_repo",

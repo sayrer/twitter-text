@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 bazel test //rust/... && \
 bazel test //rust_bindings/cpp/... && \
