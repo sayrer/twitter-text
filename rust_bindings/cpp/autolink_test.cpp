@@ -1,4 +1,5 @@
 #include "twitter.h"
+#include "twitter_text_c.h"
 #include "gtest/gtest.h"
 #include "test_helpers.h"
 
@@ -111,6 +112,54 @@ TEST(AutolinkTest, Yaml) {
   }
 
   delete autolinker;
+}
+
+TEST(AutolinkTest, AddAttributeModifierCAPI) {
+  // Test using the C API for LinkAttributeModifier
+  TwitterTextAutolinker* autolinker = twitter_text_autolinker_new(false);
+  ASSERT_NE(autolinker, nullptr);
+
+  // Create a modifier that adds data-custom="test" to hashtags
+  TwitterTextEntityType types[] = {TWITTER_TEXT_ENTITY_HASHTAG};
+  TwitterTextAddAttributeModifier* modifier = twitter_text_add_attribute_modifier_new(
+      types, 1, "data-custom", "test");
+  ASSERT_NE(modifier, nullptr);
+
+  twitter_text_autolinker_set_add_attribute_modifier(autolinker, modifier);
+
+  char* result = twitter_text_autolinker_autolink(autolinker, "#test @mention");
+  ASSERT_NE(result, nullptr);
+  
+  std::string result_str(result);
+  ASSERT_TRUE(result_str.find("data-custom=\"test\"") != std::string::npos);
+  ASSERT_TRUE(result_str.find("#test") != std::string::npos);
+  
+  twitter_text_string_free(result);
+  twitter_text_add_attribute_modifier_free(modifier);
+  twitter_text_autolinker_free(autolinker);
+}
+
+TEST(AutolinkTest, ReplaceClassModifierCAPI) {
+  // Test using the C API for ReplaceClassModifier
+  TwitterTextAutolinker* autolinker = twitter_text_autolinker_new(false);
+  ASSERT_NE(autolinker, nullptr);
+
+  TwitterTextReplaceClassModifier* modifier = 
+      twitter_text_replace_class_modifier_new("custom-link");
+  ASSERT_NE(modifier, nullptr);
+
+  twitter_text_autolinker_set_replace_class_modifier(autolinker, modifier);
+
+  char* result = twitter_text_autolinker_autolink_hashtags(autolinker, "#test");
+  ASSERT_NE(result, nullptr);
+  
+  std::string result_str(result);
+  ASSERT_TRUE(result_str.find("class=\"custom-link\"") != std::string::npos);
+  ASSERT_TRUE(result_str.find("tweet-url hashtag") == std::string::npos);
+  
+  twitter_text_string_free(result);
+  twitter_text_replace_class_modifier_free(modifier);
+  twitter_text_autolinker_free(autolinker);
 }
 
 } // twitter_text

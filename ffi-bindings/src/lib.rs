@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use twitter_text::autolinker::{AddAttributeModifier, Autolinker, ReplaceClassModifier};
 use twitter_text::entity;
@@ -23,6 +23,79 @@ impl From<TwitterTextEntityType> for entity::Type {
             TwitterTextEntityType::HASHTAG => entity::Type::HASHTAG,
             TwitterTextEntityType::MENTION => entity::Type::MENTION,
             TwitterTextEntityType::CASHTAG => entity::Type::CASHTAG,
+        }
+    }
+}
+
+/* ============================================================================
+ * Basic Autolinker C API
+ * ========================================================================= */
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_new(no_follow: bool) -> *mut Autolinker<'static> {
+    Box::into_raw(Box::new(Autolinker::new(no_follow)))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_free(autolinker: *mut Autolinker) {
+    if !autolinker.is_null() {
+        unsafe {
+            let _ = Box::from_raw(autolinker);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_autolink(
+    autolinker: *mut Autolinker,
+    text: *const c_char,
+) -> *mut c_char {
+    if autolinker.is_null() || text.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    unsafe {
+        let text_str = match CStr::from_ptr(text).to_str() {
+            Ok(s) => s,
+            Err(_) => return std::ptr::null_mut(),
+        };
+
+        let result = (*autolinker).autolink(text_str);
+        match CString::new(result) {
+            Ok(c_string) => c_string.into_raw(),
+            Err(_) => std::ptr::null_mut(),
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_autolink_hashtags(
+    autolinker: *mut Autolinker,
+    text: *const c_char,
+) -> *mut c_char {
+    if autolinker.is_null() || text.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    unsafe {
+        let text_str = match CStr::from_ptr(text).to_str() {
+            Ok(s) => s,
+            Err(_) => return std::ptr::null_mut(),
+        };
+
+        let result = (*autolinker).autolink_hashtags(text_str);
+        match CString::new(result) {
+            Ok(c_string) => c_string.into_raw(),
+            Err(_) => std::ptr::null_mut(),
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_string_free(s: *mut c_char) {
+    if !s.is_null() {
+        unsafe {
+            let _ = CString::from_raw(s);
         }
     }
 }

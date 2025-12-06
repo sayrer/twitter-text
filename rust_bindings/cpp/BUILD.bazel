@@ -20,13 +20,15 @@ filegroup(
 cc_library(
     name = "twitter_text",
     hdrs = [
-        "twitter.h"
+        "twitter.h",
+        "twitter_text_c.h"
     ],
     srcs = [
         "twitter.cpp"
     ],
     deps = [
         "//rust/twitter-text:twitter_text_wrapper",
+        "//ffi-bindings:twitter_text_ffi_cdylib",
         "//3rdparty/crates:cxx_cc",
     ],
     copts = ["-v"],

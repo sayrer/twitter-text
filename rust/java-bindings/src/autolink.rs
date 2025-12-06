@@ -2,31 +2,15 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use twitter_text::autolinker::Autolinker;
 
-// Re-export the modifier types and functions from ffi-bindings
+// Re-export the basic autolinker API and modifier types/functions from ffi-bindings
 pub use twitter_text_ffi::{
     twitter_text_add_attribute_modifier_free, twitter_text_add_attribute_modifier_new,
+    twitter_text_autolinker_autolink, twitter_text_autolinker_autolink_hashtags,
+    twitter_text_autolinker_free, twitter_text_autolinker_new,
     twitter_text_autolinker_set_add_attribute_modifier,
     twitter_text_autolinker_set_replace_class_modifier, twitter_text_replace_class_modifier_free,
-    twitter_text_replace_class_modifier_new, TwitterTextEntityType,
+    twitter_text_replace_class_modifier_new, twitter_text_string_free, TwitterTextEntityType,
 };
-
-/* ============================================================================
- * Autolinker API
- * ========================================================================= */
-
-#[no_mangle]
-pub extern "C" fn twitter_text_autolinker_new(no_follow: bool) -> *mut Autolinker<'static> {
-    Box::into_raw(Box::new(Autolinker::new(no_follow)))
-}
-
-#[no_mangle]
-pub extern "C" fn twitter_text_autolinker_free(autolinker: *mut Autolinker) {
-    if !autolinker.is_null() {
-        unsafe {
-            let _ = Box::from_raw(autolinker);
-        }
-    }
-}
 
 /* ============================================================================
  * Configuration setters
@@ -281,25 +265,8 @@ pub extern "C" fn twitter_text_autolinker_set_no_follow(
  * Autolinking functions
  * ========================================================================= */
 
-#[no_mangle]
-pub extern "C" fn twitter_text_autolinker_autolink(
-    autolinker: *mut Autolinker,
-    text: *const c_char,
-) -> *mut c_char {
-    if autolinker.is_null() || text.is_null() {
-        return std::ptr::null_mut();
-    }
-
-    let autolinker_ref = unsafe { &*autolinker };
-    let c_str = unsafe { CStr::from_ptr(text) };
-    let text_str = match c_str.to_str() {
-        Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
-    };
-
-    let result = autolinker_ref.autolink(text_str);
-    CString::new(result).unwrap_or_default().into_raw()
-}
+// Basic autolinking functions are re-exported from ffi-bindings at the top of this file
+// Only the specialized functions that are not in ffi-bindings are defined here:
 
 #[no_mangle]
 pub extern "C" fn twitter_text_autolinker_autolink_usernames_and_lists(
@@ -318,26 +285,6 @@ pub extern "C" fn twitter_text_autolinker_autolink_usernames_and_lists(
     };
 
     let result = autolinker_ref.autolink_usernames_and_lists(text_str);
-    CString::new(result).unwrap_or_default().into_raw()
-}
-
-#[no_mangle]
-pub extern "C" fn twitter_text_autolinker_autolink_hashtags(
-    autolinker: *mut Autolinker,
-    text: *const c_char,
-) -> *mut c_char {
-    if autolinker.is_null() || text.is_null() {
-        return std::ptr::null_mut();
-    }
-
-    let autolinker_ref = unsafe { &*autolinker };
-    let c_str = unsafe { CStr::from_ptr(text) };
-    let text_str = match c_str.to_str() {
-        Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
-    };
-
-    let result = autolinker_ref.autolink_hashtags(text_str);
     CString::new(result).unwrap_or_default().into_raw()
 }
 
@@ -379,19 +326,6 @@ pub extern "C" fn twitter_text_autolinker_autolink_cashtags(
 
     let result = autolinker_ref.autolink_cashtags(text_str);
     CString::new(result).unwrap_or_default().into_raw()
-}
-
-/* ============================================================================
- * Free function for returned strings
- * ========================================================================= */
-
-#[no_mangle]
-pub extern "C" fn twitter_text_string_free(s: *mut c_char) {
-    if !s.is_null() {
-        unsafe {
-            let _ = CString::from_raw(s);
-        }
-    }
 }
 
 /* ============================================================================
