@@ -79,23 +79,23 @@ register_toolchains("@rust_toolchains//:all")
 ###############################################################################
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
-    python_version = "3.10",
+    python_version = "3.12",
 )
-use_repo(python, "python_3_10", "python_versions")
+use_repo(python, "python_3_12", "python_versions")
 
-register_toolchains("@python_3_10//:all")
+register_toolchains("@python_3_12//:all")
 
 # Python dependencies for tld_gen.py
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     hub_name = "tld_gen_deps",
-    python_version = "3.10",
+    python_version = "3.12",
     requirements_lock = "//rust/conformance:tests/tld_gen_requirements.txt",
 )
 pip.parse(
     hub_name = "rust_python_test_deps",
-    python_version = "3.10",
-    requirements_lock = "//rust_bindings/python/test:requirements.txt",
+    python_version = "3.12",
+    requirements_lock = "//rust/python-bindings/test:requirements.txt",
 )
 use_repo(pip, "rust_python_test_deps", "tld_gen_deps")
 

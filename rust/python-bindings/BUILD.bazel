@@ -1,5 +1,6 @@
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -18,8 +19,11 @@ rust_shared_library(
     ],
     edition = "2021",
     crate_features = ["extension-module"],
+    rustc_env = {
+        "PYO3_PYTHON_VERSION": "3.12",
+    },
     rustc_flags = [
-        "--cfg=Py_3_10",
+        "--cfg=Py_3_12",
     ] + select({
         "@platforms//os:macos": [
             "-C", "link-arg=-undefined",
@@ -40,8 +44,23 @@ genrule(
     }),
 )
 
-# Make the .so file available as a target
+# Make the .so file available as a filegroup
 filegroup(
-    name = "twitter_text",
+    name = "twitter_text_module",
     srcs = [":twitter_text_so"],
+)
+
+# Create a Python library that wraps the extension module
+py_library(
+    name = "twitter_text",
+    data = [":twitter_text_module"],
+    imports = ["."],
+)
+
+# Demo binary
+py_binary(
+    name = "demo",
+    srcs = ["demo.py"],
+    deps = [":twitter_text"],
+    imports = ["."],
 )
