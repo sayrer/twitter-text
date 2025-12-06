@@ -1,5 +1,4 @@
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
-load("@rules_ruby//ruby:defs.bzl", "rb_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -50,11 +49,4 @@ filegroup(
         "@platforms//os:macos": [":twittertext_bundle"],
         "//conditions:default": [":twittertext_so"],
     }),
-)
-
-# Demo binary
-rb_binary(
-    name = "demo",
-    srcs = ["demo.rb"],
-    data = [":twittertext"],
 )

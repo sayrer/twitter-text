@@ -1,5 +1,4 @@
 require_relative 'spec_helper'
-require 'rust_bindings/ruby/twittertext'
 require 'yaml'
 
 def array_to_hits(arr)

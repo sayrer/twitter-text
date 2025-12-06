@@ -1,5 +1,4 @@
 require_relative 'spec_helper'
-require 'rust_bindings/ruby/twittertext'
 
 RSpec.describe Twittertext::TwitterTextConfiguration do
     it 'has a working constructor' do

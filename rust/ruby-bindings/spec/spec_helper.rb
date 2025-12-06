@@ -2,6 +2,12 @@
 
 ENV['HOME'] ||= '.'
 
+# In Bazel runfiles, the .so file is in rust/ruby-bindings directory
+# We need to find it via the runfiles directory, not via the source path
+runfiles_dir = ENV['RUNFILES_DIR'] || File.dirname(File.dirname(__FILE__))
+twittertext_so = File.join(runfiles_dir, '_main', 'rust', 'ruby-bindings', 'twittertext.so')
+require twittertext_so
+
 require 'rspec'
 
 RSpec.configure do |config|
