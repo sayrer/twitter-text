@@ -15,13 +15,13 @@ This is a simple demonstration of calling C functions from Java using the Foreig
 ### Build the demo
 
 ```bash
-bazel build //rust_bindings/java_ffm/example:main
+bazel build //rust/java-bindings/example:main
 ```
 
 ### Run the demo
 
 ```bash
-bazel run //rust_bindings/java_ffm/example:main
+bazel run //rust/java-bindings/example:main
 ```
 
 Expected output:

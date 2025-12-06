@@ -25,7 +25,7 @@ This directory contains Java 22+ bindings using the Foreign Function & Memory AP
 ### 1. Build Rust Library
 
 ```bash
-bazel build //rust_bindings/java_ffm:twitter_text_java_ffm
+bazel build //rust/java-bindings:twitter_text_java_ffm
 ```
 
 ### 2. Generate Java Bindings with jextract

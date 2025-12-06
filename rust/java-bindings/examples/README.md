@@ -5,7 +5,7 @@ This directory contains Java wrapper classes and examples for using the twitter-
 ## Requirements
 
 - Java 23 or later (for FFM support)
-- The generated `twitter_text_bindings.srcjar` from `//rust_bindings/java_ffm:generate_java_bindings`
+- The generated `twitter_text_bindings.srcjar` from `//rust/java-bindings:generate_java_bindings`
 - The compiled native library `libtwitter_text_java_ffm.dylib` (macOS) or `libtwitter_text_java_ffm.so` (Linux)
 
 ## Wrapper Classes
@@ -91,7 +91,7 @@ try (Validator validator = Validator.create()) {
 
 ```bash
 # Run the example
-bazel run //rust_bindings/java_ffm/examples:example
+bazel run //rust/java-bindings/examples:example
 ```
 
 That's it! Bazel will automatically:
@@ -106,14 +106,14 @@ If you want to build manually:
 
 ```bash
 # 1. Build the native library and bindings
-bazel build //rust_bindings/java_ffm:twitter_text_java_ffm
-bazel build //rust_bindings/java_ffm:generate_java_bindings
+bazel build //rust/java-bindings:twitter_text_java_ffm
+bazel build //rust/java-bindings:generate_java_bindings
 
 # 2. Extract the srcjar
-cd rust_bindings/java_ffm/examples
+cd rust/java-bindings/examples
 mkdir -p target/generated-sources
 cd target/generated-sources
-unzip ../../../bazel-bin/rust_bindings/java_ffm/twitter_text_bindings.srcjar
+unzip ../../../bazel-bin/rust/java-bindings/twitter_text_bindings.srcjar
 cd ../..
 
 # 3. Compile
@@ -125,7 +125,7 @@ javac --enable-preview --release 23 \
 # 4. Run
 java --enable-preview \
     -cp target/classes \
-    -Djava.library.path=../bazel-bin/rust_bindings/java_ffm \
+    -Djava.library.path=../bazel-bin/rust/java-bindings \
     com.sayrer.twitter_text.examples.Example
 ```
 

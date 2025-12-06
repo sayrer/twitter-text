@@ -5,7 +5,7 @@ java_library(
     name = "example_lib",
     srcs = glob(["src/main/java/com/sayrer/twitter_text/examples/*.java"]),
     deps = [
-        "//rust_bindings/java_ffm/java:twitter_text_wrappers",
+        "//rust/java-bindings/java:twitter_text_wrappers",
     ],
     javacopts = [
         "--enable-preview",
@@ -26,7 +26,7 @@ java_binary(
         "--enable-native-access=ALL-UNNAMED",
     ],
     data = [
-        "//rust_bindings/java_ffm:twitter_text_java_ffm",
+        "//rust/java-bindings:twitter_text_java_ffm",
     ],
 )
 
@@ -36,6 +36,6 @@ sh_binary(
     srcs = ["run_example.sh"],
     data = [
         ":example_java",
-        "//rust_bindings/java_ffm:twitter_text_java_ffm",
+        "//rust/java-bindings:twitter_text_java_ffm",
     ],
 )

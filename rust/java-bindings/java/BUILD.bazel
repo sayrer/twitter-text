@@ -5,7 +5,7 @@ java_library(
     name = "twitter_text_wrappers",
     srcs = glob(["src/main/java/com/sayrer/twitter_text/*.java"]),
     deps = [
-        "//rust_bindings/java_ffm:generated_java_sources",
+        "//rust/java-bindings:generated_java_sources",
     ],
     javacopts = [
         "--enable-preview",
