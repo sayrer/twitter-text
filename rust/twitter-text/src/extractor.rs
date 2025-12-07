@@ -745,4 +745,273 @@ mod tests {
         extractor.set_extract_url_without_protocol(true);
         assert_eq!(true, extractor.get_extract_url_without_protocol());
     }
+
+    // Reply tests - ported from Java ExtractorTest.ReplyTest
+
+    #[test]
+    fn test_reply_at_the_start() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_reply_username("@user reply");
+        assert!(extracted.is_some());
+        assert_eq!("user", extracted.unwrap().value);
+    }
+
+    #[test]
+    fn test_reply_with_leading_space() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_reply_username(" @user reply");
+        assert!(extracted.is_some());
+        assert_eq!("user", extracted.unwrap().value);
+    }
+
+    // Mention tests - ported from Java ExtractorTest.MentionTest
+
+    #[test]
+    fn test_mention_at_the_beginning() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_mentioned_screennames("@user mention");
+        assert_eq!(vec!["user"], extracted);
+    }
+
+    #[test]
+    fn test_mention_with_leading_space() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_mentioned_screennames(" @user mention");
+        assert_eq!(vec!["user"], extracted);
+    }
+
+    #[test]
+    fn test_mention_in_mid_text() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_mentioned_screennames("mention @user here");
+        assert_eq!(vec!["user"], extracted);
+    }
+
+    #[test]
+    fn test_multiple_mentions() {
+        let extractor = Extractor::new();
+        let extracted =
+            extractor.extract_mentioned_screennames("mention @user1 here and @user2 here");
+        assert_eq!(vec!["user1", "user2"], extracted);
+    }
+
+    #[test]
+    fn test_mention_with_indices() {
+        let extractor = Extractor::new();
+        let extracted = extractor
+            .extract_mentioned_screennames_with_indices(" @user1 mention @user2 here @user3 ");
+        assert_eq!(3, extracted.len());
+        assert_eq!(1, extracted[0].start);
+        assert_eq!(7, extracted[0].end);
+        assert_eq!(16, extracted[1].start);
+        assert_eq!(22, extracted[1].end);
+        assert_eq!(28, extracted[2].start);
+        assert_eq!(34, extracted[2].end);
+    }
+
+    #[test]
+    fn test_mention_with_supplementary_characters() {
+        // U+10400 DESERET CAPITAL LETTER LONG I
+        let text = format!("\u{10400} @mention \u{10400} @mention");
+        let extractor = Extractor::new();
+
+        // Extract with UTF-16 indices
+        let extracted = extractor.extract_mentioned_screennames_with_indices(&text);
+        assert_eq!(2, extracted.len());
+
+        // First mention
+        assert_eq!("mention", extracted[0].value);
+        // U+10400 takes 2 UTF-16 code units (surrogate pair), then space (1), then @ (1) = index 3
+        assert_eq!(3, extracted[0].start);
+        // Start (3) + "@mention" (8) = 11
+        assert_eq!(11, extracted[0].end);
+
+        // Second mention
+        assert_eq!("mention", extracted[1].value);
+        // First mention ends at 11, space (1), U+10400 (2), space (1), @ (1) = 15
+        assert_eq!(15, extracted[1].start);
+        assert_eq!(23, extracted[1].end);
+    }
+
+    // Hashtag tests - ported from Java ExtractorTest.HashtagTest
+
+    #[test]
+    fn test_hashtag_at_the_beginning() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_hashtags("#hashtag mention");
+        assert_eq!(vec!["hashtag"], extracted);
+    }
+
+    #[test]
+    fn test_hashtag_with_leading_space() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_hashtags(" #hashtag mention");
+        assert_eq!(vec!["hashtag"], extracted);
+    }
+
+    #[test]
+    fn test_hashtag_in_mid_text() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_hashtags("mention #hashtag here");
+        assert_eq!(vec!["hashtag"], extracted);
+    }
+
+    #[test]
+    fn test_multiple_hashtags() {
+        let extractor = Extractor::new();
+        let extracted = extractor.extract_hashtags("text #hashtag1 #hashtag2");
+        assert_eq!(vec!["hashtag1", "hashtag2"], extracted);
+    }
+
+    #[test]
+    fn test_hashtag_with_indices() {
+        let extractor = Extractor::new();
+        let extracted =
+            extractor.extract_hashtags_with_indices(" #user1 mention #user2 here #user3 ");
+        assert_eq!(3, extracted.len());
+        assert_eq!(1, extracted[0].start);
+        assert_eq!(7, extracted[0].end);
+        assert_eq!(16, extracted[1].start);
+        assert_eq!(22, extracted[1].end);
+        assert_eq!(28, extracted[2].start);
+        assert_eq!(34, extracted[2].end);
+    }
+
+    #[test]
+    fn test_hashtag_with_supplementary_characters() {
+        let text = format!("\u{10400} #hashtag \u{10400} #hashtag");
+        let extractor = Extractor::new();
+
+        let extracted = extractor.extract_hashtags_with_indices(&text);
+        assert_eq!(2, extracted.len());
+
+        assert_eq!("hashtag", extracted[0].value);
+        assert_eq!(3, extracted[0].start);
+        assert_eq!(11, extracted[0].end);
+
+        assert_eq!("hashtag", extracted[1].value);
+        assert_eq!(15, extracted[1].start);
+        assert_eq!(23, extracted[1].end);
+    }
+
+    // URL tests - ported from Java ExtractorTest.URLTest
+
+    #[test]
+    fn test_url_with_indices() {
+        let extractor = Extractor::new();
+        let extracted =
+            extractor.extract_urls_with_indices("http://t.co url https://www.twitter.com ");
+        assert_eq!(2, extracted.len());
+        assert_eq!(0, extracted[0].start);
+        assert_eq!(11, extracted[0].end);
+        assert_eq!(16, extracted[1].start);
+        assert_eq!(39, extracted[1].end);
+    }
+
+    #[test]
+    fn test_url_without_protocol() {
+        let extractor = Extractor::new();
+        let text = "www.twitter.com, www.yahoo.co.jp, t.co/blahblah, www.poloshirts.uk.com";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(
+            vec![
+                "www.twitter.com",
+                "www.yahoo.co.jp",
+                "t.co/blahblah",
+                "www.poloshirts.uk.com"
+            ],
+            extracted
+        );
+
+        let extracted_with_indices = extractor.extract_urls_with_indices(text);
+        assert_eq!(4, extracted_with_indices.len());
+        assert_eq!(0, extracted_with_indices[0].start);
+        assert_eq!(15, extracted_with_indices[0].end);
+        assert_eq!(17, extracted_with_indices[1].start);
+        assert_eq!(32, extracted_with_indices[1].end);
+        assert_eq!(34, extracted_with_indices[2].start);
+        assert_eq!(47, extracted_with_indices[2].end);
+    }
+
+    #[test]
+    fn test_url_without_protocol_disabled() {
+        let mut extractor = Extractor::new();
+        extractor.set_extract_url_without_protocol(false);
+        let text = "www.twitter.com, www.yahoo.co.jp, t.co/blahblah";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(0, extracted.len());
+    }
+
+    #[test]
+    fn test_url_followed_by_punctuations() {
+        let extractor = Extractor::new();
+        let text = "http://games.aarp.org/games/mahjongg-dimensions.aspx!!!!!!";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(
+            vec!["http://games.aarp.org/games/mahjongg-dimensions.aspx"],
+            extracted
+        );
+    }
+
+    #[test]
+    fn test_url_with_punctuation() {
+        let extractor = Extractor::new();
+        let urls = vec![
+            "http://www.foo.com/foo/path-with-period./",
+            "http://www.foo.org.za/foo/bar/688.1",
+            "http://www.foo.com/bar-path/some.stm?param1=foo;param2=P1|0||P2|0",
+            "http://foo.com/bar/123/foo_&_bar/",
+            "http://foo.com/bar(test)bar(test)bar(test)",
+            "www.foo.com/foo/path-with-period./",
+            "www.foo.org.za/foo/bar/688.1",
+            "www.foo.com/bar-path/some.stm?param1=foo;param2=P1|0||P2|0",
+            "foo.com/bar/123/foo_&_bar/",
+        ];
+
+        for url in urls {
+            let extracted = extractor.extract_urls(url);
+            assert_eq!(vec![url], extracted, "Failed to extract URL: {}", url);
+        }
+    }
+
+    #[test]
+    fn test_url_with_supplementary_characters() {
+        let text = format!("\u{10400} http://twitter.com \u{10400} http://twitter.com");
+        let extractor = Extractor::new();
+
+        let extracted = extractor.extract_urls_with_indices(&text);
+        assert_eq!(2, extracted.len());
+
+        assert_eq!("http://twitter.com", extracted[0].value);
+        assert_eq!(3, extracted[0].start);
+        assert_eq!(21, extracted[0].end);
+
+        assert_eq!("http://twitter.com", extracted[1].value);
+        assert_eq!(25, extracted[1].start);
+        assert_eq!(43, extracted[1].end);
+    }
+
+    #[test]
+    fn test_url_with_special_cctld_without_protocol() {
+        let extractor = Extractor::new();
+        let text = "MLB.tv vine.co";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(vec!["MLB.tv", "vine.co"], extracted);
+
+        let extracted_with_indices = extractor.extract_urls_with_indices(text);
+        assert_eq!(2, extracted_with_indices.len());
+        assert_eq!(0, extracted_with_indices[0].start);
+        assert_eq!(6, extracted_with_indices[0].end);
+        assert_eq!(7, extracted_with_indices[1].start);
+        assert_eq!(14, extracted_with_indices[1].end);
+    }
+
+    #[test]
+    fn test_url_with_special_cctld_disabled() {
+        let mut extractor = Extractor::new();
+        extractor.set_extract_url_without_protocol(false);
+        let text = "MLB.tv vine.co";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(0, extracted.len());
+    }
 }

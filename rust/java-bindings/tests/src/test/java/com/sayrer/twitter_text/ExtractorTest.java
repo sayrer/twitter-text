@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-package com.twitter.twittertext;
+package com.sayrer.twitter_text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.twitter.twittertext.Extractor.Entity.Type;
+import com.sayrer.twitter_text.Entity.Type;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -86,14 +86,14 @@ public class ExtractorTest extends TestCase {
       final Pattern pat = Pattern.compile(patStr);
       final Matcher matcher = pat.matcher(testData);
 
-      final List<Extractor.Entity> entities = new ArrayList<>();
+      final List<Entity> entities = new ArrayList<>();
       final List<Integer> codePointOffsets = new ArrayList<>();
       final List<Integer> charOffsets = new ArrayList<>();
       while (matcher.find()) {
         final int charOffset = matcher.start();
         charOffsets.add(charOffset);
         codePointOffsets.add(testData.codePointCount(0, charOffset));
-        entities.add(new Extractor.Entity(matcher, Type.HASHTAG, 0, 0));
+        entities.add(new Entity(matcher, Type.HASHTAG, 0, 0));
       }
 
       extractor.modifyIndicesFromUTF16ToUnicode(testData, entities);
@@ -158,7 +158,7 @@ public class ExtractorTest extends TestCase {
     }
 
     public void testMentionWithIndices() {
-      final List<Extractor.Entity> extracted =
+      final List<Entity> extracted =
           extractor.extractMentionedScreennamesWithIndices(" @user1 mention @user2 here @user3 ");
       assertEquals(extracted.size(), 3);
       assertEquals(extracted.get(0).getStart().intValue(), 1);
@@ -174,7 +174,7 @@ public class ExtractorTest extends TestCase {
       final String text = String.format("%c @mention %c @mention", 0x00010400, 0x00010400);
 
       // count U+10400 as 2 characters (as in UTF-16)
-      final List<Extractor.Entity> extracted =
+      final List<Entity> extracted =
           extractor.extractMentionedScreennamesWithIndices(text);
       assertEquals(extracted.size(), 2);
       assertEquals(extracted.get(0).value, "mention");
@@ -229,7 +229,7 @@ public class ExtractorTest extends TestCase {
     }
 
     public void testHashtagWithIndices() {
-      final List<Extractor.Entity> extracted =
+      final List<Entity> extracted =
           extractor.extractHashtagsWithIndices(" #user1 mention #user2 here #user3 ");
       assertEquals(extracted.size(), 3);
       assertEquals(extracted.get(0).getStart().intValue(), 1);
@@ -245,7 +245,7 @@ public class ExtractorTest extends TestCase {
       final String text = String.format("%c #hashtag %c #hashtag", 0x00010400, 0x00010400);
 
       // count U+10400 as 2 characters (as in UTF-16)
-      final List<Extractor.Entity> extracted = extractor.extractHashtagsWithIndices(text);
+      final List<Entity> extracted = extractor.extractHashtagsWithIndices(text);
       assertEquals(extracted.size(), 2);
       assertEquals(extracted.get(0).value, "hashtag");
       assertEquals(extracted.get(0).start, 3);
@@ -277,7 +277,7 @@ public class ExtractorTest extends TestCase {
    */
   public static class URLTest extends ExtractorTest {
     public void testUrlWithIndices() {
-      final List<Extractor.Entity> extracted =
+      final List<Entity> extracted =
           extractor.extractURLsWithIndices("http://t.co url https://www.twitter.com ");
       assertEquals(extracted.get(0).getStart().intValue(), 0);
       assertEquals(extracted.get(0).getEnd().intValue(), 11);
@@ -292,7 +292,7 @@ public class ExtractorTest extends TestCase {
               "www.poloshirts.uk.com"},
           extractor.extractURLs(text));
 
-      final List<Extractor.Entity> extracted = extractor.extractURLsWithIndices(text);
+      final List<Entity> extracted = extractor.extractURLsWithIndices(text);
       assertEquals(extracted.get(0).getStart().intValue(), 0);
       assertEquals(extracted.get(0).getEnd().intValue(), 15);
       assertEquals(extracted.get(1).getStart().intValue(), 17);
@@ -335,7 +335,7 @@ public class ExtractorTest extends TestCase {
           0x00010400);
 
       // count U+10400 as 2 characters (as in UTF-16)
-      final List<Extractor.Entity> extracted = extractor.extractURLsWithIndices(text);
+      final List<Entity> extracted = extractor.extractURLsWithIndices(text);
       assertEquals(extracted.size(), 2);
       assertEquals(extracted.get(0).value, "http://twitter.com");
       assertEquals(extracted.get(0).start, 3);
@@ -367,7 +367,7 @@ public class ExtractorTest extends TestCase {
     assertList("Failed to extract URLs without protocol",
         new String[]{"MLB.tv", "vine.co"}, extractor.extractURLs(text));
 
-    final List<Extractor.Entity> extracted = extractor.extractURLsWithIndices(text);
+    final List<Entity> extracted = extractor.extractURLsWithIndices(text);
     assertEquals(extracted.get(0).getStart().intValue(), 0);
     assertEquals(extracted.get(0).getEnd().intValue(), 6);
     assertEquals(extracted.get(1).getStart().intValue(), 7);

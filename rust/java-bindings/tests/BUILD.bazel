@@ -87,3 +87,25 @@ java_test(
         "//rust/java-bindings:twitter_text_java_ffm",
     ],
 )
+
+java_test(
+    name = "ExtractorTest",
+    srcs = [
+        "src/test/java/com/sayrer/twitter_text/ExtractorTest.java",
+    ],
+    test_class = "com.sayrer.twitter_text.ExtractorTest",
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+    ],
+    jvm_flags = [
+        "--enable-preview",
+        "--enable-native-access=ALL-UNNAMED",
+    ],
+    env = {
+        "LD_LIBRARY_PATH": "rust/java-bindings",
+    },
+    data = [
+        "//rust/java-bindings:twitter_text_java_ffm",
+    ],
+)
