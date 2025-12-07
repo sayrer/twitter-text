@@ -79,6 +79,7 @@ cargo test -p twitter-text-parser
 - **Java** (`rust/java-bindings/`): Uses JDK 23+ Foreign Function & Memory API (Project Panama)
 - **Python** (`rust/python-bindings/`): Uses PyO3
 - **C++** (`rust_bindings/cpp/`): Uses cxx.rs for safe Rust-C++ interop
+- **Swift** (`rust/swift-bindings/`): Uses C FFI with auto-generated Clang modules
 
 ## Testing
 
@@ -142,9 +143,50 @@ This order prevents ambiguities (e.g., `goo.gl/4udoLK` could match as hashtag bu
 - **Python**: 3.12 (for Python bindings)
 - **LLVM**: 17.0.6 (hermetic toolchain via Bazel)
 
+## Swift Bindings
+
+The Swift bindings (`rust/swift-bindings/`) provide a Swift-friendly API over the shared C FFI layer.
+
+### Building Swift Library
+
+```bash
+# Build Swift library (works on both Linux and macOS)
+bazel build //rust/swift-bindings:TwitterText
+
+# Produces: libTwitterText.a, TwitterText.swiftmodule, TwitterText.swiftdoc
+```
+
+### Running Swift Tests
+
+**On macOS** (recommended):
+```bash
+# Tests work via Bazel on macOS
+bazel test //rust/swift-bindings:TwitterTextTests
+```
+
+**On Linux**:
+```bash
+# Bazel tests don't work on Linux due to rules_swift linker compatibility
+# Use Swift Package Manager instead:
+cd rust/swift-bindings
+swift test
+```
+
+### Swift Toolchain Details
+
+- **Linux**: Uses hermetic Swift 6.0.3 toolchain downloaded by Bazel (see `MODULE.bazel`)
+- **macOS**: Uses system Swift from Xcode (automatically detected by rules_swift)
+- **C Interop**: C headers from `//rust/ffi-bindings` are auto-wrapped via `swift_interop_hint`
+- **Module Name**: Swift code imports `CTwitterText` to access C FFI functions
+
+### Known Limitations
+
+Swift binary tests cannot run via Bazel on Linux because rules_swift passes Darwin-specific linker flags (`-add_ast_path`) that ld.lld doesn't understand. This is a rules_swift limitation when targeting Linux. The workaround is to use Swift Package Manager for testing on Linux, or test on macOS where the native toolchain works correctly.
+
 ## Notes
 
 - Ruby bindings require system libyaml (`brew install libyaml` on macOS)
 - Java bindings use jextract to generate FFM code from C headers
 - Sanitizer tests available: `bazel test //rust_bindings/cpp_sanitizers/...`
 - MODULE.bazel contains all external dependencies and toolchain configurations
+- Swift bindings share the same C FFI layer (`//rust/ffi-bindings`) with Java and C++ bindings

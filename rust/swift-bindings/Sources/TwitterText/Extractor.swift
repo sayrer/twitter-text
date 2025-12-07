@@ -17,47 +17,35 @@ public class Extractor {
     /// Whether to extract URLs without protocol (e.g., "example.com")
     public var extractUrlWithoutProtocol: Bool {
         get {
-            return twitter_text_extractor_extract_url_without_protocol(handle)
+            return twitter_text_extractor_get_extract_url_without_protocol(handle)
         }
         set {
             twitter_text_extractor_set_extract_url_without_protocol(handle, newValue)
         }
     }
 
-    /// Extract all entities from the text
-    public func extractEntities(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_entities_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
-    }
-
     /// Extract URLs from the text
     public func extractURLs(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_urls_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
+        let entitiesArray = twitter_text_extractor_extract_urls_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
     }
 
     /// Extract hashtags from the text
     public func extractHashtags(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_hashtags_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
+        let entitiesArray = twitter_text_extractor_extract_hashtags_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
     }
 
     /// Extract mentions from the text
     public func extractMentions(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_mentioned_screennames_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
-    }
-
-    /// Extract mentions or lists from the text
-    public func extractMentionsOrLists(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_mentions_or_lists_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
+        let entitiesArray = twitter_text_extractor_extract_mentioned_screennames_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
     }
 
     /// Extract cashtags from the text
     public func extractCashtags(from text: String) -> [Entity] {
-        let entitiesPtr = twitter_text_extractor_extract_cashtags_with_indices(handle, text)
-        return extractEntitiesFromPointer(entitiesPtr)
+        let entitiesArray = twitter_text_extractor_extract_cashtags_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
     }
 
     /// Extract the reply username from the text
@@ -71,22 +59,17 @@ public class Extractor {
         return entity
     }
 
-    private func extractEntitiesFromPointer(_ entitiesPtr: UnsafeMutablePointer<TwitterTextEntities>?) -> [Entity] {
-        guard let entitiesPtr = entitiesPtr else {
-            return []
-        }
-
-        let entities = entitiesPtr.pointee
+    private func extractEntitiesFromArray(_ entitiesArray: TwitterTextEntityArray) -> [Entity] {
         var result: [Entity] = []
 
-        if let array = entities.entities {
-            for i in 0..<Int(entities.count) {
+        if let array = entitiesArray.entities {
+            for i in 0..<Int(entitiesArray.length) {
                 let entity = Entity(from: array[i])
                 result.append(entity)
             }
         }
 
-        twitter_text_entities_free(entitiesPtr)
+        twitter_text_entity_array_free(entitiesArray)
         return result
     }
 }
