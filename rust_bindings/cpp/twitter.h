@@ -152,6 +152,7 @@ public:
   ::rust::String autolinkHashtags(const std::string &text);
   ::rust::String autolinkUrls(const std::string &text);
   ::rust::String autolinkCashtags(const std::string &text);
+  ::rust::String autolinkEntities(const std::string &text, const std::vector<::twitter_text::Entity> &entities);
 
 private:
   std::unique_ptr<::twitter_text::AutolinkerConfig> config;

@@ -238,4 +238,30 @@ TEST(AutolinkTest, LinkTextModifierAsterisksCAPI) {
   twitter_text_autolinker_free(autolinker);
 }
 
+TEST(AutolinkTest, AutolinkEntities) {
+  Autolinker autolinker;
+  
+  // Create an entity for a t.co URL with display and expanded URLs
+  Entity entity;
+  entity.entity_type = 0; // URL
+  entity.start = 0;
+  entity.end = 19;
+  entity.value = "http://t.co/0JG5Mcq";
+  entity.list_slug = "";
+  entity.display_url = "blog.twitter.com/2011/05/twitte…";
+  entity.expanded_url = "http://blog.twitter.com/2011/05/twitter-for-mac-update.html";
+  
+  std::vector<Entity> entities;
+  entities.push_back(entity);
+  
+  std::string text = "http://t.co/0JG5Mcq";
+  std::string result = std::string(autolinker.autolinkEntities(text, entities));
+  
+  // Verify the result contains the special t.co URL structure
+  ASSERT_TRUE(result.find("href=\"http://t.co/0JG5Mcq\"") != std::string::npos);
+  ASSERT_TRUE(result.find("tco-ellipsis") != std::string::npos);
+  ASSERT_TRUE(result.find("js-display-url") != std::string::npos);
+  ASSERT_TRUE(result.find("blog.twitter.com/2011/05/twitte") != std::string::npos);
+}
+
 } // twitter_text

@@ -541,6 +541,7 @@ fn escape_brackets(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::{Entity, Type};
 
     #[test]
     fn test_escape_html() {
@@ -695,5 +696,77 @@ mod tests {
         assert!(result.contains("class=\"my-custom-class\""));
         // Should not have the default class
         assert!(!result.contains("tweet-url hashtag"));
+    }
+
+    #[test]
+    fn test_autolink_entities_with_tco_url() {
+        let linker = Autolinker::new(false);
+
+        // Create an entity for a t.co URL with display and expanded URLs
+        let entity = Entity {
+            t: Type::URL,
+            start: 0,
+            end: 19,
+            value: "http://t.co/0JG5Mcq",
+            list_slug: "",
+            display_url: "blog.twitter.com/2011/05/twitte…",
+            expanded_url: "http://blog.twitter.com/2011/05/twitter-for-mac-update.html",
+        };
+
+        let entities = vec![entity];
+        let text = "http://t.co/0JG5Mcq";
+        let result = linker.autolink_entities(text, &entities);
+
+        // Verify the result contains the special t.co URL structure
+        assert!(result.contains("href=\"http://t.co/0JG5Mcq\""));
+        assert!(result.contains("tco-ellipsis"));
+        assert!(result.contains("js-display-url"));
+        assert!(result.contains("blog.twitter.com/2011/05/twitte"));
+        // Verify invisible spans for proper copy-paste behavior
+        assert!(result.contains("style='position:absolute;left:-9999px;'"));
+    }
+
+    #[test]
+    fn test_autolink_entities_mixed() {
+        let linker = Autolinker::new(false);
+
+        // Create entities for hashtag, mention, and URL
+        let entities = vec![
+            Entity {
+                t: Type::HASHTAG,
+                start: 0,
+                end: 5,
+                value: "test",
+                list_slug: "",
+                display_url: "",
+                expanded_url: "",
+            },
+            Entity {
+                t: Type::MENTION,
+                start: 6,
+                end: 11,
+                value: "user",
+                list_slug: "",
+                display_url: "",
+                expanded_url: "",
+            },
+            Entity {
+                t: Type::URL,
+                start: 12,
+                end: 30,
+                value: "http://example.com",
+                list_slug: "",
+                display_url: "",
+                expanded_url: "",
+            },
+        ];
+
+        let text = "#test @user http://example.com";
+        let result = linker.autolink_entities(text, &entities);
+
+        // Verify all entities are linked
+        assert!(result.contains("href=\"https://twitter.com/search?q=%23test\""));
+        assert!(result.contains("href=\"https://twitter.com/user\""));
+        assert!(result.contains("href=\"http://example.com\""));
     }
 }

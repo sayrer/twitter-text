@@ -180,6 +180,16 @@ Autolinker::autolinkCashtags(const std::string &text) {
   return ::twitter_text::autolink_cashtags(text, *config);
 }
 
+::rust::String
+Autolinker::autolinkEntities(const std::string &text, const std::vector<::twitter_text::Entity> &entities) {
+  // Convert std::vector to rust::Vec
+  ::rust::Vec<::twitter_text::Entity> rust_entities;
+  for (const auto& entity : entities) {
+    rust_entities.push_back(entity);
+  }
+  return ::twitter_text::autolink_entities(text, rust_entities, *config);
+}
+
 // Extractor
 
 template <>

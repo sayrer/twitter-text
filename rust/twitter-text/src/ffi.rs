@@ -116,6 +116,11 @@ pub mod ffi {
         fn autolink_hashtags(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_urls(text: &str, config: &AutolinkerConfig) -> String;
         fn autolink_cashtags(text: &str, config: &AutolinkerConfig) -> String;
+        fn autolink_entities(
+            text: &str,
+            entities: &Vec<Entity>,
+            config: &AutolinkerConfig,
+        ) -> String;
 
         // Extractor
         type RustExtractor;
@@ -385,6 +390,34 @@ pub fn autolink_urls(text: &str, config: &ffi::AutolinkerConfig) -> String {
 
 pub fn autolink_cashtags(text: &str, config: &ffi::AutolinkerConfig) -> String {
     new_with_config(config).autolink_cashtags(text)
+}
+
+pub fn autolink_entities(
+    text: &str,
+    entities: &Vec<ffi::Entity>,
+    config: &ffi::AutolinkerConfig,
+) -> String {
+    // Convert FFI entities to Rust entities
+    let rust_entities: Vec<Entity> = entities
+        .iter()
+        .map(|e| Entity {
+            t: match e.entity_type {
+                0 => crate::entity::Type::URL,
+                1 => crate::entity::Type::HASHTAG,
+                2 => crate::entity::Type::MENTION,
+                3 => crate::entity::Type::CASHTAG,
+                _ => crate::entity::Type::URL, // default fallback
+            },
+            start: e.start,
+            end: e.end,
+            value: &e.value,
+            list_slug: &e.list_slug,
+            display_url: &e.display_url,
+            expanded_url: &e.expanded_url,
+        })
+        .collect();
+
+    new_with_config(config).autolink_entities(text, &rust_entities)
 }
 
 // Extractor

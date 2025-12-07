@@ -196,5 +196,28 @@ def test_link_text_modifier_with_symbol_tags():
     assert "pre_<s>@</s><b>mention</b>_post" in result
 
 
+def test_autolink_entities():
+    autolinker = twitter_text.Autolinker()
+
+    # Create an entity for a t.co URL with display and expanded URLs
+    entity = twitter_text.Entity(
+        start=0,
+        end=19,
+        value="http://t.co/0JG5Mcq",
+        entity_type="URL",
+        display_url="blog.twitter.com/2011/05/twitte…",
+        expanded_url="http://blog.twitter.com/2011/05/twitter-for-mac-update.html",
+    )
+
+    text = "http://t.co/0JG5Mcq"
+    result = autolinker.autolink_entities(text, [entity])
+
+    # Verify the result contains the special t.co URL structure
+    assert 'href="http://t.co/0JG5Mcq"' in result
+    assert "tco-ellipsis" in result
+    assert "js-display-url" in result
+    assert "blog.twitter.com/2011/05/twitte" in result
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__]))

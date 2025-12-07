@@ -210,6 +210,26 @@ impl Autolinker {
     fn autolink_cashtags(&self, text: &str) -> String {
         self.to_rust_autolinker().autolink_cashtags(text)
     }
+
+    fn autolink_entities(&self, text: &str, entities: Vec<Entity>) -> String {
+        // Keep the owned entities alive while we use them
+        let owned = entities;
+        let rust_entities: Vec<entity::Entity> = owned
+            .iter()
+            .map(|e| entity::Entity {
+                t: e.entity_type,
+                start: e.start,
+                end: e.end,
+                value: &e.value,
+                list_slug: &e.list_slug,
+                display_url: &e.display_url,
+                expanded_url: &e.expanded_url,
+            })
+            .collect();
+
+        self.to_rust_autolinker()
+            .autolink_entities(text, &rust_entities)
+    }
 }
 
 impl Autolinker {
@@ -366,5 +386,87 @@ impl twitter_text::autolinker::LinkTextModifier for RustLinkTextModifier {
                 Err(_) => text.to_string(), // Fallback to original text
             }
         })
+    }
+}
+
+/* ============================================================================
+ * Entity for autolink_entities
+ * ========================================================================= */
+
+#[pyclass]
+#[derive(Clone)]
+pub struct Entity {
+    entity_type: entity::Type,
+    #[pyo3(get, set)]
+    pub start: i32,
+    #[pyo3(get, set)]
+    pub end: i32,
+    #[pyo3(get, set)]
+    pub value: String,
+    #[pyo3(get, set)]
+    pub list_slug: String,
+    #[pyo3(get, set)]
+    pub display_url: String,
+    #[pyo3(get, set)]
+    pub expanded_url: String,
+}
+
+#[pymethods]
+impl Entity {
+    #[new]
+    #[pyo3(signature = (start, end, value, entity_type, list_slug="".to_string(), display_url="".to_string(), expanded_url="".to_string()))]
+    fn new(
+        start: i32,
+        end: i32,
+        value: String,
+        entity_type: String,
+        list_slug: String,
+        display_url: String,
+        expanded_url: String,
+    ) -> PyResult<Self> {
+        let t = match entity_type.to_uppercase().as_str() {
+            "URL" => entity::Type::URL,
+            "HASHTAG" => entity::Type::HASHTAG,
+            "MENTION" => entity::Type::MENTION,
+            "CASHTAG" => entity::Type::CASHTAG,
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Invalid entity type: {}",
+                    entity_type
+                )))
+            }
+        };
+
+        Ok(Entity {
+            entity_type: t,
+            start,
+            end,
+            value,
+            list_slug,
+            display_url,
+            expanded_url,
+        })
+    }
+
+    #[getter]
+    fn entity_type(&self) -> String {
+        format!("{:?}", self.entity_type)
+    }
+
+    #[setter]
+    fn set_entity_type(&mut self, entity_type: String) -> PyResult<()> {
+        self.entity_type = match entity_type.to_uppercase().as_str() {
+            "URL" => entity::Type::URL,
+            "HASHTAG" => entity::Type::HASHTAG,
+            "MENTION" => entity::Type::MENTION,
+            "CASHTAG" => entity::Type::CASHTAG,
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Invalid entity type: {}",
+                    entity_type
+                )))
+            }
+        };
+        Ok(())
     }
 }
