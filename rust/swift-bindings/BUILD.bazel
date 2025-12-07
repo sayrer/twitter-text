@@ -1,0 +1,60 @@
+package(default_visibility = ["//visibility:public"])
+
+# NOTE: Swift bindings use a hermetic Swift toolchain downloaded by Bazel
+# On macOS: Will use system Swift (pre-installed with Xcode)
+# On Linux: Will use hermetic Swift 6.0.3 toolchain
+#
+# To build and test using Swift Package Manager instead:
+#   cd rust/swift-bindings
+#   swift build
+#   swift test
+
+# TODO: Enable Swift tests once hermetic toolchain is properly configured
+# Current issue: rules_swift needs Swift on PATH, but hermetic download not yet wired up
+#
+# load("@rules_swift//swift:swift_library.bzl", "swift_library")
+# load("@rules_swift//swift:swift_test.bzl", "swift_test")
+#
+# swift_library(
+#     name = "TwitterText",
+#     srcs = glob(["Sources/TwitterText/*.swift"]),
+#     module_name = "TwitterText",
+#     copts = [
+#         "-I",
+#         "$(execpath //rust/ffi-bindings:headers)",
+#     ],
+#     deps = [
+#         "//rust/ffi-bindings:twitter_text_ffi_cdylib",
+#         "//rust/ffi-bindings:headers",
+#     ],
+# )
+#
+# swift_test(
+#     name = "TwitterTextTests",
+#     srcs = glob(["Tests/TwitterTextTests/*.swift"]),
+#     deps = [
+#         ":TwitterText",
+#     ],
+# )
+
+# Export Swift package files for use with Swift Package Manager
+exports_files([
+    "Package.swift",
+    "README.md",
+])
+
+filegroup(
+    name = "swift_sources",
+    srcs = glob([
+        "Sources/**/*.swift",
+        "Sources/**/*.modulemap",
+        "Sources/**/*.h",
+    ]),
+)
+
+filegroup(
+    name = "swift_tests",
+    srcs = glob([
+        "Tests/**/*.swift",
+    ]),
+)

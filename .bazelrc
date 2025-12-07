@@ -11,3 +11,6 @@ build:macos --action_env=RUBY=/opt/homebrew/opt/ruby@3.2/bin/ruby
 build --java_runtime_version=remote
 build --java_language_version=23
 build --tool_java_runtime_version=remote
+
+# Swift - use hermetic toolchain on Linux
+build:linux --action_env=PATH=/usr/local/bin:/usr/bin:/bin

@@ -1,0 +1,9 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "autolink.yml",
+    "extract.yml",
+    "hit_highlighting.yml",
+    "tlds.yml",
+    "validate.yml",
+])
