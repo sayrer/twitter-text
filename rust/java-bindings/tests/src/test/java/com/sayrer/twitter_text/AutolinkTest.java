@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,14 @@ public class AutolinkTest {
     @Before
     public void setUp() {
         linker = new Autolink();
+    }
+
+    @After
+    public void tearDown() {
+        if (linker != null) {
+            linker.close();
+            linker = null;
+        }
     }
 
     @Test

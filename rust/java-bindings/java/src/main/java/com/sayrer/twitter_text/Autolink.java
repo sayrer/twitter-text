@@ -371,12 +371,133 @@ public final class Autolink implements AutoCloseable {
 
     /**
      * Auto-link entities with custom display URLs.
-     * TODO: Not yet implemented in FFM bindings.
      */
     public String autoLinkEntities(String text, java.util.List<?> entities) {
-        throw new UnsupportedOperationException(
-            "autoLinkEntities not yet implemented"
-        );
+        // This is a pure Java implementation that doesn't use the native autolinker
+        final StringBuilder builder = new StringBuilder(text.length() * 2);
+        int beginIndex = 0;
+
+        for (Object obj : entities) {
+            Entity entity = (Entity) obj;
+            builder.append(text.subSequence(beginIndex, entity.start));
+
+            switch (entity.type) {
+                case URL:
+                    linkToURL(entity, text, builder);
+                    break;
+                case HASHTAG:
+                    linkToHashtag(entity, text, builder);
+                    break;
+                case MENTION:
+                    linkToMentionAndList(entity, text, builder);
+                    break;
+                case CASHTAG:
+                    linkToCashtag(entity, text, builder);
+                    break;
+                default:
+                    break;
+            }
+            beginIndex = entity.end;
+        }
+        builder.append(text.subSequence(beginIndex, text.length()));
+
+        return builder.toString();
+    }
+
+    private static final String INVISIBLE_TAG_ATTRS = "style='position:absolute;left:-9999px;'";
+
+    private void linkToURL(Entity entity, String text, StringBuilder builder) {
+        final CharSequence url = entity.value;
+        CharSequence linkText = escapeHTML(url);
+
+        if (entity.getDisplayURL() != null && entity.getExpandedURL() != null) {
+            final String displayURLSansEllipses = entity.getDisplayURL().replace("…", "");
+            final int displayURLIndexInExpandedURL = entity.getExpandedURL().indexOf(displayURLSansEllipses);
+
+            if (displayURLIndexInExpandedURL != -1) {
+                final String beforeDisplayURL = entity.getExpandedURL().substring(0, displayURLIndexInExpandedURL);
+                final String afterDisplayURL = entity.getExpandedURL().substring(
+                    displayURLIndexInExpandedURL + displayURLSansEllipses.length());
+                final String precedingEllipsis = entity.getDisplayURL().startsWith("…") ? "…" : "";
+                final String followingEllipsis = entity.getDisplayURL().endsWith("…") ? "…" : "";
+                final String invisibleSpan = "<span " + INVISIBLE_TAG_ATTRS + ">";
+
+                final StringBuilder sb = new StringBuilder("<span class='tco-ellipsis'>");
+                sb.append(precedingEllipsis);
+                sb.append(invisibleSpan).append("&nbsp;</span></span>");
+                sb.append(invisibleSpan).append(escapeHTML(beforeDisplayURL)).append("</span>");
+                sb.append("<span class='js-display-url'>").append(escapeHTML(displayURLSansEllipses))
+                    .append("</span>");
+                sb.append(invisibleSpan).append(escapeHTML(afterDisplayURL)).append("</span>");
+                sb.append("<span class='tco-ellipsis'>").append(invisibleSpan).append("&nbsp;</span>")
+                    .append(followingEllipsis).append("</span>");
+
+                linkText = sb;
+            } else {
+                linkText = entity.getDisplayURL();
+            }
+        }
+
+        builder.append("<a href=\"").append(url).append("\"");
+        builder.append(" rel=\"nofollow\"");
+        builder.append(">").append(linkText).append("</a>");
+    }
+
+    private void linkToHashtag(Entity entity, String text, StringBuilder builder) {
+        final CharSequence hashtag = text.subSequence(entity.start, entity.end);
+        builder.append("<a href=\"https://twitter.com/search?q=%23")
+            .append(entity.value)
+            .append("\" title=\"").append(escapeHTML(hashtag))
+            .append("\" class=\"tweet-url hashtag\" rel=\"nofollow\">")
+            .append(escapeHTML(hashtag))
+            .append("</a>");
+    }
+
+    private void linkToMentionAndList(Entity entity, String text, StringBuilder builder) {
+        final CharSequence mention = text.subSequence(entity.start, entity.end);
+        builder.append("@<a class=\"tweet-url username\" href=\"https://twitter.com/")
+            .append(entity.value)
+            .append("\" rel=\"nofollow\">")
+            .append(escapeHTML(mention.subSequence(1, mention.length()))) // Skip the @
+            .append("</a>");
+    }
+
+    private void linkToCashtag(Entity entity, String text, StringBuilder builder) {
+        final CharSequence cashtag = text.subSequence(entity.start, entity.end);
+        builder.append("<a href=\"https://twitter.com/search?q=%24")
+            .append(entity.value)
+            .append("\" title=\"").append(escapeHTML(cashtag))
+            .append("\" class=\"tweet-url cashtag\" rel=\"nofollow\">")
+            .append(escapeHTML(cashtag))
+            .append("</a>");
+    }
+
+    private String escapeHTML(CharSequence text) {
+        StringBuilder result = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            switch (c) {
+                case '&':
+                    result.append("&amp;");
+                    break;
+                case '<':
+                    result.append("&lt;");
+                    break;
+                case '>':
+                    result.append("&gt;");
+                    break;
+                case '"':
+                    result.append("&quot;");
+                    break;
+                case '\'':
+                    result.append("&#39;");
+                    break;
+                default:
+                    result.append(c);
+                    break;
+            }
+        }
+        return result.toString();
     }
 
     /**
@@ -535,9 +656,8 @@ public final class Autolink implements AutoCloseable {
             int end = entitySegment.get(ValueLayout.JAVA_INT, 8);
 
             // Read the text - reinterpret as unbounded since we don't know the C string length
-            // Using callbackArena's scope to ensure the segment remains valid
             String text = textPtr
-                .reinterpret(Long.MAX_VALUE, callbackArena, null)
+                .reinterpret(Long.MAX_VALUE)
                 .getString(0);
             System.err.println("DEBUG Java: input text=" + text);
 
@@ -550,7 +670,8 @@ public final class Autolink implements AutoCloseable {
             System.err.println("DEBUG Java: modifiedText=" + modifiedText);
 
             // Allocate and return the modified text as a C string
-            MemorySegment result = callbackArena.allocateFrom(
+            // Use Arena.ofAuto() so the memory will be freed by C code, not by our arena
+            MemorySegment result = Arena.ofAuto().allocateFrom(
                 modifiedText.toString()
             );
             System.err.println("DEBUG Java: returning result");
