@@ -67,14 +67,14 @@ public class Example {
             }
 
             // Extract hashtags
-            List<String> hashtags = extractor.extractHashtags(text);
+            String[] hashtags = extractor.extractHashtags(text);
             System.out.println("Hashtags: ");
             for (String hashtag : hashtags) {
                 System.out.println("  - #" + hashtag);
             }
 
             // Extract mentions
-            List<String> mentions = extractor.extractMentionedScreennames(text);
+            String[] mentions = extractor.extractMentionedScreennames(text);
             System.out.println("Mentions: ");
             for (String mention : mentions) {
                 System.out.println("  - @" + mention);

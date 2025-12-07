@@ -134,27 +134,27 @@ public class ExtractorTest extends TestCase {
    */
   public static class MentionTest extends ExtractorTest {
     public void testMentionAtTheBeginning() {
-      final List<String> extracted = extractor.extractMentionedScreennames("@user mention");
-      assertList("Failed to extract mention at the beginning", new String[]{"user"}, extracted);
+      final String[] extracted = extractor.extractMentionedScreennames("@user mention");
+      assertList("Failed to extract mention at the beginning", new String[]{"user"}, Arrays.asList(extracted));
     }
 
     public void testMentionWithLeadingSpace() {
-      final List<String> extracted =
+      final String[] extracted =
           extractor.extractMentionedScreennames(" @user mention");
-      assertList("Failed to extract mention with leading space", new String[]{"user"}, extracted);
+      assertList("Failed to extract mention with leading space", new String[]{"user"}, Arrays.asList(extracted));
     }
 
     public void testMentionInMidText() {
-      final List<String> extracted =
+      final String[] extracted =
           extractor.extractMentionedScreennames("mention @user here");
-      assertList("Failed to extract mention in mid text", new String[]{"user"}, extracted);
+      assertList("Failed to extract mention in mid text", new String[]{"user"}, Arrays.asList(extracted));
     }
 
     public void testMultipleMentions() {
-      final List<String> extracted =
+      final String[] extracted =
           extractor.extractMentionedScreennames("mention @user1 here and @user2 here");
       assertList("Failed to extract multiple mentioned users", new String[]{"user1", "user2"},
-          extracted);
+          Arrays.asList(extracted));
     }
 
     public void testMentionWithIndices() {
@@ -207,25 +207,25 @@ public class ExtractorTest extends TestCase {
    */
   public static class HashtagTest extends ExtractorTest {
     public void testHashtagAtTheBeginning() {
-      final List<String> extracted = extractor.extractHashtags("#hashtag mention");
-      assertList("Failed to extract hashtag at the beginning", new String[]{"hashtag"}, extracted);
+      final String[] extracted = extractor.extractHashtags("#hashtag mention");
+      assertList("Failed to extract hashtag at the beginning", new String[]{"hashtag"}, Arrays.asList(extracted));
     }
 
     public void testHashtagWithLeadingSpace() {
-      final List<String> extracted = extractor.extractHashtags(" #hashtag mention");
+      final String[] extracted = extractor.extractHashtags(" #hashtag mention");
       assertList("Failed to extract hashtag with leading space", new String[]{"hashtag"},
-          extracted);
+          Arrays.asList(extracted));
     }
 
     public void testHashtagInMidText() {
-      final List<String> extracted = extractor.extractHashtags("mention #hashtag here");
-      assertList("Failed to extract hashtag in mid text", new String[]{"hashtag"}, extracted);
+      final String[] extracted = extractor.extractHashtags("mention #hashtag here");
+      assertList("Failed to extract hashtag in mid text", new String[]{"hashtag"}, Arrays.asList(extracted));
     }
 
     public void testMultipleHashtags() {
-      final List<String> extracted = extractor.extractHashtags("text #hashtag1 #hashtag2");
+      final String[] extracted = extractor.extractHashtags("text #hashtag1 #hashtag2");
       assertList("Failed to extract multiple hashtags", new String[]{"hashtag1", "hashtag2"},
-          extracted);
+          Arrays.asList(extracted));
     }
 
     public void testHashtagWithIndices() {

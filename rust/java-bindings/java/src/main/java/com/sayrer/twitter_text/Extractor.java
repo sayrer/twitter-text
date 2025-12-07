@@ -110,9 +110,9 @@ public final class Extractor implements AutoCloseable {
      * Extract hashtags from text as simple strings.
      *
      * @param text the text to extract hashtags from
-     * @return list of extracted hashtags (without the # symbol)
+     * @return array of extracted hashtags (without the # symbol)
      */
-    public java.util.List<String> extractHashtags(String text) {
+    public String[] extractHashtags(String text) {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
@@ -123,7 +123,7 @@ public final class Extractor implements AutoCloseable {
             String[] result = extractStringArray(arraySegment);
             extractor_h.twitter_text_string_array_free(arraySegment);
 
-            return java.util.Arrays.asList(result);
+            return result;
         } catch (Throwable t) {
             throw new RuntimeException("Failed to extract hashtags", t);
         }
@@ -156,9 +156,9 @@ public final class Extractor implements AutoCloseable {
      * Extract mentioned screennames from text as simple strings.
      *
      * @param text the text to extract mentions from
-     * @return list of extracted screennames (without the @ symbol)
+     * @return array of extracted screennames (without the @ symbol)
      */
-    public java.util.List<String> extractMentionedScreennames(String text) {
+    public String[] extractMentionedScreennames(String text) {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
@@ -169,7 +169,7 @@ public final class Extractor implements AutoCloseable {
             String[] result = extractStringArray(arraySegment);
             extractor_h.twitter_text_string_array_free(arraySegment);
 
-            return java.util.Arrays.asList(result);
+            return result;
         } catch (Throwable t) {
             throw new RuntimeException("Failed to extract mentioned screennames", t);
         }
