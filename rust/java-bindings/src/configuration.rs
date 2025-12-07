@@ -1,38 +1,85 @@
-use crate::CRange;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::os::raw::c_char;
-use twitter_text_config::Configuration;
+use twitter_text_config::{Configuration, Range};
 
 /* ============================================================================
- * C-compatible Configuration types
+ * C-compatible types matching the C header
  * ========================================================================= */
 
+/// TwitterTextRange - matches the C header typedef
 #[repr(C)]
-#[derive(Copy, Clone)]
-pub struct CWeightedRange {
-    range: CRange,
-    weight: i32,
+#[derive(Debug, Clone, Copy)]
+pub struct TwitterTextRange {
+    pub start: i32,
+    pub end: i32,
 }
 
-impl From<twitter_text_config::WeightedRange> for CWeightedRange {
+impl From<Range> for TwitterTextRange {
+    fn from(range: Range) -> Self {
+        TwitterTextRange {
+            start: range.start(),
+            end: range.end(),
+        }
+    }
+}
+
+impl From<TwitterTextRange> for Range {
+    fn from(tr: TwitterTextRange) -> Self {
+        Range::new(tr.start, tr.end)
+    }
+}
+
+/// TwitterTextParseResults - matches the C header typedef
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct TwitterTextParseResults {
+    pub weighted_length: i32,
+    pub permillage: i32,
+    pub is_valid: bool,
+    pub display_text_range: TwitterTextRange,
+    pub valid_text_range: TwitterTextRange,
+}
+
+impl From<twitter_text::TwitterTextParseResults> for TwitterTextParseResults {
+    fn from(results: twitter_text::TwitterTextParseResults) -> Self {
+        TwitterTextParseResults {
+            weighted_length: results.weighted_length,
+            permillage: results.permillage,
+            is_valid: results.is_valid,
+            display_text_range: results.display_text_range.into(),
+            valid_text_range: results.valid_text_range.into(),
+        }
+    }
+}
+
+/// TwitterTextWeightedRange - for Configuration
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct TwitterTextWeightedRange {
+    pub range: TwitterTextRange,
+    pub weight: i32,
+}
+
+impl From<twitter_text_config::WeightedRange> for TwitterTextWeightedRange {
     fn from(wr: twitter_text_config::WeightedRange) -> Self {
-        CWeightedRange {
+        TwitterTextWeightedRange {
             range: wr.range.into(),
             weight: wr.weight,
         }
     }
 }
 
-impl From<CWeightedRange> for twitter_text_config::WeightedRange {
-    fn from(cwr: CWeightedRange) -> Self {
-        twitter_text_config::WeightedRange::new(cwr.range.start, cwr.range.end, cwr.weight)
+impl From<TwitterTextWeightedRange> for twitter_text_config::WeightedRange {
+    fn from(twr: TwitterTextWeightedRange) -> Self {
+        twitter_text_config::WeightedRange::new(twr.range.start, twr.range.end, twr.weight)
     }
 }
 
+/// TwitterTextWeightedRangeArray - for Configuration
 #[repr(C)]
-pub struct CWeightedRangeArray {
-    ranges: *mut CWeightedRange,
-    length: usize,
+pub struct TwitterTextWeightedRangeArray {
+    pub ranges: *mut TwitterTextWeightedRange,
+    pub length: usize,
 }
 
 /* ============================================================================
@@ -142,9 +189,9 @@ pub extern "C" fn twitter_text_config_get_emoji_parsing_enabled(
 #[no_mangle]
 pub extern "C" fn twitter_text_config_get_ranges(
     config: *mut Configuration,
-) -> CWeightedRangeArray {
+) -> TwitterTextWeightedRangeArray {
     if config.is_null() {
-        return CWeightedRangeArray {
+        return TwitterTextWeightedRangeArray {
             ranges: std::ptr::null_mut(),
             length: 0,
         };
@@ -155,18 +202,18 @@ pub extern "C" fn twitter_text_config_get_ranges(
     let length = ranges.len();
 
     if length == 0 {
-        return CWeightedRangeArray {
+        return TwitterTextWeightedRangeArray {
             ranges: std::ptr::null_mut(),
             length: 0,
         };
     }
 
-    let mut c_ranges: Vec<CWeightedRange> = ranges.iter().map(|r| r.clone().into()).collect();
+    let mut c_ranges: Vec<TwitterTextWeightedRange> = ranges.iter().map(|r| r.clone().into()).collect();
 
     let ranges_ptr = c_ranges.as_mut_ptr();
     std::mem::forget(c_ranges);
 
-    CWeightedRangeArray {
+    TwitterTextWeightedRangeArray {
         ranges: ranges_ptr,
         length,
     }
@@ -242,7 +289,7 @@ pub extern "C" fn twitter_text_config_set_emoji_parsing_enabled(
 #[no_mangle]
 pub extern "C" fn twitter_text_config_set_ranges(
     config: *mut Configuration,
-    ranges: *mut CWeightedRange,
+    ranges: *mut TwitterTextWeightedRange,
     length: usize,
 ) {
     if config.is_null() || ranges.is_null() || length == 0 {
@@ -263,7 +310,7 @@ pub extern "C" fn twitter_text_config_set_ranges(
  * ========================================================================= */
 
 #[no_mangle]
-pub extern "C" fn twitter_text_weighted_range_array_free(array: CWeightedRangeArray) {
+pub extern "C" fn twitter_text_weighted_range_array_free(array: TwitterTextWeightedRangeArray) {
     if !array.ranges.is_null() && array.length > 0 {
         unsafe {
             let _ = Vec::from_raw_parts(array.ranges, array.length, array.length);

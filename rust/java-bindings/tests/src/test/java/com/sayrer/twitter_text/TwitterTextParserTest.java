@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-package com.twitter.twittertext;
+package com.sayrer.twitter_text;
 
 import junit.framework.TestCase;
 

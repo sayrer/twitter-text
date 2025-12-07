@@ -4,8 +4,17 @@ package(default_visibility = ["//visibility:public"])
 java_library(
     name = "twitter_text_wrappers",
     srcs = glob(["src/main/java/com/sayrer/twitter_text/*.java"]),
+    resources = [
+        "//config:v1.json",
+        "//config:v2.json",
+        "//config:v3.json",
+    ],
+    resource_strip_prefix = "config",
     deps = [
         "//rust/java-bindings:generated_java_sources",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:com_fasterxml_jackson_core_jackson_core",
+        "@maven//:com_fasterxml_jackson_core_jackson_annotations",
     ],
     javacopts = [
         "--enable-preview",

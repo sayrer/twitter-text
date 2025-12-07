@@ -49,6 +49,7 @@ genrule(
         "include/autolink.h",
         "include/hit_highlighter.h",
         "include/validator.h",
+        "include/twitter_text_c.h",
     ],
     outs = ["twitter_text_bindings.srcjar"],
     cmd = """
@@ -89,6 +90,13 @@ genrule(
             --library twitter_text_java_ffm \\
             --header-class-name validator_h \\
             $(location include/validator.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name twitter_text_c_h \\
+            -I rust/java-bindings/include \\
+            $(location include/twitter_text_c.h)
 
         # Create a srcjar with all generated files
         cd $$TMPDIR && find . -name "*.java" -print | zip -q -@ $$OUTJAR
