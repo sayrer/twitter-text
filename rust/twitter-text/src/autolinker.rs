@@ -67,6 +67,7 @@ pub trait LinkAttributeModifier {
 /**
  * A modifier that adds a custom attribute to links of specific entity types.
  */
+#[derive(Clone)]
 pub struct AddAttributeModifier {
     pub entity_types: Vec<entity::Type>,
     pub key: String,
@@ -94,6 +95,7 @@ impl LinkAttributeModifier for AddAttributeModifier {
 /**
  * A modifier that replaces the class attribute value.
  */
+#[derive(Clone)]
 pub struct ReplaceClassModifier {
     pub new_class: String,
 }

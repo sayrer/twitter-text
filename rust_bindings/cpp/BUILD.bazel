@@ -28,7 +28,7 @@ cc_library(
     ],
     deps = [
         "//rust/twitter-text:twitter_text_wrapper",
-        "//ffi-bindings:twitter_text_ffi_cdylib",
+        "//rust/ffi-bindings:twitter_text_ffi_cdylib",
         "//3rdparty/crates:cxx_cc",
     ],
     copts = ["-v"],
@@ -54,9 +54,9 @@ cc_test(
     srcs = [
         "test_helpers.h",
         "autolink_test.cpp",
-        "//ffi-bindings:modifier_headers"
+        "//rust/ffi-bindings:modifier_headers"
     ],
-    copts = ["-Iexternal/gtest/include", "-Iffi-bindings/include"],
+    copts = ["-Iexternal/gtest/include", "-Irust/ffi-bindings/include"],
     deps = [
         ":twitter_text",
         "@googletest//:gtest_main",

@@ -2,33 +2,27 @@ package(default_visibility = ["//visibility:public"])
 
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
-# Rust C-ABI library for Java FFM
+# Rust C-ABI shared library for Java FFM
+# Sources come from shared //rust/ffi-bindings
 rust_shared_library(
     name = "twitter_text_java_ffm",
     srcs = [
-        "src/lib.rs",
-        "src/configuration.rs",
-        "src/extractor.rs",
-        "src/autolink.rs",
-        "src/hit_highlighter.rs",
-        "src/validator.rs",
+        "//rust/ffi-bindings:src/lib.rs",
+        "//rust/ffi-bindings:src/configuration.rs",
+        "//rust/ffi-bindings:src/extractor.rs",
+        "//rust/ffi-bindings:src/autolink.rs",
+        "//rust/ffi-bindings:src/hit_highlighter.rs",
+        "//rust/ffi-bindings:src/validator.rs",
     ],
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
         "//rust/parser:twitter_text_parser",
-        "//ffi-bindings:twitter_text_ffi",
         "//3rdparty/crates:serde",
         "//3rdparty/crates:serde_json",
         "//3rdparty/crates:libc",
     ],
     edition = "2021",
-)
-
-# Collect all header files
-filegroup(
-    name = "headers",
-    srcs = glob(["include/*.h"]),
 )
 
 # Select the appropriate jextract binary based on platform
@@ -40,16 +34,16 @@ JEXTRACT_BIN = select({
     }),
 })
 
-# Generate Java bindings from all headers
+# Generate Java bindings from shared FFI headers
 genrule(
     name = "generate_java_bindings",
     srcs = [
-        "include/configuration.h",
-        "include/extractor.h",
-        "include/autolink.h",
-        "include/hit_highlighter.h",
-        "include/validator.h",
-        "include/twitter_text_c.h",
+        "//rust/ffi-bindings:include/configuration.h",
+        "//rust/ffi-bindings:include/extractor.h",
+        "//rust/ffi-bindings:include/autolink.h",
+        "//rust/ffi-bindings:include/hit_highlighter.h",
+        "//rust/ffi-bindings:include/validator.h",
+        "//rust/ffi-bindings:include/twitter_text_c.h",
     ],
     outs = ["twitter_text_bindings.srcjar"],
     cmd = """
@@ -64,39 +58,39 @@ genrule(
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name configuration_h \\
-            $(location include/configuration.h)
+            $(location //rust/ffi-bindings:include/configuration.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name extractor_h \\
-            -I rust/java-bindings/include \\
-            $(location include/extractor.h)
+            -I rust/ffi-bindings/include \\
+            $(location //rust/ffi-bindings:include/extractor.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name autolink_h \\
-            $(location include/autolink.h)
+            $(location //rust/ffi-bindings:include/autolink.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name hit_highlighter_h \\
-            $(location include/hit_highlighter.h)
+            $(location //rust/ffi-bindings:include/hit_highlighter.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name validator_h \\
-            $(location include/validator.h)
+            $(location //rust/ffi-bindings:include/validator.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name twitter_text_c_h \\
-            -I rust/java-bindings/include \\
-            $(location include/twitter_text_c.h)
+            -I rust/ffi-bindings/include \\
+            $(location //rust/ffi-bindings:include/twitter_text_c.h)
 
         # Create a srcjar with all generated files
         cd $$TMPDIR && find . -name "*.java" -print | zip -q -@ $$OUTJAR

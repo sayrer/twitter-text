@@ -1,18 +1,98 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use twitter_text::autolinker::Autolinker;
+use twitter_text::entity;
 
-// Re-export the basic autolinker API and modifier types/functions from ffi-bindings
-pub use twitter_text_ffi::{
-    twitter_text_add_attribute_modifier_free, twitter_text_add_attribute_modifier_new,
-    twitter_text_autolinker_autolink, twitter_text_autolinker_autolink_hashtags,
-    twitter_text_autolinker_free, twitter_text_autolinker_new,
-    twitter_text_autolinker_set_add_attribute_modifier,
-    twitter_text_autolinker_set_link_text_modifier,
-    twitter_text_autolinker_set_replace_class_modifier, twitter_text_replace_class_modifier_free,
-    twitter_text_replace_class_modifier_new, twitter_text_string_free, CEntity,
-    TwitterTextEntityType,
-};
+/* ============================================================================
+ * Entity Type Enum for C FFI
+ * ========================================================================= */
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub enum TwitterTextEntityType {
+    URL = 0,
+    HASHTAG = 1,
+    MENTION = 2,
+    CASHTAG = 3,
+}
+
+impl From<TwitterTextEntityType> for entity::Type {
+    fn from(t: TwitterTextEntityType) -> Self {
+        match t {
+            TwitterTextEntityType::URL => entity::Type::URL,
+            TwitterTextEntityType::HASHTAG => entity::Type::HASHTAG,
+            TwitterTextEntityType::MENTION => entity::Type::MENTION,
+            TwitterTextEntityType::CASHTAG => entity::Type::CASHTAG,
+        }
+    }
+}
+
+/* ============================================================================
+ * Basic Autolinker API
+ * ========================================================================= */
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_new(no_follow: bool) -> *mut Autolinker<'static> {
+    Box::into_raw(Box::new(Autolinker::new(no_follow)))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_free(autolinker: *mut Autolinker) {
+    if !autolinker.is_null() {
+        unsafe {
+            let _ = Box::from_raw(autolinker);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_autolink(
+    autolinker: *mut Autolinker,
+    text: *const c_char,
+) -> *mut c_char {
+    if autolinker.is_null() || text.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let autolinker_ref = unsafe { &*autolinker };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let result = autolinker_ref.autolink(text_str);
+    CString::new(result).unwrap_or_default().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_autolink_hashtags(
+    autolinker: *mut Autolinker,
+    text: *const c_char,
+) -> *mut c_char {
+    if autolinker.is_null() || text.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let autolinker_ref = unsafe { &*autolinker };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let result = autolinker_ref.autolink_hashtags(text_str);
+    CString::new(result).unwrap_or_default().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_string_free(str: *mut c_char) {
+    if !str.is_null() {
+        unsafe {
+            let _ = CString::from_raw(str);
+        }
+    }
+}
 
 /* ============================================================================
  * Configuration setters
@@ -373,4 +453,215 @@ pub static TWITTER_TEXT_DEFAULT_INVISIBLE_TAG_ATTRS: &str =
  * Link Attribute Modifiers
  * ========================================================================= */
 
-// Modifier functions are re-exported from ffi-bindings at the top of this file
+use twitter_text::autolinker::{AddAttributeModifier, ReplaceClassModifier};
+
+// Constants for entity type filtering
+pub const TWITTER_TEXT_ENTITY_URL: i32 = TwitterTextEntityType::URL as i32;
+pub const TWITTER_TEXT_ENTITY_HASHTAG: i32 = TwitterTextEntityType::HASHTAG as i32;
+pub const TWITTER_TEXT_ENTITY_MENTION: i32 = TwitterTextEntityType::MENTION as i32;
+pub const TWITTER_TEXT_ENTITY_CASHTAG: i32 = TwitterTextEntityType::CASHTAG as i32;
+
+#[no_mangle]
+pub extern "C" fn twitter_text_add_attribute_modifier_new(
+    entity_types: *const TwitterTextEntityType,
+    entity_types_count: usize,
+    key: *const c_char,
+    value: *const c_char,
+) -> *mut AddAttributeModifier {
+    if entity_types.is_null() || key.is_null() || value.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let types: Vec<entity::Type> = unsafe {
+        std::slice::from_raw_parts(entity_types, entity_types_count)
+            .iter()
+            .map(|&t| entity::Type::from(t))
+            .collect()
+    };
+
+    let key_str = unsafe { CStr::from_ptr(key) };
+    let value_str = unsafe { CStr::from_ptr(value) };
+
+    if let (Ok(k), Ok(v)) = (key_str.to_str(), value_str.to_str()) {
+        Box::into_raw(Box::new(AddAttributeModifier {
+            entity_types: types,
+            key: k.to_string(),
+            value: v.to_string(),
+        }))
+    } else {
+        std::ptr::null_mut()
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_add_attribute_modifier_free(modifier: *mut AddAttributeModifier) {
+    if !modifier.is_null() {
+        unsafe {
+            let _ = Box::from_raw(modifier);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_replace_class_modifier_new(
+    new_class: *const c_char,
+) -> *mut ReplaceClassModifier {
+    if new_class.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    let c_str = unsafe { CStr::from_ptr(new_class) };
+    let class_str = match c_str.to_str() {
+        Ok(s) => s.to_string(),
+        Err(_) => return std::ptr::null_mut(),
+    };
+
+    let modifier = ReplaceClassModifier::new(class_str);
+    Box::into_raw(Box::new(modifier))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_replace_class_modifier_free(modifier: *mut ReplaceClassModifier) {
+    if !modifier.is_null() {
+        unsafe {
+            let _ = Box::from_raw(modifier);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_set_add_attribute_modifier(
+    autolinker: *mut Autolinker,
+    modifier: *mut AddAttributeModifier,
+) {
+    if autolinker.is_null() || modifier.is_null() {
+        return;
+    }
+
+    unsafe {
+        // Clone the modifier - caller still owns the original and should free it
+        let modifier_clone = (*modifier).clone();
+        // Clear any existing modifier first
+        (*autolinker).link_attribute_modifier = None;
+        (*autolinker).link_attribute_modifier = Some(Box::new(modifier_clone));
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_set_replace_class_modifier(
+    autolinker: *mut Autolinker,
+    modifier: *mut ReplaceClassModifier,
+) {
+    if autolinker.is_null() || modifier.is_null() {
+        return;
+    }
+
+    unsafe {
+        // Clone the modifier - caller still owns the original and should free it
+        let modifier_clone = (*modifier).clone();
+        // Clear any existing modifier first
+        (*autolinker).link_attribute_modifier = None;
+        (*autolinker).link_attribute_modifier = Some(Box::new(modifier_clone));
+    }
+}
+
+/* ============================================================================
+ * Link Text Modifier C API (callback-based)
+ * ========================================================================= */
+
+use twitter_text::autolinker::LinkTextModifier;
+
+// C-compatible entity representation for callbacks
+#[repr(C)]
+pub struct CEntity {
+    pub entity_type: TwitterTextEntityType,
+    pub start: i32,
+    pub end: i32,
+}
+
+impl From<&entity::Entity<'_>> for CEntity {
+    fn from(entity: &entity::Entity) -> Self {
+        let entity_type = match entity.t {
+            entity::Type::URL => TwitterTextEntityType::URL,
+            entity::Type::HASHTAG => TwitterTextEntityType::HASHTAG,
+            entity::Type::MENTION => TwitterTextEntityType::MENTION,
+            entity::Type::CASHTAG => TwitterTextEntityType::CASHTAG,
+        };
+        CEntity {
+            entity_type,
+            start: entity.start,
+            end: entity.end,
+        }
+    }
+}
+
+// Function pointer type for link text modification callback
+// Returns a new C string that must be freed by the caller
+pub type LinkTextModifierCallback = extern "C" fn(
+    entity: *const CEntity,
+    text: *const c_char,
+    user_data: *mut std::os::raw::c_void,
+) -> *mut c_char;
+
+// Wrapper struct that implements LinkTextModifier trait using a callback
+struct CallbackLinkTextModifier {
+    callback: LinkTextModifierCallback,
+    user_data: *mut std::os::raw::c_void,
+}
+
+impl LinkTextModifier for CallbackLinkTextModifier {
+    fn modify(&self, entity: &entity::Entity, text: &str) -> String {
+        let c_entity = CEntity::from(entity);
+
+        let c_text = match CString::new(text) {
+            Ok(s) => s,
+            Err(_) => return text.to_string(),
+        };
+
+        let result_ptr = (self.callback)(&c_entity, c_text.as_ptr(), self.user_data);
+
+        if result_ptr.is_null() {
+            return text.to_string();
+        }
+
+        unsafe {
+            let result_cstr = CStr::from_ptr(result_ptr);
+            // Use to_str() instead of to_string_lossy() to preserve all Unicode
+            let result_string = match result_cstr.to_str() {
+                Ok(s) => s.to_string(),
+                Err(_) => {
+                    // If invalid UTF-8, free and return original text
+                    libc::free(result_ptr as *mut libc::c_void);
+                    return text.to_string();
+                }
+            };
+
+            // Free the C string using libc::free() since it was allocated with malloc()
+            // Note: Java FFM uses Arena.ofAuto() which doesn't actually use malloc,
+            // but Arena memory is managed by the Java GC and calling free() on it is a no-op
+            // or handled safely by the Java runtime's memory system.
+            libc::free(result_ptr as *mut libc::c_void);
+
+            result_string
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_autolinker_set_link_text_modifier(
+    autolinker: *mut Autolinker,
+    callback: LinkTextModifierCallback,
+    user_data: *mut std::os::raw::c_void,
+) {
+    if autolinker.is_null() {
+        return;
+    }
+
+    unsafe {
+        let modifier = Box::new(CallbackLinkTextModifier {
+            callback,
+            user_data,
+        });
+        (*autolinker).link_text_modifier = Some(modifier);
+    }
+}
