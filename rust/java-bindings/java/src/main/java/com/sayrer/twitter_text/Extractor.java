@@ -240,6 +240,17 @@ public final class Extractor implements AutoCloseable {
     }
 
     /**
+     * Extract cashtags with their indices.
+     *
+     * @param text the text to extract cashtags from
+     * @return list of entities with start/end indices
+     */
+    public java.util.List<Entity> extractCashtagsWithIndices(String text) {
+        return extractEntitiesWithIndices(text, Entity.Type.CASHTAG,
+            extractor_h.twitter_text_extractor_extract_cashtags_with_indices$handle());
+    }
+
+    /**
      * Helper method to extract entities with indices.
      */
     private java.util.List<Entity> extractEntitiesWithIndices(String text, Entity.Type type,

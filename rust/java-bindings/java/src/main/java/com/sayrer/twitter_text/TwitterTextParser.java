@@ -20,6 +20,24 @@ import java.lang.foreign.ValueLayout;
  */
 public final class TwitterTextParser {
 
+    /**
+     * Configuration with code point counting (legacy v1 behavior).
+     */
+    public static final TwitterTextConfiguration TWITTER_TEXT_CODE_POINT_COUNT_CONFIG =
+        TwitterTextConfiguration.configurationFromJson("v1.json", true);
+
+    /**
+     * Configuration for v2 weighted tweet counting.
+     */
+    public static final TwitterTextConfiguration TWITTER_TEXT_WEIGHTED_CHAR_COUNT_CONFIG =
+        TwitterTextConfiguration.configurationFromJson("v2.json", true);
+
+    /**
+     * Configuration with emoji character counting discounted.
+     */
+    public static final TwitterTextConfiguration TWITTER_TEXT_EMOJI_CHAR_COUNT_CONFIG =
+        TwitterTextConfiguration.configurationFromJson("v3.json", true);
+
     private TwitterTextParser() {
         // Utility class, no instantiation
     }
@@ -44,6 +62,31 @@ public final class TwitterTextParser {
      */
     public static ParseResults parseTweetWithUrlExtraction(String text) {
         return parse(text, null, true);
+    }
+
+    /**
+     * Parse tweet text (compatibility method).
+     * Uses default configuration with URL extraction.
+     *
+     * @param text the tweet text to parse
+     * @return ParseResults containing weighted length, validity, and ranges
+     */
+    public static ParseResults parseTweet(String text) {
+        return parseTweetWithUrlExtraction(text);
+    }
+
+    /**
+     * Parse tweet text with custom configuration (compatibility method).
+     *
+     * @param text the tweet text to parse
+     * @param config the TwitterTextConfiguration to use
+     * @return ParseResults containing weighted length, validity, and ranges
+     */
+    public static ParseResults parseTweet(String text, TwitterTextConfiguration config) {
+        if (config == null) {
+            return parseTweetWithUrlExtraction(text);
+        }
+        return parse(text, config.getConfig(), true);
     }
 
     /**

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-package com.twitter.twittertext;
+package com.sayrer.twitter_text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,21 +36,22 @@ public class ConformanceTest {
   static final String KEY_EXPECTED_OUTPUT = "expected";
   private static final String KEY_HIGHLIGHT_HITS = "hits";
   private static final Extractor EXTRACTOR = new Extractor();
-  private static final Autolink LINKER = new Autolink(false);
-  private static final Validator VALIDATOR = new Validator();
-  private static final HitHighlighter HIT_HIGHLIGHTER = new HitHighlighter();
+  private static final Autolink LINKER = Autolink.create(false);
+  private static final Validator VALIDATOR = Validator.create();
+  // HitHighlighter not yet implemented in FFM bindings
+  // private static final HitHighlighter HIT_HIGHLIGHTER = new HitHighlighter();
 
-  private static List<Extractor.Entity> getExpectedEntities(Map testCase, String key,
-                                                            Extractor.Entity.Type type,
-                                                            String listSlugKey) {
+  private static List<Entity> getExpectedEntities(Map testCase, String key,
+                                                  Entity.Type type,
+                                                  String listSlugKey) {
     @SuppressWarnings("unchecked") final List<Map<String, Object>> expectedConfig =
         (List<Map<String, Object>>) testCase.get(KEY_EXPECTED_OUTPUT);
-    final List<Extractor.Entity> expected = new LinkedList<>();
+    final List<Entity> expected = new LinkedList<>();
     for (Map<String, Object> configEntry : expectedConfig) {
       @SuppressWarnings("unchecked") final List<Integer> indices =
           (List<Integer>) configEntry.get("indices");
       final String listSlug = listSlugKey != null ? configEntry.get(listSlugKey).toString() : "";
-      expected.add(new Extractor.Entity(indices.get(0), indices.get(1),
+      expected.add(new Entity(indices.get(0), indices.get(1),
           configEntry.get(key).toString(), listSlug.isEmpty() ? null : listSlug, type));
     }
     return expected;
@@ -70,7 +71,7 @@ public class ConformanceTest {
     public void testMentionsExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
           testCase.get(KEY_EXPECTED_OUTPUT),
-          EXTRACTOR.extractMentionedScreennames((String) testCase.get(KEY_INPUT)));
+          java.util.Arrays.asList(EXTRACTOR.extractMentionedScreennames((String) testCase.get(KEY_INPUT))));
     }
   }
 
@@ -87,11 +88,13 @@ public class ConformanceTest {
     @Test
     public void testMentionsWithIndicesExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
-          getExpectedEntities(testCase, "screen_name", Extractor.Entity.Type.MENTION, null),
+          getExpectedEntities(testCase, "screen_name", Entity.Type.MENTION, null),
           EXTRACTOR.extractMentionedScreennamesWithIndices((String) testCase.get(KEY_INPUT)));
     }
   }
 
+  // TODO: extractMentionsOrListsWithIndices not yet implemented in FFM bindings
+  /*
   @RunWith(Parameterized.class)
   public static class MentionsOrListsWithIndicesConformanceTest {
     @Parameter
@@ -105,9 +108,9 @@ public class ConformanceTest {
     @Test
     public void testMentionsOrListsWithIndicesExtractor() throws Exception {
       final String message = (String) testCase.get(KEY_DESCRIPTION);
-      final List<Extractor.Entity> expectedEntities =
-          getExpectedEntities(testCase, "screen_name", Extractor.Entity.Type.MENTION, "list_slug");
-      final List<Extractor.Entity> actualEntities =
+      final List<Entity> expectedEntities =
+          getExpectedEntities(testCase, "screen_name", Entity.Type.MENTION, "list_slug");
+      final List<Entity> actualEntities =
           EXTRACTOR.extractMentionsOrListsWithIndices((String) testCase.get(KEY_INPUT));
       assertEquals(message, expectedEntities, actualEntities);
       for (int i = 0; i < actualEntities.size(); i++) {
@@ -116,6 +119,7 @@ public class ConformanceTest {
       }
     }
   }
+  */
 
   @RunWith(Parameterized.class)
   public static class ReplyConformanceTest {
@@ -149,7 +153,7 @@ public class ConformanceTest {
     public void testHashtagsExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
           testCase.get(KEY_EXPECTED_OUTPUT),
-          EXTRACTOR.extractHashtags((String) testCase.get(KEY_INPUT)));
+          java.util.Arrays.asList(EXTRACTOR.extractHashtags((String) testCase.get(KEY_INPUT))));
     }
   }
 
@@ -167,7 +171,7 @@ public class ConformanceTest {
     public void testHashtagsAstralExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
           testCase.get(KEY_EXPECTED_OUTPUT),
-          EXTRACTOR.extractHashtags((String) testCase.get(KEY_INPUT)));
+          java.util.Arrays.asList(EXTRACTOR.extractHashtags((String) testCase.get(KEY_INPUT))));
     }
   }
 
@@ -184,7 +188,7 @@ public class ConformanceTest {
     @Test
     public void testHashtagsWithIndicesExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
-          getExpectedEntities(testCase, "hashtag", Extractor.Entity.Type.HASHTAG, null),
+          getExpectedEntities(testCase, "hashtag", Entity.Type.HASHTAG, null),
           EXTRACTOR.extractHashtagsWithIndices((String) testCase.get(KEY_INPUT)));
     }
   }
@@ -220,7 +224,7 @@ public class ConformanceTest {
     @Test
     public void testURLsWithIndicesExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
-          getExpectedEntities(testCase, "url", Extractor.Entity.Type.URL, null),
+          getExpectedEntities(testCase, "url", Entity.Type.URL, null),
           EXTRACTOR.extractURLsWithIndices((String) testCase.get(KEY_INPUT)));
     }
   }
@@ -238,7 +242,7 @@ public class ConformanceTest {
     @Test
     public void testURLsWithIndicesExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
-          getExpectedEntities(testCase, "url", Extractor.Entity.Type.URL, null),
+          getExpectedEntities(testCase, "url", Entity.Type.URL, null),
           EXTRACTOR.extractURLsWithIndices((String) testCase.get(KEY_INPUT)));
     }
   }
@@ -311,7 +315,7 @@ public class ConformanceTest {
     public void testCashtagsExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
           testCase.get(KEY_EXPECTED_OUTPUT),
-          EXTRACTOR.extractCashtags((String) testCase.get(KEY_INPUT)));
+          java.util.Arrays.asList(EXTRACTOR.extractCashtags((String) testCase.get(KEY_INPUT))));
     }
   }
 
@@ -328,7 +332,7 @@ public class ConformanceTest {
     @Test
     public void testCashtagsWithIndicesExtractor() throws Exception {
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
-          getExpectedEntities(testCase, "cashtag", Extractor.Entity.Type.CASHTAG, null),
+          getExpectedEntities(testCase, "cashtag", Entity.Type.CASHTAG, null),
           EXTRACTOR.extractCashtagsWithIndices((String) testCase.get(KEY_INPUT)));
     }
   }
@@ -455,8 +459,9 @@ public class ConformanceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testWeightedTweets() throws Exception {
-      final TwitterTextParseResults parseResults =
-          TwitterTextParser.parseTweet((String) testCase.get(KEY_INPUT));
+      final ParseResults parseResults =
+          TwitterTextParser.parseTweet((String) testCase.get(KEY_INPUT),
+              TwitterTextParser.TWITTER_TEXT_WEIGHTED_CHAR_COUNT_CONFIG);
       final String message = (String) testCase.get(KEY_DESCRIPTION);
       final Map<String, Object> expected = (Map<String, Object>) testCase.get(KEY_EXPECTED_OUTPUT);
       assertEquals(message, expected.get("weightedLength"), parseResults.weightedLength);
@@ -482,7 +487,7 @@ public class ConformanceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testUnicodeDirectionalMarkerCounting() throws Exception {
-      final TwitterTextParseResults parseResults =
+      final ParseResults parseResults =
           TwitterTextParser.parseTweet((String) testCase.get(KEY_INPUT));
       String message = (String) testCase.get(KEY_DESCRIPTION);
       final Map<String, Object> expected = (Map<String, Object>) testCase.get(KEY_EXPECTED_OUTPUT);
@@ -509,7 +514,7 @@ public class ConformanceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testV1TweetValidity() throws Exception {
-      final TwitterTextParseResults parseResults =
+      final ParseResults parseResults =
           TwitterTextParser.parseTweet((String) testCase.get(KEY_INPUT),
               TwitterTextParser.TWITTER_TEXT_CODE_POINT_COUNT_CONFIG);
       assertEquals((String) testCase.get(KEY_DESCRIPTION),
@@ -518,6 +523,8 @@ public class ConformanceTest {
     }
   }
 
+  // TODO: HitHighlighter not yet implemented in FFM bindings
+  /*
   @RunWith(Parameterized.class)
   public static class PlainTextHitHighlightConformanceTest {
     @Parameter
@@ -537,6 +544,7 @@ public class ConformanceTest {
           HIT_HIGHLIGHTER.highlight((String) testCase.get(KEY_INPUT), hits));
     }
   }
+  */
 
   @RunWith(Parameterized.class)
   public static class EmojiTweetsConformanceTest {
@@ -551,7 +559,7 @@ public class ConformanceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testEmojiTweets() throws Exception {
-      final TwitterTextParseResults parseResults =
+      final ParseResults parseResults =
           TwitterTextParser.parseTweet((String) testCase.get(KEY_INPUT),
               TwitterTextParser.TWITTER_TEXT_EMOJI_CHAR_COUNT_CONFIG);
       final String message = (String) testCase.get(KEY_DESCRIPTION);

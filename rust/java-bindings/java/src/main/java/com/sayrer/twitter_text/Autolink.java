@@ -216,6 +216,26 @@ public final class Autolink implements AutoCloseable {
     }
 
     /**
+     * Auto-link usernames and lists (compatibility method).
+     *
+     * @param text the tweet text to process
+     * @return the text with auto-linked usernames and lists
+     */
+    public String autoLinkUsernamesAndLists(String text) {
+        return autolinkUsernamesAndLists(text);
+    }
+
+    /**
+     * Auto-link cashtags (compatibility method).
+     *
+     * @param text the tweet text to process
+     * @return the text with auto-linked cashtags
+     */
+    public String autoLinkCashtags(String text) {
+        return autolinkCashtags(text);
+    }
+
+    /**
      * Set the CSS class for URL links.
      *
      * @param urlClass the CSS class to use

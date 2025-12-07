@@ -30,6 +30,17 @@ public class Entity {
     }
 
     /**
+     * Constructor with listSlug support (for conformance tests).
+     */
+    public Entity(int start, int end, String value, String listSlug, Type type) {
+        this.start = start;
+        this.end = end;
+        this.value = value;
+        this.type = type;
+        this.listSlug = listSlug;
+    }
+
+    /**
      * Constructor for creating an entity from a Matcher.
      * Used by tests to create entities from regex matches.
      */

@@ -87,3 +87,76 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
         extractor.extract_scan(input.as_str()).parse_results
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_weighted_length_mixed_unicode_and_emoji() {
+        // Test case from conformance suite that requires v2 config
+        // Text: "H🐱☺👨‍👩‍👧‍👦"
+        // Expected weighted_length: 16
+        let config = twitter_text_config::config_v2();
+        let text = "H🐱☺👨‍👩‍👧‍👦";
+        let result = parse(text, &config, false);
+
+        assert_eq!(
+            result.weighted_length, 16,
+            "Mixed single/double byte Unicode and emoji family counting is incorrect"
+        );
+        assert_eq!(result.is_valid, true);
+        assert_eq!(result.permillage, 57);
+    }
+
+    #[test]
+    fn test_weighted_length_emoji_with_skin_tone_modifiers() {
+        // Test case from conformance suite that requires v2 config
+        // Text: "🙋🏽👨‍🎤"
+        // Expected weighted_length: 9
+        let config = twitter_text_config::config_v2();
+        let text = "🙋🏽👨‍🎤";
+        let result = parse(text, &config, false);
+
+        assert_eq!(
+            result.weighted_length, 9,
+            "Emoji with skin tone modifiers counting is incorrect"
+        );
+        assert_eq!(result.is_valid, true);
+        assert_eq!(result.permillage, 32);
+    }
+
+    #[test]
+    fn test_weighted_length_mixed_unicode_and_emoji_v3() {
+        // Same test as above but with v3 config (emoji parsing enabled)
+        // Text: "H🐱☺👨‍👩‍👧‍👦"
+        // With v3 config, emoji families are counted as single units
+        let config = twitter_text_config::config_v3();
+        let text = "H🐱☺👨‍👩‍👧‍👦";
+        let result = parse(text, &config, false);
+
+        assert_eq!(
+            result.weighted_length, 7,
+            "V3: Mixed single/double byte Unicode and emoji family counting is incorrect"
+        );
+        assert_eq!(result.is_valid, true);
+        assert_eq!(result.permillage, 25);
+    }
+
+    #[test]
+    fn test_weighted_length_emoji_with_skin_tone_modifiers_v3() {
+        // Same test as above but with v3 config (emoji parsing enabled)
+        // Text: "🙋🏽👨‍🎤"
+        // With v3 config, emojis with modifiers are counted as single units
+        let config = twitter_text_config::config_v3();
+        let text = "🙋🏽👨‍🎤";
+        let result = parse(text, &config, false);
+
+        assert_eq!(
+            result.weighted_length, 4,
+            "V3: Emoji with skin tone modifiers counting is incorrect"
+        );
+        assert_eq!(result.is_valid, true);
+        assert_eq!(result.permillage, 14);
+    }
+}

@@ -109,3 +109,36 @@ java_test(
         "//rust/java-bindings:twitter_text_java_ffm",
     ],
 )
+
+java_test(
+    name = "ConformanceTest",
+    srcs = [
+        "src/test/java/com/sayrer/twitter_text/ConformanceTest.java",
+    ],
+    test_class = "com.sayrer.twitter_text.ConformanceTest",
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@maven//:com_fasterxml_jackson_dataformat_jackson_dataformat_yaml",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:com_fasterxml_jackson_core_jackson_core",
+    ],
+    jvm_flags = [
+        "--enable-preview",
+        "--enable-native-access=ALL-UNNAMED",
+    ],
+    env = {
+        "LD_LIBRARY_PATH": "rust/java-bindings",
+    },
+    data = [
+        "//rust/java-bindings:twitter_text_java_ffm",
+    ],
+    resource_strip_prefix = "confomance",
+    resources = [
+        "//confomance:autolink.yml",
+        "//confomance:extract.yml",
+        "//confomance:hit_highlighting.yml",
+        "//confomance:tlds.yml",
+        "//confomance:validate.yml",
+    ],
+)
