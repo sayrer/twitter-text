@@ -104,23 +104,27 @@ http_archive(
 package(default_visibility = ["//visibility:public"])
 
 filegroup(
-    name = "swift_toolchain",
-    srcs = glob(["**/*"]),
+    name = "usr",
+    srcs = glob(["usr/**/*"]),
 )
 
-# Make swift binary available
-sh_binary(
-    name = "swift",
-    srcs = ["usr/bin/swift"],
+# Create a version file for the toolchain
+genrule(
+    name = "version_file",
+    outs = ["swift_version.txt"],
+    cmd = "echo '6.0.3' > $@",
+    visibility = ["//visibility:public"],
 )
 
-# Export the toolchain directory
-exports_files(["usr/bin/swift", "usr/bin/swiftc"])
+exports_files(glob(["usr/**/*"]))
 """,
     sha256 = "09d0a53fbddf2878673dd12c1504e7143c788f195caec9f2329740946eba525c",
     strip_prefix = "swift-6.0.3-RELEASE-ubuntu22.04",
     urls = ["https://download.swift.org/swift-6.0.3-release/ubuntu2204/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu22.04.tar.gz"],
 )
+
+# Register hermetic Swift toolchain (overrides auto-detected system Swift)
+register_toolchains("//tools/swift:hermetic_swift_linux_x86_64_toolchain")
 
 ###############################################################################
 # Hermetic LLVM wrapper

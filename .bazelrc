@@ -13,4 +13,6 @@ build --java_language_version=23
 build --tool_java_runtime_version=remote
 
 # Swift - use hermetic toolchain on Linux
-build:linux --action_env=PATH=/usr/local/bin:/usr/bin:/bin
+# The hermetic Swift toolchain from @swift_linux_x86_64 needs to be on PATH
+# for rules_swift's autoconfiguration to find it
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1

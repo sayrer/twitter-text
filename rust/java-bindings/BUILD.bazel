@@ -44,6 +44,7 @@ genrule(
         "//rust/ffi-bindings:include/hit_highlighter.h",
         "//rust/ffi-bindings:include/validator.h",
         "//rust/ffi-bindings:include/twitter_text_c.h",
+        "//rust/ffi-bindings:include/twitter_text_modifiers.h",
     ],
     outs = ["twitter_text_bindings.srcjar"],
     cmd = """
@@ -71,6 +72,7 @@ genrule(
             --target-package com.sayrer.twitter_text \\
             --library twitter_text_java_ffm \\
             --header-class-name autolink_h \\
+            -I rust/ffi-bindings/include \\
             $(location //rust/ffi-bindings:include/autolink.h)
         $(location :jextract_tool) \\
             --output $$TMPDIR \\

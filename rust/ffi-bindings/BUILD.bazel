@@ -1,6 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_static_library")
+load("@rules_swift//swift:swift_interop_hint.bzl", "swift_interop_hint")
 
 # Shared Rust library for FFI bindings (used by Java, Swift, etc.)
 rust_library(
@@ -84,4 +85,19 @@ filegroup(
 filegroup(
     name = "modifier_headers",
     srcs = ["include/twitter_text_modifiers.h"],
+)
+
+# C library interface for Swift to import
+cc_library(
+    name = "twitter_text_c_headers",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    aspect_hints = [":twitter_text_swift_interop"],
+    deps = [":twitter_text_ffi_cdylib"],
+)
+
+# Swift interop hint to make C headers importable in Swift
+swift_interop_hint(
+    name = "twitter_text_swift_interop",
+    module_name = "CTwitterText",
 )

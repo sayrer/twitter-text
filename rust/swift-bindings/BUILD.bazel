@@ -9,8 +9,18 @@ package(default_visibility = ["//visibility:public"])
 #   swift build
 #   swift test
 
-# TODO: Enable Swift tests once hermetic toolchain is properly configured
-# Current issue: rules_swift needs Swift on PATH, but hermetic download not yet wired up
+# Swift bindings are a work in progress
+#
+# STATUS: Hermetic Swift 6.0.3 toolchain is configured and working
+# The C module (CTwitterText) is successfully being generated from FFI headers
+#
+# TODO: Swift wrapper code needs to be updated to match actual FFI function names
+# Currently the Swift code calls functions that don't exist (e.g.,
+# twitter_text_extractor_extract_entities_with_indices vs the actual
+# twitter_text_validating_extractor_extract_entities_with_indices)
+#
+# To use Swift bindings with Swift Package Manager (works now):
+#   cd rust/swift-bindings && swift build && swift test
 #
 # load("@rules_swift//swift:swift_library.bzl", "swift_library")
 # load("@rules_swift//swift:swift_test.bzl", "swift_test")
@@ -19,13 +29,8 @@ package(default_visibility = ["//visibility:public"])
 #     name = "TwitterText",
 #     srcs = glob(["Sources/TwitterText/*.swift"]),
 #     module_name = "TwitterText",
-#     copts = [
-#         "-I",
-#         "$(execpath //rust/ffi-bindings:headers)",
-#     ],
 #     deps = [
-#         "//rust/ffi-bindings:twitter_text_ffi_cdylib",
-#         "//rust/ffi-bindings:headers",
+#         "//rust/ffi-bindings:twitter_text_c_headers",
 #     ],
 # )
 #
