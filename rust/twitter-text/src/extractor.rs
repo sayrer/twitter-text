@@ -249,9 +249,9 @@ impl Extractor {
             .collect()
     }
 
-    // Internal UTF-8 to UTF-32 offset calculation.
+    // Internal UTF-8 to UTF-16 offset calculation.
     fn scan(&self, iter: &mut Peekable<CharIndices>, limit: usize) -> i32 {
-        let mut offset = 0;
+        let mut offset: i32 = 0;
 
         loop {
             if let Some((peeked_pos, _c)) = iter.peek() {
@@ -262,8 +262,8 @@ impl Extractor {
                 break;
             }
 
-            if let Some((_, _)) = iter.next() {
-                offset += 1;
+            if let Some((_, c)) = iter.next() {
+                offset += c.len_utf16() as i32; // count UTF-16 code units
             }
         }
 
@@ -573,7 +573,7 @@ impl<'a> TextMetrics<'a> {
     }
 
     fn scan(&mut self, iter: &mut Peekable<CharIndices>, limit: usize, action: TrackAction) -> i32 {
-        let mut offset = 0;
+        let mut offset: i32 = 0;
 
         loop {
             if let Some((peeked_pos, _c)) = iter.peek() {
@@ -585,17 +585,18 @@ impl<'a> TextMetrics<'a> {
             }
 
             if let Some((_pos, c)) = iter.next() {
-                offset += 1;
+                let len_utf16 = as_i32(c.len_utf16());
+                offset += len_utf16; // use UTF-16 length here too
                 match action {
-                    TrackAction::Text => self.track_text(c),
-                    TrackAction::Emoji => self.track_emoji(c),
-                    TrackAction::Url => {}
+                    TrackAction::Text => self.track_text(c), // already uses len_utf16 internally
+                    TrackAction::Emoji => self.track_emoji(c), // ditto
+                    TrackAction::Url => {}                   // defer to track_url below
                 }
             }
         }
 
         if let TrackAction::Url = action {
-            self.track_url(offset);
+            self.track_url(offset); // now offset is in UTF-16 code units
         }
 
         offset

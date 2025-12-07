@@ -3,6 +3,7 @@ package com.sayrer.twitter_text.examples;
 import com.sayrer.twitter_text.Autolink;
 import com.sayrer.twitter_text.Extractor;
 import com.sayrer.twitter_text.Validator;
+import java.util.List;
 
 /**
  * Example demonstrating how to use the twitter-text FFM wrappers.
@@ -66,14 +67,14 @@ public class Example {
             }
 
             // Extract hashtags
-            String[] hashtags = extractor.extractHashtags(text);
+            List<String> hashtags = extractor.extractHashtags(text);
             System.out.println("Hashtags: ");
             for (String hashtag : hashtags) {
                 System.out.println("  - #" + hashtag);
             }
 
             // Extract mentions
-            String[] mentions = extractor.extractMentionedScreennames(text);
+            List<String> mentions = extractor.extractMentionedScreennames(text);
             System.out.println("Mentions: ");
             for (String mention : mentions) {
                 System.out.println("  - @" + mention);
@@ -88,7 +89,7 @@ public class Example {
 
             // Extract reply username
             String replyText = "@user this is a reply";
-            String replyUsername = extractor.extractReplyUsername(replyText);
+            String replyUsername = extractor.extractReplyScreenname(replyText);
             System.out.println("Reply to: @" + replyUsername);
         }
 
