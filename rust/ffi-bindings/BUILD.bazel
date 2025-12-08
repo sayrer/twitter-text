@@ -101,3 +101,11 @@ swift_interop_hint(
     name = "twitter_text_swift_interop",
     module_name = "CTwitterText",
 )
+
+# C library interface using static library (for ObjC tests that need static linking)
+cc_library(
+    name = "twitter_text_c_static",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    deps = [":twitter_text_ffi_static"],
+)
