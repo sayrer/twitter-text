@@ -1,6 +1,7 @@
 import os
-import pytest
 import sys
+
+import pytest
 import twitter_text
 import yaml
 
@@ -9,8 +10,9 @@ def test_ctor():
     assert config is not None
     assert config.get_version() == 3
 
+
 def test_path():
-    path = "rust_bindings/cpp/test_data/test_config.json"
+    path = "rust/cpp-bindings/test_data/test_config.json"
     config = twitter_text.TwitterTextConfiguration.configuration_from_path(path)
     assert config is not None
     assert config.get_version() == 42
@@ -25,9 +27,12 @@ def test_path():
     assert wr.range.end == 4351
     assert wr.weight == 200
 
+
 def test_json():
-    with open(r"rust_bindings/cpp/test_data/test_config.json") as file:
-        config = twitter_text.TwitterTextConfiguration.configuration_from_json(file.read())
+    with open(r"rust/cpp-bindings/test_data/test_config.json") as file:
+        config = twitter_text.TwitterTextConfiguration.configuration_from_json(
+            file.read()
+        )
         assert config is not None
         assert config.get_version() == 42
         assert config.get_max_weighted_tweet_length() == 400
@@ -40,6 +45,7 @@ def test_json():
         assert wr.range.start == 0
         assert wr.range.end == 4351
         assert wr.weight == 200
+
 
 def test_accessors():
     config = twitter_text.TwitterTextConfiguration()
@@ -68,6 +74,7 @@ def test_accessors():
     config.set_emoji_parsing_enabled(False)
     assert config.get_emoji_parsing_enabled() == False
 
+
 def test_ranges():
     config = twitter_text.TwitterTextConfiguration()
     ranges = config.get_ranges()
@@ -87,6 +94,7 @@ def test_ranges():
     assert ranges[3].range.end == 8247
     assert ranges[3].weight == 100
 
+
 def test_v2():
     config = twitter_text.TwitterTextConfiguration.config_v2()
     assert config.get_version() == 2
@@ -94,10 +102,14 @@ def test_v2():
     ranges = config.get_ranges()
     assert len(ranges) == 4
 
+
 def test_v1():
     config = twitter_text.TwitterTextConfiguration.config_v1()
     assert config.get_version() == 1
     assert config.get_emoji_parsing_enabled() == False
+    ranges = config.get_ranges()
+    assert len(ranges) == 0
+
     ranges = config.get_ranges()
     assert len(ranges) == 0
 

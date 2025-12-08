@@ -10,10 +10,10 @@ The Bazel LLVM toolchain (version 16.0.0) used by this project **does not includ
 
 ### Option 1: Use Regular Tests (Recommended for CI)
 
-The regular tests in `//rust_bindings/cpp:*` work fine. For most purposes, these are sufficient. The sanitizer tests are primarily useful for local development when hunting memory issues.
+The regular tests in `//rust/cpp-bindings:*` work fine. For most purposes, these are sufficient. The sanitizer tests are primarily useful for local development when hunting memory issues.
 
 ```bash
-bazel test //rust_bindings/cpp:all
+bazel test //rust/cpp-bindings:all
 ```
 
 ### Option 2: Run Tests Directly with System Sanitizer Runtime
@@ -23,21 +23,21 @@ Build the test, then run it directly with the library path set:
 **macOS:**
 ```bash
 # Build the test
-bazel build //rust_bindings/cpp_sanitizers:config_test_asan
+bazel build //rust/cpp-sanitizer-bindings:config_test_asan
 
 # Run directly with library path
 DYLD_LIBRARY_PATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin \
-  ./bazel-bin/rust_bindings/cpp_sanitizers/config_test_asan
+  ./bazel-bin/rust/cpp-sanitizer-bindings/config_test_asan
 ```
 
 **Linux:**
 ```bash
 # Build the test  
-bazel build //rust_bindings/cpp_sanitizers:config_test_asan
+bazel build //rust/cpp-sanitizer-bindings:config_test_asan
 
 # Run directly with library path
 LD_LIBRARY_PATH=/usr/lib/llvm-16/lib/clang/16/lib/linux \
-  ./bazel-bin/rust_bindings/cpp_sanitizers/config_test_asan
+  ./bazel-bin/rust/cpp-sanitizer-bindings/config_test_asan
 ```
 
 ### Option 3: Use System Compiler Instead of Bazel LLVM Toolchain
@@ -46,7 +46,7 @@ If you need to run sanitizers regularly, consider using your system compiler whi
 
 ## Available Tests
 
-All tests mirror those in `//rust_bindings/cpp` but with ASan/LSan enabled:
+All tests mirror those in `//rust/cpp-bindings` but with ASan/LSan enabled:
 
 - `config_test_asan` - Configuration handling tests
 - `autolink_test_asan` - Autolinking functionality tests

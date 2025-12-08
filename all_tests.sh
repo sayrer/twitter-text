@@ -4,6 +4,6 @@
 bazel test //rust/... || true
 
 # Run cpp tests
-bazel test //rust_bindings/cpp/... && \
-bazel test //rust_bindings/cpp_sanitizers/... && \
+bazel test //rust/cpp-bindings/... && \
+bazel test //rust/cpp-sanitizer-bindings/... && \
 echo "Done."

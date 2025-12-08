@@ -1,8 +1,8 @@
 # Optional sanitizer configuration
 #
-# The sanitizer tests in //rust_bindings/cpp_sanitizers work without any special
+# The sanitizer tests in //rust/cpp-sanitizer-bindings work without any special
 # configuration - just run:
-#   bazel test //rust_bindings/cpp_sanitizers:all
+#   bazel test //rust/cpp-sanitizer-bindings:all
 #
 # This file provides optional configuration for customizing sanitizer behavior:
 
