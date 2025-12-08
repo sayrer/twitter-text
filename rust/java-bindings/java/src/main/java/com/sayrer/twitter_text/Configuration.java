@@ -1,5 +1,6 @@
 package com.sayrer.twitter_text;
 
+
 import com.sayrer.twitter_text.configuration_h;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -17,6 +18,7 @@ import java.lang.foreign.MemorySegment;
  * </pre>
  */
 public final class Configuration implements AutoCloseable {
+
 
     private final MemorySegment handle;
     private boolean closed;

@@ -1,5 +1,6 @@
 package com.sayrer.twitter_text;
 
+
 import com.sayrer.twitter_text.autolink_h;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -8,6 +9,8 @@ import java.lang.foreign.MemorySegment;
  * A modifier that replaces the class attribute value.
  */
 public final class ReplaceClassModifier implements AutoCloseable {
+
+
     private final MemorySegment handle;
     private boolean closed;
 
@@ -28,7 +31,10 @@ public final class ReplaceClassModifier implements AutoCloseable {
                 .twitter_text_replace_class_modifier_new$handle()
                 .invoke(classSegment);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to create ReplaceClassModifier", t);
+            throw new RuntimeException(
+                "Failed to create ReplaceClassModifier",
+                t
+            );
         }
     }
 
@@ -47,7 +53,10 @@ public final class ReplaceClassModifier implements AutoCloseable {
                     .twitter_text_replace_class_modifier_free$handle()
                     .invoke(handle);
             } catch (Throwable t) {
-                throw new RuntimeException("Failed to free ReplaceClassModifier", t);
+                throw new RuntimeException(
+                    "Failed to free ReplaceClassModifier",
+                    t
+                );
             }
             closed = true;
         }

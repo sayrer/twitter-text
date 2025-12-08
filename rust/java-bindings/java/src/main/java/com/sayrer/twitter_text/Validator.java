@@ -1,5 +1,6 @@
 package com.sayrer.twitter_text;
 
+
 import com.sayrer.twitter_text.validator_h;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -16,6 +17,7 @@ import java.lang.foreign.MemorySegment;
  * </pre>
  */
 public final class Validator implements AutoCloseable {
+
 
     private final MemorySegment handle;
     private boolean closed;

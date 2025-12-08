@@ -1,7 +1,8 @@
 package com.sayrer.twitter_text;
 
-import com.sayrer.twitter_text.twitter_text_c_h;
+
 import com.sayrer.twitter_text.configuration_h;
+import com.sayrer.twitter_text.twitter_text_c_h;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -19,6 +20,7 @@ import java.lang.foreign.ValueLayout;
  * </pre>
  */
 public final class TwitterTextParser {
+
 
     /**
      * Configuration with code point counting (legacy v1 behavior).
@@ -82,7 +84,10 @@ public final class TwitterTextParser {
      * @param config the TwitterTextConfiguration to use
      * @return ParseResults containing weighted length, validity, and ranges
      */
-    public static ParseResults parseTweet(String text, TwitterTextConfiguration config) {
+    public static ParseResults parseTweet(
+        String text,
+        TwitterTextConfiguration config
+    ) {
         if (config == null) {
             return parseTweetWithUrlExtraction(text);
         }
@@ -97,7 +102,11 @@ public final class TwitterTextParser {
      * @param extractUrls whether to extract and weight URLs
      * @return ParseResults containing weighted length, validity, and ranges
      */
-    public static ParseResults parse(String text, Configuration config, boolean extractUrls) {
+    public static ParseResults parse(
+        String text,
+        Configuration config,
+        boolean extractUrls
+    ) {
         try (Arena arena = Arena.ofConfined()) {
             // Handle null text
             MemorySegment textSegment;
@@ -146,7 +155,10 @@ public final class TwitterTextParser {
 
                 int weightedLength = resultSegment.get(ValueLayout.JAVA_INT, 0);
                 int permillage = resultSegment.get(ValueLayout.JAVA_INT, 4);
-                boolean isValid = resultSegment.get(ValueLayout.JAVA_BOOLEAN, 8);
+                boolean isValid = resultSegment.get(
+                    ValueLayout.JAVA_BOOLEAN,
+                    8
+                );
 
                 // Display text range starts at offset 12 (after padding)
                 int displayStart = resultSegment.get(ValueLayout.JAVA_INT, 12);

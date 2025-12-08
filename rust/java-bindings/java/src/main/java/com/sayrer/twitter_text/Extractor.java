@@ -1,8 +1,9 @@
 package com.sayrer.twitter_text;
 
-import com.sayrer.twitter_text.extractor_h;
+
 import com.sayrer.twitter_text.TwitterTextEntity;
 import com.sayrer.twitter_text.TwitterTextStringArray;
+import com.sayrer.twitter_text.extractor_h;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
@@ -22,6 +23,7 @@ import java.lang.foreign.ValueLayout;
  */
 public final class Extractor implements AutoCloseable {
 
+
     private MemorySegment handle;
     private boolean closed;
 
@@ -35,7 +37,9 @@ public final class Extractor implements AutoCloseable {
      */
     public Extractor() {
         try {
-            this.handle = (MemorySegment) extractor_h.twitter_text_extractor_new$handle().invoke();
+            this.handle = (MemorySegment) extractor_h
+                .twitter_text_extractor_new$handle()
+                .invoke();
             this.closed = false;
         } catch (Throwable t) {
             throw new RuntimeException("Failed to create Extractor", t);
@@ -59,10 +63,14 @@ public final class Extractor implements AutoCloseable {
     public void setExtractUrlWithoutProtocol(boolean extract) {
         checkNotClosed();
         try {
-            extractor_h.twitter_text_extractor_set_extract_url_without_protocol$handle()
+            extractor_h
+                .twitter_text_extractor_set_extract_url_without_protocol$handle()
                 .invoke(handle, extract);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to set extract URL without protocol", t);
+            throw new RuntimeException(
+                "Failed to set extract URL without protocol",
+                t
+            );
         }
     }
 
@@ -74,10 +82,14 @@ public final class Extractor implements AutoCloseable {
     public boolean getExtractUrlWithoutProtocol() {
         checkNotClosed();
         try {
-            return (boolean) extractor_h.twitter_text_extractor_get_extract_url_without_protocol$handle()
+            return (boolean) extractor_h
+                .twitter_text_extractor_get_extract_url_without_protocol$handle()
                 .invoke(handle);
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to get extract URL without protocol", t);
+            throw new RuntimeException(
+                "Failed to get extract URL without protocol",
+                t
+            );
         }
     }
 
@@ -91,9 +103,9 @@ public final class Extractor implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment arraySegment =
-                (MemorySegment) extractor_h.twitter_text_extractor_extract_urls$handle()
-                    .invoke(arena, handle, textSegment);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_urls$handle()
+                .invoke(arena, handle, textSegment);
 
             String[] result = extractStringArray(arraySegment);
 
@@ -116,9 +128,9 @@ public final class Extractor implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment arraySegment =
-                (MemorySegment) extractor_h.twitter_text_extractor_extract_hashtags$handle()
-                    .invoke(arena, handle, textSegment);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_hashtags$handle()
+                .invoke(arena, handle, textSegment);
 
             String[] result = extractStringArray(arraySegment);
             extractor_h.twitter_text_string_array_free(arraySegment);
@@ -139,9 +151,9 @@ public final class Extractor implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment arraySegment =
-                (MemorySegment) extractor_h.twitter_text_extractor_extract_cashtags$handle()
-                    .invoke(arena, handle, textSegment);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_cashtags$handle()
+                .invoke(arena, handle, textSegment);
 
             String[] result = extractStringArray(arraySegment);
             extractor_h.twitter_text_string_array_free(arraySegment);
@@ -162,16 +174,19 @@ public final class Extractor implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment arraySegment =
-                (MemorySegment) extractor_h.twitter_text_extractor_extract_mentioned_screennames$handle()
-                    .invoke(arena, handle, textSegment);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_mentioned_screennames$handle()
+                .invoke(arena, handle, textSegment);
 
             String[] result = extractStringArray(arraySegment);
             extractor_h.twitter_text_string_array_free(arraySegment);
 
             return result;
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to extract mentioned screennames", t);
+            throw new RuntimeException(
+                "Failed to extract mentioned screennames",
+                t
+            );
         }
     }
 
@@ -185,9 +200,9 @@ public final class Extractor implements AutoCloseable {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment entityPtr =
-                (MemorySegment) extractor_h.twitter_text_extractor_extract_reply_username$handle()
-                    .invoke(handle, textSegment);
+            MemorySegment entityPtr = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_reply_username$handle()
+                .invoke(handle, textSegment);
 
             if (entityPtr.address() == 0) {
                 return null;
@@ -213,8 +228,11 @@ public final class Extractor implements AutoCloseable {
      * @return list of entities with start/end indices
      */
     public java.util.List<Entity> extractURLsWithIndices(String text) {
-        return extractEntitiesWithIndices(text, Entity.Type.URL,
-            extractor_h.twitter_text_extractor_extract_urls_with_indices$handle());
+        return extractEntitiesWithIndices(
+            text,
+            Entity.Type.URL,
+            extractor_h.twitter_text_extractor_extract_urls_with_indices$handle()
+        );
     }
 
     /**
@@ -224,8 +242,11 @@ public final class Extractor implements AutoCloseable {
      * @return list of entities with start/end indices
      */
     public java.util.List<Entity> extractHashtagsWithIndices(String text) {
-        return extractEntitiesWithIndices(text, Entity.Type.HASHTAG,
-            extractor_h.twitter_text_extractor_extract_hashtags_with_indices$handle());
+        return extractEntitiesWithIndices(
+            text,
+            Entity.Type.HASHTAG,
+            extractor_h.twitter_text_extractor_extract_hashtags_with_indices$handle()
+        );
     }
 
     /**
@@ -234,9 +255,14 @@ public final class Extractor implements AutoCloseable {
      * @param text the text to extract mentions from
      * @return list of entities with start/end indices
      */
-    public java.util.List<Entity> extractMentionedScreennamesWithIndices(String text) {
-        return extractEntitiesWithIndices(text, Entity.Type.MENTION,
-            extractor_h.twitter_text_extractor_extract_mentioned_screennames_with_indices$handle());
+    public java.util.List<Entity> extractMentionedScreennamesWithIndices(
+        String text
+    ) {
+        return extractEntitiesWithIndices(
+            text,
+            Entity.Type.MENTION,
+            extractor_h.twitter_text_extractor_extract_mentioned_screennames_with_indices$handle()
+        );
     }
 
     /**
@@ -246,48 +272,81 @@ public final class Extractor implements AutoCloseable {
      * @return list of entities with start/end indices
      */
     public java.util.List<Entity> extractCashtagsWithIndices(String text) {
-        return extractEntitiesWithIndices(text, Entity.Type.CASHTAG,
-            extractor_h.twitter_text_extractor_extract_cashtags_with_indices$handle());
+        return extractEntitiesWithIndices(
+            text,
+            Entity.Type.CASHTAG,
+            extractor_h.twitter_text_extractor_extract_cashtags_with_indices$handle()
+        );
     }
 
     /**
      * Helper method to extract entities with indices.
      */
-    private java.util.List<Entity> extractEntitiesWithIndices(String text, Entity.Type type,
-                                                               java.lang.invoke.MethodHandle methodHandle) {
+    private java.util.List<Entity> extractEntitiesWithIndices(
+        String text,
+        Entity.Type type,
+        java.lang.invoke.MethodHandle methodHandle
+    ) {
         checkNotClosed();
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment textSegment = arena.allocateFrom(text);
-            MemorySegment arraySegment = (MemorySegment) methodHandle.invoke(arena, handle, textSegment);
+            MemorySegment arraySegment = (MemorySegment) methodHandle.invoke(
+                arena,
+                handle,
+                textSegment
+            );
 
             java.util.List<Entity> result = new java.util.ArrayList<>();
 
             // Read the TwitterTextEntityArray struct
-            long length = com.sayrer.twitter_text.TwitterTextEntityArray.length(arraySegment);
+            long length = com.sayrer.twitter_text.TwitterTextEntityArray.length(
+                arraySegment
+            );
 
             if (length > 0) {
-                MemorySegment entitiesPtr = com.sayrer.twitter_text.TwitterTextEntityArray.entities(arraySegment);
+                MemorySegment entitiesPtr =
+                    com.sayrer.twitter_text.TwitterTextEntityArray.entities(
+                        arraySegment
+                    );
                 long entitySize = TwitterTextEntity.sizeof();
 
                 for (int i = 0; i < length; i++) {
-                    MemorySegment entitySegment = entitiesPtr.asSlice(i * entitySize, entitySize);
+                    MemorySegment entitySegment = entitiesPtr.asSlice(
+                        i * entitySize,
+                        entitySize
+                    );
 
                     int start = TwitterTextEntity.start(entitySegment);
                     int end = TwitterTextEntity.end(entitySegment);
-                    MemorySegment valuePtr = TwitterTextEntity.value(entitySegment);
-                    String value = valuePtr.reinterpret(Long.MAX_VALUE).getString(0);
+                    MemorySegment valuePtr = TwitterTextEntity.value(
+                        entitySegment
+                    );
+                    String value = valuePtr
+                        .reinterpret(Long.MAX_VALUE)
+                        .getString(0);
 
                     Entity entity = new Entity(start, end, value, type);
 
                     // Extract optional fields if present
-                    MemorySegment displayUrlPtr = TwitterTextEntity.display_url(entitySegment);
+                    MemorySegment displayUrlPtr = TwitterTextEntity.display_url(
+                        entitySegment
+                    );
                     if (displayUrlPtr.address() != 0) {
-                        entity.setDisplayURL(displayUrlPtr.reinterpret(Long.MAX_VALUE).getString(0));
+                        entity.setDisplayURL(
+                            displayUrlPtr
+                                .reinterpret(Long.MAX_VALUE)
+                                .getString(0)
+                        );
                     }
 
-                    MemorySegment expandedUrlPtr = TwitterTextEntity.expanded_url(entitySegment);
+                    MemorySegment expandedUrlPtr =
+                        TwitterTextEntity.expanded_url(entitySegment);
                     if (expandedUrlPtr.address() != 0) {
-                        entity.setExpandedURL(expandedUrlPtr.reinterpret(Long.MAX_VALUE).getString(0));
+                        entity.setExpandedURL(
+                            expandedUrlPtr
+                                .reinterpret(Long.MAX_VALUE)
+                                .getString(0)
+                        );
                     }
 
                     result.add(entity);
@@ -299,7 +358,10 @@ public final class Extractor implements AutoCloseable {
 
             return result;
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to extract entities with indices", t);
+            throw new RuntimeException(
+                "Failed to extract entities with indices",
+                t
+            );
         }
     }
 
@@ -310,7 +372,10 @@ public final class Extractor implements AutoCloseable {
      * @param text the text that was parsed
      * @param entities the entities to modify
      */
-    public void modifyIndicesFromUTF16ToUnicode(String text, java.util.List<Entity> entities) {
+    public void modifyIndicesFromUTF16ToUnicode(
+        String text,
+        java.util.List<Entity> entities
+    ) {
         for (Entity entity : entities) {
             entity.start = text.codePointCount(0, entity.start);
             entity.end = text.codePointCount(0, entity.end);
@@ -324,7 +389,10 @@ public final class Extractor implements AutoCloseable {
      * @param text the text that was parsed
      * @param entities the entities to modify
      */
-    public void modifyIndicesFromUnicodeToUTF16(String text, java.util.List<Entity> entities) {
+    public void modifyIndicesFromUnicodeToUTF16(
+        String text,
+        java.util.List<Entity> entities
+    ) {
         for (Entity entity : entities) {
             entity.start = text.offsetByCodePoints(0, entity.start);
             entity.end = text.offsetByCodePoints(0, entity.end);
@@ -359,11 +427,16 @@ public final class Extractor implements AutoCloseable {
 
         MemorySegment stringsPtr = TwitterTextStringArray.strings(arraySegment);
         // Reinterpret the pointer array with the correct size
-        MemorySegment stringsPtrArray = stringsPtr.reinterpret(length * ValueLayout.ADDRESS.byteSize());
+        MemorySegment stringsPtrArray = stringsPtr.reinterpret(
+            length * ValueLayout.ADDRESS.byteSize()
+        );
 
         String[] result = new String[(int) length];
         for (int i = 0; i < length; i++) {
-            MemorySegment stringPtr = stringsPtrArray.getAtIndex(ValueLayout.ADDRESS, i);
+            MemorySegment stringPtr = stringsPtrArray.getAtIndex(
+                ValueLayout.ADDRESS,
+                i
+            );
             // Reinterpret as unbounded to allow reading the null-terminated string
             result[i] = stringPtr.reinterpret(Long.MAX_VALUE).getString(0);
         }

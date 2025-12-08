@@ -424,33 +424,67 @@ public final class Autolink implements AutoCloseable {
         return builder.toString();
     }
 
-    private static final String INVISIBLE_TAG_ATTRS = "style='position:absolute;left:-9999px;'";
+    private static final String INVISIBLE_TAG_ATTRS =
+        "style='position:absolute;left:-9999px;'";
 
     private void linkToURL(Entity entity, String text, StringBuilder builder) {
         final CharSequence url = entity.value;
         CharSequence linkText = escapeHTML(url);
 
         if (entity.getDisplayURL() != null && entity.getExpandedURL() != null) {
-            final String displayURLSansEllipses = entity.getDisplayURL().replace("…", "");
-            final int displayURLIndexInExpandedURL = entity.getExpandedURL().indexOf(displayURLSansEllipses);
+            final String displayURLSansEllipses = entity
+                .getDisplayURL()
+                .replace("…", "");
+            final int displayURLIndexInExpandedURL = entity
+                .getExpandedURL()
+                .indexOf(displayURLSansEllipses);
 
             if (displayURLIndexInExpandedURL != -1) {
-                final String beforeDisplayURL = entity.getExpandedURL().substring(0, displayURLIndexInExpandedURL);
-                final String afterDisplayURL = entity.getExpandedURL().substring(
-                    displayURLIndexInExpandedURL + displayURLSansEllipses.length());
-                final String precedingEllipsis = entity.getDisplayURL().startsWith("…") ? "…" : "";
-                final String followingEllipsis = entity.getDisplayURL().endsWith("…") ? "…" : "";
-                final String invisibleSpan = "<span " + INVISIBLE_TAG_ATTRS + ">";
+                final String beforeDisplayURL = entity
+                    .getExpandedURL()
+                    .substring(0, displayURLIndexInExpandedURL);
+                final String afterDisplayURL = entity
+                    .getExpandedURL()
+                    .substring(
+                        displayURLIndexInExpandedURL +
+                            displayURLSansEllipses.length()
+                    );
+                final String precedingEllipsis = entity
+                        .getDisplayURL()
+                        .startsWith("…")
+                    ? "…"
+                    : "";
+                final String followingEllipsis = entity
+                        .getDisplayURL()
+                        .endsWith("…")
+                    ? "…"
+                    : "";
+                final String invisibleSpan =
+                    "<span " + INVISIBLE_TAG_ATTRS + ">";
 
-                final StringBuilder sb = new StringBuilder("<span class='tco-ellipsis'>");
+                final StringBuilder sb = new StringBuilder(
+                    "<span class='tco-ellipsis'>"
+                );
                 sb.append(precedingEllipsis);
                 sb.append(invisibleSpan).append("&nbsp;</span></span>");
-                sb.append(invisibleSpan).append(escapeHTML(beforeDisplayURL)).append("</span>");
-                sb.append("<span class='js-display-url'>").append(escapeHTML(displayURLSansEllipses))
+                sb
+                    .append(invisibleSpan)
+                    .append(escapeHTML(beforeDisplayURL))
                     .append("</span>");
-                sb.append(invisibleSpan).append(escapeHTML(afterDisplayURL)).append("</span>");
-                sb.append("<span class='tco-ellipsis'>").append(invisibleSpan).append("&nbsp;</span>")
-                    .append(followingEllipsis).append("</span>");
+                sb
+                    .append("<span class='js-display-url'>")
+                    .append(escapeHTML(displayURLSansEllipses))
+                    .append("</span>");
+                sb
+                    .append(invisibleSpan)
+                    .append(escapeHTML(afterDisplayURL))
+                    .append("</span>");
+                sb
+                    .append("<span class='tco-ellipsis'>")
+                    .append(invisibleSpan)
+                    .append("&nbsp;</span>")
+                    .append(followingEllipsis)
+                    .append("</span>");
 
                 linkText = sb;
             } else {
@@ -463,30 +497,49 @@ public final class Autolink implements AutoCloseable {
         builder.append(">").append(linkText).append("</a>");
     }
 
-    private void linkToHashtag(Entity entity, String text, StringBuilder builder) {
+    private void linkToHashtag(
+        Entity entity,
+        String text,
+        StringBuilder builder
+    ) {
         final CharSequence hashtag = text.subSequence(entity.start, entity.end);
-        builder.append("<a href=\"https://twitter.com/search?q=%23")
+        builder
+            .append("<a href=\"https://twitter.com/search?q=%23")
             .append(entity.value)
-            .append("\" title=\"").append(escapeHTML(hashtag))
+            .append("\" title=\"")
+            .append(escapeHTML(hashtag))
             .append("\" class=\"tweet-url hashtag\" rel=\"nofollow\">")
             .append(escapeHTML(hashtag))
             .append("</a>");
     }
 
-    private void linkToMentionAndList(Entity entity, String text, StringBuilder builder) {
+    private void linkToMentionAndList(
+        Entity entity,
+        String text,
+        StringBuilder builder
+    ) {
         final CharSequence mention = text.subSequence(entity.start, entity.end);
-        builder.append("@<a class=\"tweet-url username\" href=\"https://twitter.com/")
+        builder
+            .append(
+                "@<a class=\"tweet-url username\" href=\"https://twitter.com/"
+            )
             .append(entity.value)
             .append("\" rel=\"nofollow\">")
             .append(escapeHTML(mention.subSequence(1, mention.length()))) // Skip the @
             .append("</a>");
     }
 
-    private void linkToCashtag(Entity entity, String text, StringBuilder builder) {
+    private void linkToCashtag(
+        Entity entity,
+        String text,
+        StringBuilder builder
+    ) {
         final CharSequence cashtag = text.subSequence(entity.start, entity.end);
-        builder.append("<a href=\"https://twitter.com/search?q=%24")
+        builder
+            .append("<a href=\"https://twitter.com/search?q=%24")
             .append(entity.value)
-            .append("\" title=\"").append(escapeHTML(cashtag))
+            .append("\" title=\"")
+            .append(escapeHTML(cashtag))
             .append("\" class=\"tweet-url cashtag\" rel=\"nofollow\">")
             .append(escapeHTML(cashtag))
             .append("</a>");
@@ -676,9 +729,7 @@ public final class Autolink implements AutoCloseable {
             int end = entitySegment.get(ValueLayout.JAVA_INT, 8);
 
             // Read the text - reinterpret as unbounded since we don't know the C string length
-            String text = textPtr
-                .reinterpret(Long.MAX_VALUE)
-                .getString(0);
+            String text = textPtr.reinterpret(Long.MAX_VALUE).getString(0);
             System.err.println("DEBUG Java: input text=" + text);
 
             // Create Entity object (value is the text itself)
