@@ -3,6 +3,11 @@ module(
     version = "0.3.0",
 )
 
+local_path_override(
+    module_name = "rules_swift",
+    path = "../rules_swift",  # adjust path as needed
+)
+
 # -- bazel_dep definitions -- #
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
@@ -16,6 +21,7 @@ bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
 bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "yams", version = "6.2.0")
 
 # Java toolchains
 java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
@@ -106,6 +112,12 @@ package(default_visibility = ["//visibility:public"])
 filegroup(
     name = "usr",
     srcs = glob(["usr/**/*"]),
+)
+
+# Runtime libraries needed at execution time
+filegroup(
+    name = "runtime_libs",
+    srcs = glob(["usr/lib/swift/linux/*.so"]),
 )
 
 # Create a version file for the toolchain

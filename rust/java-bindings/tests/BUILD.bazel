@@ -133,12 +133,12 @@ java_test(
     data = [
         "//rust/java-bindings:twitter_text_java_ffm",
     ],
-    resource_strip_prefix = "confomance",
+    resource_strip_prefix = "conformance",
     resources = [
-        "//confomance:autolink.yml",
-        "//confomance:extract.yml",
-        "//confomance:hit_highlighting.yml",
-        "//confomance:tlds.yml",
-        "//confomance:validate.yml",
+        "//conformance:autolink.yml",
+        "//conformance:extract.yml",
+        "//conformance:hit_highlighting.yml",
+        "//conformance:tlds.yml",
+        "//conformance:validate.yml",
     ],
 )

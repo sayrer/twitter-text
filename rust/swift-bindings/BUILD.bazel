@@ -11,6 +11,7 @@ package(default_visibility = ["//visibility:public"])
 
 load("@rules_swift//swift:swift_library.bzl", "swift_library")
 load("@rules_swift//swift:swift_binary.bzl", "swift_binary")
+load("@rules_swift//swift:swift_test.bzl", "swift_test")
 
 swift_library(
     name = "TwitterText",
@@ -21,20 +22,74 @@ swift_library(
     ],
 )
 
-# Swift binary tests disabled due to rules_swift issue on Linux
-# The linker receives Darwin-specific flags (-add_ast_path) even when os="linux"
-# which ld.lld doesn't understand.
-#
-# To run tests, use Swift Package Manager:
-#   cd rust/swift-bindings && swift test
-#
-# swift_binary(
-#     name = "TwitterTextTests",
-#     srcs = glob(["Tests/TwitterTextTests/*.swift"]),
-#     deps = [
-#         ":TwitterText",
-#     ],
-# )
+# Test sources shared between swift_binary (Linux) and swift_test (macOS)
+_TEST_SRCS = [
+    "Tests/TwitterTextTests/AutolinkTests.swift",
+    "Tests/TwitterTextTests/EmojiTests.swift",
+    "Tests/TwitterTextTests/ExtractTests.swift",
+    "Tests/TwitterTextTests/HitHighlightTests.swift",
+    "Tests/TwitterTextTests/TestHelpers.swift",
+    "Tests/TwitterTextTests/TestRunner.swift",
+    "Tests/TwitterTextTests/TldTests.swift",
+    "Tests/TwitterTextTests/ValidateTests.swift",
+]
+
+_TEST_DATA = [
+    "//conformance:autolink.yml",
+    "//conformance:extract.yml",
+    "//conformance:hit_highlighting.yml",
+    "//conformance:tlds.yml",
+    "//conformance:validate.yml",
+    "//rust/conformance:tests/unicode11-emoji-test.txt",
+]
+
+_TEST_DEPS = [
+    ":TwitterText",
+    "@yams//:Yams",
+]
+
+# Linux: Use swift_binary with custom test runner (swift_test requires apple_support)
+swift_binary(
+    name = "TwitterTextTests",
+    srcs = _TEST_SRCS,
+    data = _TEST_DATA + ["@swift_linux_x86_64//:runtime_libs"],
+    # Set LD_LIBRARY_PATH to find Swift runtime libs in runfiles
+    env = {
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+    },
+    linkopts = [
+        "-lswiftCore",
+        "-lswiftSwiftOnoneSupport",
+        "-lFoundation",
+        "-lFoundationEssentials",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _TEST_DEPS,
+)
+
+# macOS: Use swift_test with real XCTest framework
+swift_test(
+    name = "TwitterTextTestsMac",
+    srcs = _TEST_SRCS,
+    data = _TEST_DATA,
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = _TEST_DEPS,
+)
+
+# Linux: sh_test wrapper so "bazel test //..." includes Swift tests
+sh_test(
+    name = "TwitterTextTestsLinux",
+    srcs = ["run_tests.sh"],
+    args = ["$(location :TwitterTextTests)"],
+    data = [
+        ":TwitterTextTests",
+        "@swift_linux_x86_64//:runtime_libs",
+    ],
+    env = {
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+    },
+    target_compatible_with = ["@platforms//os:linux"],
+)
 
 # Export Swift package files for use with Swift Package Manager
 exports_files([

@@ -8,10 +8,14 @@ package(default_visibility = ["//visibility:public"])
 swift_toolchain(
     name = "hermetic_swift_linux_x86_64",
     arch = "x86_64",
+    # Enable module wrapping (swift-modulewrap) instead of -add_ast_path which is Darwin-only
+    features = [
+        "swift.use_module_wrap",
+    ],
     os = "linux",
     root = "external/+_repo_rules+swift_linux_x86_64/usr",
+    toolchain_files = "@swift_linux_x86_64//:usr",
     version_file = "@swift_linux_x86_64//:version_file",
-
 )
 
 toolchain(

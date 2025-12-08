@@ -69,7 +69,7 @@ cargo test -p twitter-text-parser
    - Used for tweet length calculation (280 weighted characters)
 
 4. **Conformance Tests** (`rust/conformance/`)
-   - Tests against YAML test suites in `confomance/` directory
+   - Tests against YAML test suites in `conformance/` directory
    - Cross-platform test definitions shared with other twitter-text implementations
    - Do not modify conformance YAML files directly; they are canonical
 
@@ -98,7 +98,7 @@ bazel test //rust/conformance:autolink_test
 
 ### Conformance Tests
 
-The conformance suite (`confomance/*.yml`) defines canonical test cases. All implementations must pass these tests. Tests cover:
+The conformance suite (`conformance/*.yml`) defines canonical test cases. All implementations must pass these tests. Tests cover:
 - Autolink (URL/mention/hashtag linking)
 - Extract (entity extraction)
 - Validation (tweet validity)
