@@ -1,0 +1,52 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
+
+package(default_visibility = ["//visibility:public"])
+
+# Build Rust library targeting WASM
+rust_shared_library(
+    name = "twitter_text_wasm_lib",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    deps = [
+        "//rust/twitter-text:twitter_text_wasm_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:wasm-bindgen",
+        "//3rdparty/crates:js-sys",
+        "//3rdparty/crates:serde_json",
+    ],
+)
+
+# Generate JavaScript/TypeScript bindings using wasm-bindgen (for bundlers like webpack)
+rust_wasm_bindgen(
+    name = "twitter_text_wasm",
+    wasm_file = ":twitter_text_wasm_lib",
+    target = "bundler",
+    bindgen_flags = [
+        "--typescript",
+    ],
+)
+
+# Generate Node.js-compatible bindings for testing
+rust_wasm_bindgen(
+    name = "twitter_text_wasm_nodejs",
+    wasm_file = ":twitter_text_wasm_lib",
+    target = "nodejs",
+    bindgen_flags = [
+        "--typescript",
+    ],
+)
+
+# JavaScript conformance tests
+js_test(
+    name = "wasm_conformance_test",
+    entry_point = "tests/twitter_text_wasm_test.mjs",
+    data = [
+        ":twitter_text_wasm_nodejs",
+        "//conformance:conformance_yml",
+        "//:node_modules/yaml",
+    ],
+)

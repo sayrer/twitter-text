@@ -1,3 +1,12 @@
 # Conformance test data files
 
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
 exports_files(glob(["*.yml"]))
+
+# JS library for WASM tests
+js_library(
+    name = "conformance_yml",
+    srcs = glob(["*.yml"]),
+    visibility = ["//visibility:public"],
+)

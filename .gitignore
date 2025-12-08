@@ -19,3 +19,6 @@ twitter-text.iml
 # Python and Ruby bindings artifacts
 *.so
 *.bundle
+
+# Node.js
+node_modules/

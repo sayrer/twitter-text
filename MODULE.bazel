@@ -12,11 +12,11 @@ module(
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_rust", version = "0.67.0")
+bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.67.0")
 
 # apple_support MUST come before rules_cc for proper toolchain selection on macOS
 bazel_dep(name = "apple_support", version = "1.24.2")
 bazel_dep(name = "rules_cc", version = "0.2.14")
-
 bazel_dep(name = "cxx.rs", version = "1.0.188")
 bazel_dep(name = "rules_ruby", version = "0.21.1")
 bazel_dep(name = "rules_apple", version = "4.3.2")
@@ -34,6 +34,8 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "yams", version = "6.2.0")
+bazel_dep(name = "aspect_rules_js", version = "2.3.7")
+bazel_dep(name = "rules_nodejs", version = "6.3.4")
 
 # Java toolchains
 java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
@@ -216,6 +218,7 @@ RUST_VERSION = "1.91.1"  # as you had
 rust_ext = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust_ext.toolchain(
     edition = RUST_EDITION,
+    extra_target_triples = ["wasm32-unknown-unknown"],
     versions = [RUST_VERSION],
 )
 use_repo(rust_ext, "rust_toolchains")
@@ -284,6 +287,7 @@ use_repo(
     "twitter_text__clap-4.5.53",
     "twitter_text__cxx-1.0.190",
     "twitter_text__idna-1.1.0",
+    "twitter_text__js-sys-0.3.77",
     "twitter_text__lazy_static-1.5.0",
     "twitter_text__libc-0.2.178",
     "twitter_text__log-0.4.28",
@@ -298,6 +302,7 @@ use_repo(
     "twitter_text__serde_json-1.0.145",
     "twitter_text__serde_yaml_ng-0.10.0",
     "twitter_text__unicode-normalization-0.1.25",
+    "twitter_text__wasm-bindgen-0.2.100",
 )
 
 #
@@ -443,3 +448,22 @@ use_repo(
 )
 
 register_toolchains("@jdk23_toolchains//:all")
+
+###############################################################################
+# Node.js for WASM tests
+###############################################################################
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(
+    name = "nodejs",
+    node_version = "20.11.1",
+)
+use_repo(node, "nodejs", "nodejs_toolchains")
+
+register_toolchains("@nodejs_toolchains//:all")
+
+npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
+npm.npm_translate_lock(
+    name = "npm",
+    pnpm_lock = "//:pnpm-lock.yaml",
+)
+use_repo(npm, "npm")

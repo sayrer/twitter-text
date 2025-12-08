@@ -27,6 +27,25 @@ twitter_text_deps = [
     "//3rdparty/crates:unicode-normalization",
 ]
 
+# Core deps without cxx (for WASM)
+twitter_text_wasm_deps = [
+    "//rust/config:twitter_text_config",
+    "//rust/parser:twitter_text_parser",
+    "//3rdparty/crates:idna",
+    "//3rdparty/crates:pest",
+    "//3rdparty/crates:unicode-normalization",
+]
+
+# Sources without ffi.rs (for WASM)
+twitter_text_wasm_srcs = [
+    "src/lib.rs",
+    "src/autolinker.rs",
+    "src/entity.rs",
+    "src/extractor.rs",
+    "src/hit_highlighter.rs",
+    "src/validator.rs",
+]
+
 # 1) Core Rust crate, no cxx in the public API
 rust_library(
     name = "twitter_text_rlib",
@@ -34,6 +53,16 @@ rust_library(
     crate_root = "src/lib.rs",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
+    edition = "2021",
+)
+
+# WASM-compatible library (no cxx dependency)
+rust_library(
+    name = "twitter_text_wasm_rlib",
+    crate_name = "twitter_text",
+    crate_root = "src/lib.rs",
+    srcs = twitter_text_wasm_srcs,
+    deps = twitter_text_wasm_deps,
     edition = "2021",
 )
 

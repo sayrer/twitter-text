@@ -74,6 +74,18 @@ alias(
 )
 
 alias(
+    name = "js-sys-0.3.77",
+    actual = "@twitter_text__js-sys-0.3.77//:js_sys",
+    tags = ["manual"],
+)
+
+alias(
+    name = "js-sys",
+    actual = "@twitter_text__js-sys-0.3.77//:js_sys",
+    tags = ["manual"],
+)
+
+alias(
     name = "lazy_static-1.5.0",
     actual = "@twitter_text__lazy_static-1.5.0//:lazy_static",
     tags = ["manual"],
@@ -238,6 +250,18 @@ alias(
 alias(
     name = "unicode-normalization",
     actual = "@twitter_text__unicode-normalization-0.1.25//:unicode_normalization",
+    tags = ["manual"],
+)
+
+alias(
+    name = "wasm-bindgen-0.2.100",
+    actual = "@twitter_text__wasm-bindgen-0.2.100//:wasm_bindgen",
+    tags = ["manual"],
+)
+
+alias(
+    name = "wasm-bindgen",
+    actual = "@twitter_text__wasm-bindgen-0.2.100//:wasm_bindgen",
     tags = ["manual"],
 )
 

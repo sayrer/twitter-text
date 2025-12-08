@@ -1,0 +1,21 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# The wrapper library that provides the old twttr.txt API
+js_library(
+    name = "twitter_text_wrapper",
+    srcs = ["twitter-text.mjs"],
+)
+
+# Conformance tests using the old API wrapper
+js_test(
+    name = "conformance_test",
+    entry_point = "tests/conformance_test.mjs",
+    data = [
+        ":twitter_text_wrapper",
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs",
+        "//conformance:conformance_yml",
+        "//:node_modules/yaml",
+    ],
+)

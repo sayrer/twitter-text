@@ -65,6 +65,12 @@ crates_vendor(
         "libc": crate.spec(
             version = "0.2.178",
         ),
+        "wasm-bindgen": crate.spec(
+            version = "=0.2.100",
+        ),
+        "js-sys": crate.spec(
+            version = "=0.3.77",
+        ),
     },
     repository_name = "twitter_text",
     tags = ["manual"],
