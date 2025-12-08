@@ -1,33 +1,19 @@
-"""Hermetic Swift toolchain configuration."""
+"""Swift toolchain configuration.
 
-load("@rules_swift//swift/toolchains:swift_toolchain.bzl", "swift_toolchain")
+On macOS: rules_swift auto-detects the system Swift from Xcode.
+On Linux: Hermetic Swift 6.0.3 toolchains are registered (requires rules_swift PR for toolchain_files).
+"""
 
 package(default_visibility = ["//visibility:public"])
 
-# Hermetic Swift 6.0.3 toolchain for Linux x86_64
-swift_toolchain(
-    name = "hermetic_swift_linux_x86_64",
-    arch = "x86_64",
-    # Enable module wrapping (swift-modulewrap) instead of -add_ast_path which is Darwin-only
-    features = [
-        "swift.use_module_wrap",
-    ],
-    os = "linux",
-    root = "external/+_repo_rules+swift_linux_x86_64/usr",
-    toolchain_files = "@swift_linux_x86_64//:usr",
-    version_file = "@swift_linux_x86_64//:version_file",
+# Placeholder filegroup (used by macOS, no hermetic toolchain needed)
+filegroup(
+    name = "empty",
+    srcs = [],
 )
 
-toolchain(
-    name = "hermetic_swift_linux_x86_64_toolchain",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    toolchain = ":hermetic_swift_linux_x86_64",
-    toolchain_type = "@rules_swift//toolchains:toolchain_type",
-)
+# =============================================================================
+# Linux toolchains are defined in a separate file to avoid loading errors
+# on macOS where the toolchain_files attribute isn't needed.
+# See: hermetic_linux_toolchains.bzl (when rules_swift PR is merged)
+# =============================================================================

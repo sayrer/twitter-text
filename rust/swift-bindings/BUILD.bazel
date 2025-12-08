@@ -16,6 +16,10 @@ load("@rules_swift//swift:swift_test.bzl", "swift_test")
 swift_library(
     name = "TwitterText",
     srcs = glob(["Sources/TwitterText/*.swift"]),
+    copts = select({
+        "@platforms//os:macos": ["-target", "arm64-apple-macosx26.0"],
+        "//conditions:default": [],
+    }),
     module_name = "TwitterText",
     deps = [
         "//rust/ffi-bindings:twitter_text_c_headers",
