@@ -7,8 +7,12 @@ use twitter_text::autolinker::Autolinker;
 use twitter_text::ExternalValidator;
 
 /// Returns all ExternalValidator variants for testing both backends.
-fn all_external_validators() -> [ExternalValidator; 2] {
-    [ExternalValidator::External, ExternalValidator::Pest]
+fn all_external_validators() -> [ExternalValidator; 3] {
+    [
+        ExternalValidator::External,
+        ExternalValidator::Pest,
+        ExternalValidator::Nom,
+    ]
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

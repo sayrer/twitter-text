@@ -17,7 +17,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "nom",
+    name = "emojis",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -34,13 +34,8 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "alloc",
-        "default",
-        "std",
-    ],
     crate_root = "src/lib.rs",
-    edition = "2018",
+    edition = "2021",
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -49,7 +44,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=nom",
+        "crate-name=emojis",
         "manual",
         "noclippy",
         "norustfmt",
@@ -97,9 +92,8 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "7.1.3",
+    version = "0.6.4",
     deps = [
-        "@twitter_text__memchr-2.7.6//:memchr",
-        "@twitter_text__minimal-lexical-0.2.1//:minimal_lexical",
+        "@twitter_text__phf-0.11.3//:phf",
     ],
 )

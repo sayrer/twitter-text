@@ -297,12 +297,14 @@ _NORMAL_DEPENDENCIES = {
         _COMMON_CONDITION: {
             "clap": Label("@twitter_text//:clap-4.5.53"),
             "cxx": Label("@twitter_text//:cxx-1.0.190"),
+            "emojis": Label("@twitter_text//:emojis-0.6.4"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
             "js-sys": Label("@twitter_text//:js-sys-0.3.77"),
             "lazy_static": Label("@twitter_text//:lazy_static-1.5.0"),
             "libc": Label("@twitter_text//:libc-0.2.178"),
             "log": Label("@twitter_text//:log-0.4.28"),
             "magnus": Label("@twitter_text//:magnus-0.8.2"),
+            "nom": Label("@twitter_text//:nom-7.1.3"),
             "pest": Label("@twitter_text//:pest-2.8.4"),
             "phf": Label("@twitter_text//:phf-0.11.3"),
             "proc-macro-error": Label("@twitter_text//:proc-macro-error-1.0.4"),
@@ -311,6 +313,7 @@ _NORMAL_DEPENDENCIES = {
             "serde_json": Label("@twitter_text//:serde_json-1.0.145"),
             "serde_yaml_ng": Label("@twitter_text//:serde_yaml_ng-0.10.0"),
             "unicode-normalization": Label("@twitter_text//:unicode-normalization-0.1.25"),
+            "unicode_categories": Label("@twitter_text//:unicode_categories-0.1.1"),
             "wasm-bindgen": Label("@twitter_text//:wasm-bindgen-0.2.100"),
         },
     },
@@ -725,6 +728,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/either/1.15.0/download"],
         strip_prefix = "either-1.15.0",
         build_file = Label("//3rdparty/crates:BUILD.either-1.15.0.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__emojis-0.6.4",
+        sha256 = "99e1f1df1f181f2539bac8bf027d31ca5ffbf9e559e3f2d09413b9107b5c02f4",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/emojis/0.6.4/download"],
+        strip_prefix = "emojis-0.6.4",
+        build_file = Label("//3rdparty/crates:BUILD.emojis-0.6.4.bazel"),
     )
 
     maybe(
@@ -1729,6 +1742,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__unicode_categories-0.1.1",
+        sha256 = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/unicode_categories/0.1.1/download"],
+        strip_prefix = "unicode_categories-0.1.1",
+        build_file = Label("//3rdparty/crates:BUILD.unicode_categories-0.1.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__unindent-0.2.4",
         sha256 = "7264e107f553ccae879d21fbea1d6724ac785e8c3bfc762137959b5802826ef3",
         type = "tar.gz",
@@ -1940,12 +1963,14 @@ def crate_repositories():
     return [
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
         struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
+        struct(repo = "twitter_text__emojis-0.6.4", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
         struct(repo = "twitter_text__js-sys-0.3.77", is_dev_dep = False),
         struct(repo = "twitter_text__lazy_static-1.5.0", is_dev_dep = False),
         struct(repo = "twitter_text__libc-0.2.178", is_dev_dep = False),
         struct(repo = "twitter_text__log-0.4.28", is_dev_dep = False),
         struct(repo = "twitter_text__magnus-0.8.2", is_dev_dep = False),
+        struct(repo = "twitter_text__nom-7.1.3", is_dev_dep = False),
         struct(repo = "twitter_text__pest-2.8.4", is_dev_dep = False),
         struct(repo = "twitter_text__pest_derive-2.8.4", is_dev_dep = False),
         struct(repo = "twitter_text__phf-0.11.3", is_dev_dep = False),
@@ -1957,5 +1982,6 @@ def crate_repositories():
         struct(repo = "twitter_text__serde_json-1.0.145", is_dev_dep = False),
         struct(repo = "twitter_text__serde_yaml_ng-0.10.0", is_dev_dep = False),
         struct(repo = "twitter_text__unicode-normalization-0.1.25", is_dev_dep = False),
+        struct(repo = "twitter_text__unicode_categories-0.1.1", is_dev_dep = False),
         struct(repo = "twitter_text__wasm-bindgen-0.2.100", is_dev_dep = False),
     ]

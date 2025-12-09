@@ -28,3 +28,28 @@ sh_binary(
         "//benchmark/data:parse.yml",
     ],
 )
+
+# Wrapper scripts for profiling individual backends
+sh_binary(
+    name = "benchmark_external",
+    srcs = ["run_benchmark_external.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)
+
+sh_binary(
+    name = "benchmark_pest",
+    srcs = ["run_benchmark_pest.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)

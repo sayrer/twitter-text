@@ -56,6 +56,15 @@ crates_vendor(
             version = "0.11",
             features = ["macros", "unicase"],
         ),
+        "emojis": crate.spec(
+            version = "0.6",
+        ),
+        "nom": crate.spec(
+            version = "7",
+        ),
+        "unicode_categories": crate.spec(
+            version = "0.1",
+        ),
         "magnus": crate.spec(
             version = "0.8.2",
         ),

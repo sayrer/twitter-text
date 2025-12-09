@@ -9,16 +9,16 @@ use std::u32;
 
 use pest::iterators::Pair;
 use pest::Parser;
+use twitter_text_parser::twitter_text::full_pest::Rule as FullPestRule;
+use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
 
 const EMOJI_TXT: &str = include_str!("unicode16-emoji-test.txt");
 
-#[test]
-fn test_emoji_parsing() {
+fn build_emoji_strings() -> Vec<String> {
     let f = io::BufReader::new(EMOJI_TXT.as_bytes());
-    let emoji_strings: Vec<String> = f
-        .lines()
+    f.lines()
         .filter_map(|result| result.ok())
         .filter(|s| !s.starts_with("#"))
         .filter(|s| !(s.trim().len() == 0))
@@ -45,7 +45,12 @@ fn test_emoji_parsing() {
 
             test_str
         })
-        .collect();
+        .collect()
+}
+
+#[test]
+fn test_emoji_parsing() {
+    let emoji_strings = build_emoji_strings();
 
     let mut failures: Vec<String> = Vec::new();
     for s in emoji_strings {
@@ -63,6 +68,33 @@ fn test_emoji_parsing() {
         }
         panic!(
             "{} emoji failed to parse correctly (showing first 20)",
+            failures.len()
+        );
+    }
+}
+
+#[test]
+fn test_emoji_parsing_full_pest() {
+    let emoji_strings = build_emoji_strings();
+
+    let mut failures: Vec<String> = Vec::new();
+    for s in emoji_strings {
+        // Use the full Pest parser which has the complete emoji grammar
+        let tree = TwitterTextFullPestParser::parse(FullPestRule::tweet, &s)
+            .expect("Expected successful parse.");
+        let tokens: Vec<Pair<FullPestRule>> = tree.flatten().collect();
+        let len = tokens.len();
+        if len != 3 {
+            failures.push(format!("Expected 3 tokens, got {} for: {:?}", len, s));
+        }
+    }
+
+    if !failures.is_empty() {
+        for f in &failures[..std::cmp::min(20, failures.len())] {
+            eprintln!("{}", f);
+        }
+        panic!(
+            "{} emoji failed to parse correctly with full_pest parser (showing first 20)",
             failures.len()
         );
     }

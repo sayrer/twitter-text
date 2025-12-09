@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::entity::{Entity, Type};
+use crate::nom_parser::{self, NomEntity, NomEntityType};
 use crate::tlds::is_valid_tld;
 use crate::TwitterTextParseResults;
 use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
@@ -13,14 +14,14 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
-// Full TLD parser for ExternalValidator::Pest mode
-use twitter_text_parser::twitter_text::full_tld::Rule as FullTldRule;
-use twitter_text_parser::twitter_text::full_tld::TwitterTextFullTldParser;
+// Full Pest parser for ExternalValidator::Pest mode
+use twitter_text_parser::twitter_text::full_pest::Rule as FullPestRule;
+use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 type RuleMatch = fn(Rule) -> bool;
 type Pair<'a> = pest::iterators::Pair<'a, Rule>;
-type FullTldPair<'a> = pest::iterators::Pair<'a, FullTldRule>;
+type FullPestPair<'a> = pest::iterators::Pair<'a, FullPestRule>;
 
 /// Selects the TLD matching strategy for URL extraction.
 ///
@@ -42,15 +43,21 @@ pub enum ExternalValidator {
     /// Pure Pest parsing - trusts the Pest grammar's TLD matching.
     ///
     /// **Note:** With the current permissive grammar, this will accept any
-    /// domain-like pattern. Use `External` for correct TLD validation.
+    /// domain-like pattern. Use `Nom` for correct TLD validation.
     Pest,
 
     /// Pest for structure, external TLD lookup via phf perfect hash.
     /// The Pest grammar matches a permissive "domain-like" pattern, then
-    /// Rust code validates the TLD using O(1) phf lookup. This is faster
-    /// and more correct with the current grammar.
-    #[default]
+    /// Rust code validates the TLD using O(1) phf lookup.
     External,
+
+    /// Nom parser with external TLD/emoji validation.
+    /// Uses nom combinators compiled to native code instead of Pest's VM.
+    /// This is the fastest and recommended backend.
+    #[default]
+    /// TLD validation via phf, emoji validation via emojis crate.
+    /// This is the fastest backend.
+    Nom,
 }
 
 /**
@@ -101,8 +108,9 @@ pub trait Extract<'a> {
 
         // Branch based on TLD matcher to use the appropriate parser
         match external_validator {
-            ExternalValidator::Pest => self.extract_impl_full_tld(s, r_match),
+            ExternalValidator::Pest => self.extract_impl_full_pest(s, r_match),
             ExternalValidator::External => self.extract_impl_external(s, r_match),
+            ExternalValidator::Nom => self.extract_impl_nom(s, r_match),
         }
     }
 
@@ -115,8 +123,14 @@ pub trait Extract<'a> {
 
                 p.flatten().for_each(|pair| {
                     let r = pair.as_rule();
-                    if r == Rule::invalid_char || r == Rule::emoji {
+                    if r == Rule::invalid_char {
                         scanned.push(UnprocessedEntity::Pair(pair));
+                    } else if r == Rule::emoji {
+                        // Validate emoji using external crate
+                        if emojis::get(pair.as_str()).is_some() {
+                            scanned.push(UnprocessedEntity::Pair(pair));
+                        }
+                        // If not a valid emoji, skip it (treat as regular text)
                     } else if r_match(r) {
                         if r == Rule::url || r == Rule::url_without_protocol {
                             let span = pair.as_span();
@@ -152,34 +166,34 @@ pub trait Extract<'a> {
         }
     }
 
-    /// Implementation using the full TLD grammar - Pest handles TLD validation.
-    fn extract_impl_full_tld(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
-        // Convert the RuleMatch function to work with FullTldRule
-        let full_tld_r_match = convert_rule_match(r_match);
+    /// Implementation using the full Pest grammar - Pest handles TLD and emoji validation.
+    fn extract_impl_full_pest(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
+        // Convert the RuleMatch function to work with FullPestRule
+        let full_pest_r_match = convert_rule_match(r_match);
 
-        match TwitterTextFullTldParser::parse(FullTldRule::tweet, s) {
+        match TwitterTextFullPestParser::parse(FullPestRule::tweet, s) {
             Ok(p) => {
                 let mut scanned = Vec::new();
                 let mut entity_count = 0;
 
                 p.flatten().for_each(|pair| {
                     let r = pair.as_rule();
-                    if r == FullTldRule::invalid_char || r == FullTldRule::emoji {
-                        // Convert FullTldPair to regular Pair by re-parsing with regular parser
+                    if r == FullPestRule::invalid_char || r == FullPestRule::emoji {
+                        // Convert FullPestPair to regular Pair by re-parsing with regular parser
                         // We store the span and will create the entity from it
-                        scanned.push(UnprocessedEntity::FullTldPair(pair));
-                    } else if full_tld_r_match(r) {
-                        if r == FullTldRule::url || r == FullTldRule::url_without_protocol {
+                        scanned.push(UnprocessedEntity::FullPestPair(pair));
+                    } else if full_pest_r_match(r) {
+                        if r == FullPestRule::url || r == FullPestRule::url_without_protocol {
                             let span = pair.as_span();
-                            // With full TLD grammar, Pest already validated the TLD
+                            // With full Pest grammar, Pest already validated the TLD
                             // We only need to do punycode validation
-                            if validate_url_full_tld(&pair) {
+                            if validate_url_full_pest(&pair) {
                                 entity_count += 1;
                                 scanned.push(UnprocessedEntity::UrlSpan(span));
                             }
                         } else {
                             entity_count += 1;
-                            scanned.push(UnprocessedEntity::FullTldPair(pair));
+                            scanned.push(UnprocessedEntity::FullPestPair(pair));
                         }
                     }
                 });
@@ -189,6 +203,61 @@ pub trait Extract<'a> {
             }
             Err(_e) => self.empty_result(),
         }
+    }
+
+    /// Implementation using nom parser with external TLD/emoji validation.
+    /// Uses nom combinators compiled to native code for maximum performance.
+    fn extract_impl_nom(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
+        let nom_entities = nom_parser::parse_tweet(s);
+        let mut scanned = Vec::new();
+        let mut entity_count = 0;
+
+        for entity in nom_entities {
+            let rule = nom_entity_type_to_rule(entity.entity_type);
+
+            if rule == Rule::invalid_char {
+                scanned.push(UnprocessedEntity::NomEntity(entity));
+            } else if rule == Rule::emoji {
+                // Validate emoji using external crate
+                if emojis::get(entity.value).is_some() {
+                    scanned.push(UnprocessedEntity::NomEntity(entity));
+                }
+                // If not a valid emoji, skip it (treat as regular text)
+            } else if r_match(rule) {
+                if rule == Rule::url || rule == Rule::url_without_protocol {
+                    // Validate URL and potentially trim to valid TLD boundary
+                    let requires_exact_tld = rule == Rule::url_without_protocol;
+                    if let Some(trim_bytes) = validate_url_nom(&entity, requires_exact_tld) {
+                        entity_count += 1;
+                        if trim_bytes > 0 {
+                            // Create a trimmed entity
+                            let trimmed_entity = NomEntity::new_url(
+                                entity.entity_type,
+                                &entity.value[..entity.value.len() - trim_bytes],
+                                entity.start,
+                                entity.end - trim_bytes,
+                                entity.host_start.unwrap_or(entity.start),
+                                entity
+                                    .host_end
+                                    .unwrap_or(entity.end)
+                                    .min(entity.end - trim_bytes),
+                            );
+                            scanned.push(UnprocessedEntity::NomEntity(trimmed_entity));
+                        } else {
+                            scanned.push(UnprocessedEntity::NomEntity(entity));
+                        }
+                    }
+                    // If validation failed, skip this URL
+                } else {
+                    entity_count += 1;
+                    scanned.push(UnprocessedEntity::NomEntity(entity));
+                }
+            }
+        }
+
+        // Reverse so we can pop from the end in document order
+        scanned.reverse();
+        self.create_result(s, entity_count, &mut scanned)
     }
 
     /// Extract all URLs from the text, subject to value returned by [Extract::get_extract_url_without_protocol].
@@ -302,31 +371,31 @@ pub trait Extract<'a> {
                     _ => None,
                 }
             }
-            UnprocessedEntity::FullTldPair(pair) => {
+            UnprocessedEntity::FullPestPair(pair) => {
                 let s = pair.as_str();
                 match pair.as_rule() {
-                    FullTldRule::hashtag => Some(Entity::new(
+                    FullPestRule::hashtag => Some(Entity::new(
                         Type::HASHTAG,
                         &s[calculate_offset(s)..],
                         start,
                         end,
                     )),
-                    FullTldRule::cashtag => Some(Entity::new(
+                    FullPestRule::cashtag => Some(Entity::new(
                         Type::CASHTAG,
                         &s[calculate_offset(s)..],
                         start,
                         end,
                     )),
-                    FullTldRule::username => Some(Entity::new(
+                    FullPestRule::username => Some(Entity::new(
                         Type::MENTION,
                         &s[calculate_offset(s)..],
                         start,
                         end,
                     )),
-                    FullTldRule::list => {
+                    FullPestRule::list => {
                         let mut list_iter = pair.into_inner();
-                        let listname = list_iter.find(|p| p.as_rule() == FullTldRule::listname);
-                        let list_slug = list_iter.find(|p| p.as_rule() == FullTldRule::list_slug);
+                        let listname = list_iter.find(|p| p.as_rule() == FullPestRule::listname);
+                        let list_slug = list_iter.find(|p| p.as_rule() == FullPestRule::list_slug);
                         match (listname, list_slug) {
                             (Some(ln), Some(ls)) => {
                                 let name = ln.as_str();
@@ -342,6 +411,51 @@ pub trait Extract<'a> {
                         }
                     }
                     _ => None,
+                }
+            }
+            UnprocessedEntity::NomEntity(entity) => {
+                let s = entity.value;
+                match entity.entity_type {
+                    NomEntityType::Url | NomEntityType::UrlWithoutProtocol => {
+                        Some(Entity::new(Type::URL, s, start, end))
+                    }
+                    NomEntityType::Hashtag => Some(Entity::new(
+                        Type::HASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    NomEntityType::Cashtag => Some(Entity::new(
+                        Type::CASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    NomEntityType::Username => Some(Entity::new(
+                        Type::MENTION,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    NomEntityType::List => {
+                        // For list entities, we need to extract the username and list_slug
+                        // The value contains "@user/list", we need to split it
+                        // list_slug includes the leading "/" per conformance tests
+                        if let Some(slash_pos) = s.find('/') {
+                            let name = &s[..slash_pos];
+                            let list_slug = &s[slash_pos..]; // include the "/"
+                            Some(Entity::new_list(
+                                Type::MENTION,
+                                &name[calculate_offset(name)..],
+                                list_slug,
+                                start,
+                                end,
+                            ))
+                        } else {
+                            None
+                        }
+                    }
+                    NomEntityType::Emoji | NomEntityType::InvalidChar => None,
                 }
             }
         }
@@ -820,7 +934,8 @@ enum TrackAction {
 pub enum UnprocessedEntity<'a> {
     UrlSpan(pest::Span<'a>),
     Pair(Pair<'a>),
-    FullTldPair(FullTldPair<'a>),
+    FullPestPair(FullPestPair<'a>),
+    NomEntity(NomEntity<'a>),
 }
 
 impl<'a> UnprocessedEntity<'a> {
@@ -828,7 +943,8 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(span) => span.start(),
             UnprocessedEntity::Pair(pair) => pair.as_span().start(),
-            UnprocessedEntity::FullTldPair(pair) => pair.as_span().start(),
+            UnprocessedEntity::FullPestPair(pair) => pair.as_span().start(),
+            UnprocessedEntity::NomEntity(entity) => entity.start,
         }
     }
 
@@ -836,7 +952,8 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(span) => span.end(),
             UnprocessedEntity::Pair(pair) => pair.as_span().end(),
-            UnprocessedEntity::FullTldPair(pair) => pair.as_span().end(),
+            UnprocessedEntity::FullPestPair(pair) => pair.as_span().end(),
+            UnprocessedEntity::NomEntity(entity) => entity.end,
         }
     }
 
@@ -844,53 +961,69 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(_span) => Rule::url,
             UnprocessedEntity::Pair(pair) => pair.as_rule(),
-            // Convert FullTldRule to Rule - they have the same variant names
-            UnprocessedEntity::FullTldPair(pair) => full_tld_rule_to_rule(pair.as_rule()),
+            // Convert FullPestRule to Rule - they have the same variant names
+            UnprocessedEntity::FullPestPair(pair) => full_pest_rule_to_rule(pair.as_rule()),
+            // Convert NomEntityType to Rule
+            UnprocessedEntity::NomEntity(entity) => nom_entity_type_to_rule(entity.entity_type),
         }
     }
 }
 
-/// Convert a FullTldRule to the equivalent Rule.
+/// Convert a FullPestRule to the equivalent Rule.
 /// Both enums have the same variant names, just generated from different grammars.
-fn full_tld_rule_to_rule(r: FullTldRule) -> Rule {
+fn full_pest_rule_to_rule(r: FullPestRule) -> Rule {
     match r {
-        FullTldRule::url => Rule::url,
-        FullTldRule::url_without_protocol => Rule::url_without_protocol,
-        FullTldRule::hashtag => Rule::hashtag,
-        FullTldRule::cashtag => Rule::cashtag,
-        FullTldRule::username => Rule::username,
-        FullTldRule::list => Rule::list,
-        FullTldRule::listname => Rule::listname,
-        FullTldRule::list_slug => Rule::list_slug,
-        FullTldRule::invalid_char => Rule::invalid_char,
-        FullTldRule::emoji => Rule::emoji,
+        FullPestRule::url => Rule::url,
+        FullPestRule::url_without_protocol => Rule::url_without_protocol,
+        FullPestRule::hashtag => Rule::hashtag,
+        FullPestRule::cashtag => Rule::cashtag,
+        FullPestRule::username => Rule::username,
+        FullPestRule::list => Rule::list,
+        FullPestRule::listname => Rule::listname,
+        FullPestRule::list_slug => Rule::list_slug,
+        FullPestRule::invalid_char => Rule::invalid_char,
+        FullPestRule::emoji => Rule::emoji,
         _ => Rule::tweet, // fallback for rules we don't use directly
     }
 }
 
-/// Convert a RuleMatch function to work with FullTldRule.
-fn convert_rule_match(r_match: RuleMatch) -> impl Fn(FullTldRule) -> bool {
-    move |r: FullTldRule| {
-        let equivalent_rule = full_tld_rule_to_rule(r);
+/// Convert a RuleMatch function to work with FullPestRule.
+fn convert_rule_match(r_match: RuleMatch) -> impl Fn(FullPestRule) -> bool {
+    move |r: FullPestRule| {
+        let equivalent_rule = full_pest_rule_to_rule(r);
         r_match(equivalent_rule)
     }
 }
 
-/// Validates a URL parsed with the full TLD grammar.
+/// Convert a NomEntityType to the equivalent Rule.
+fn nom_entity_type_to_rule(t: NomEntityType) -> Rule {
+    match t {
+        NomEntityType::Url => Rule::url,
+        NomEntityType::UrlWithoutProtocol => Rule::url_without_protocol,
+        NomEntityType::Hashtag => Rule::hashtag,
+        NomEntityType::Cashtag => Rule::cashtag,
+        NomEntityType::Username => Rule::username,
+        NomEntityType::List => Rule::list,
+        NomEntityType::Emoji => Rule::emoji,
+        NomEntityType::InvalidChar => Rule::invalid_char,
+    }
+}
+
+/// Validates a URL parsed with the full Pest grammar.
 /// Since the grammar already validated the TLD, we only need to check punycode validity.
-fn validate_url_full_tld(p: &FullTldPair) -> bool {
+fn validate_url_full_pest(p: &FullPestPair) -> bool {
     let original = p.as_str();
     match p.clone().into_inner().find(|pair| {
         let r = pair.as_rule();
-        r == FullTldRule::host || r == FullTldRule::tco_domain || r == FullTldRule::uwp_domain
+        r == FullPestRule::host || r == FullPestRule::tco_domain || r == FullPestRule::uwp_domain
     }) {
-        Some(pair) => valid_punycode_full_tld(original, &pair),
+        Some(pair) => valid_punycode_full_pest(original, &pair),
         None => false,
     }
 }
 
-/// Validates punycode for a domain parsed with the full TLD grammar.
-fn valid_punycode_full_tld(original: &str, domain: &FullTldPair) -> bool {
+/// Validates punycode for a domain parsed with the full Pest grammar.
+fn valid_punycode_full_pest(original: &str, domain: &FullPestPair) -> bool {
     let source = domain.as_span().as_str();
     let uts46 = Uts46::new();
 
@@ -906,7 +1039,7 @@ fn valid_punycode_full_tld(original: &str, domain: &FullTldPair) -> bool {
             original,
             source,
             &s,
-            domain.as_rule() != FullTldRule::uwp_domain,
+            domain.as_rule() != FullPestRule::uwp_domain,
         ),
         Err(_) => false,
     }
@@ -1016,6 +1149,97 @@ fn validate_url(
     }
 }
 
+/// Validates a URL parsed by the nom parser.
+/// Returns Some(trim_bytes) if valid (0 means no trimming needed),
+/// or None if the URL is invalid.
+fn validate_url_nom(entity: &NomEntity, requires_exact_tld: bool) -> Option<usize> {
+    let original = entity.value;
+
+    // Get the host/domain portion using the stored positions
+    let (host_start, host_end) = match (entity.host_start, entity.host_end) {
+        (Some(hs), Some(he)) => (hs - entity.start, he - entity.start),
+        _ => return None,
+    };
+
+    // Bounds check
+    if host_end > original.len() || host_start > host_end {
+        return None;
+    }
+
+    let domain = &original[host_start..host_end];
+
+    // For t.co, skip TLD validation - it's hardcoded
+    if domain == "t.co" {
+        return if valid_punycode_str(original, domain) {
+            Some(0)
+        } else {
+            None
+        };
+    }
+
+    // For URLs without protocol, check for script mixing in domain labels
+    if requires_exact_tld {
+        let valid_domain_end = find_valid_domain_end(domain);
+        let domain_trim = domain.len() - valid_domain_end;
+
+        if domain_trim > 0 {
+            let trimmed_domain = &domain[..valid_domain_end];
+            if let Some(last_dot) = trimmed_domain.rfind('.') {
+                let tld = &trimmed_domain[last_dot + 1..];
+                if is_valid_tld(&tld.to_lowercase()) {
+                    let after_domain = original.len() - host_end;
+                    let total_trim = domain_trim + after_domain;
+                    return Some(total_trim);
+                }
+            }
+            return None;
+        }
+    }
+
+    // Validate TLD by finding the valid boundary
+    match find_valid_tld_boundary(domain, requires_exact_tld) {
+        Some(valid_domain_len) => {
+            let domain_trim = domain.len() - valid_domain_len;
+
+            if domain_trim == 0 {
+                // Full domain is valid
+                if valid_punycode_str(original, domain) {
+                    Some(0)
+                } else {
+                    None
+                }
+            } else {
+                // Need to trim domain - also trim everything after the domain
+                let after_domain = original.len() - host_end;
+                let total_trim = domain_trim + after_domain;
+                Some(total_trim)
+            }
+        }
+        None => None,
+    }
+}
+
+/// Validate punycode for a domain string (used by nom parser validation).
+fn valid_punycode_str(original: &str, domain: &str) -> bool {
+    let uts46 = Uts46::new();
+
+    let result = uts46.to_ascii(
+        domain.as_bytes(),
+        AsciiDenyList::EMPTY,
+        Hyphens::Allow,
+        DnsLength::Verify,
+    );
+
+    match result {
+        Ok(s) => {
+            // Check that the ASCII form isn't too long for the URL
+            let has_protocol = original.starts_with("http://") || original.starts_with("https://");
+            length_check(original, domain, &s, has_protocol)
+        }
+        Err(_) => false,
+    }
+}
+
 /// Find the valid TLD boundary in a domain.
 ///
 /// For normal domains like "msdn.microsoft.com", uses right-to-left to find the rightmost TLD.
@@ -1070,6 +1294,20 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
 
         // Check if this segment is a valid TLD
         if is_valid_tld(&segment_lower) {
+            // Check if the segment before this TLD contains underscores
+            // If so, this is not a valid URL (domain_segment can't have underscores)
+            let before_dot = &domain[..dot_pos];
+            let prev_segment = before_dot.rsplit('.').next().unwrap_or(before_dot);
+            if prev_segment.contains('_') {
+                // The segment before the TLD has an underscore - skip this TLD
+                #[cfg(test)]
+                eprintln!(
+                    "find_valid_tld_boundary: rejecting TLD '{}' because prev segment '{}' contains underscore",
+                    segment_lower, prev_segment
+                );
+                continue;
+            }
+
             let end_pos = dot_pos + 1 + segment.len();
             #[cfg(test)]
             eprintln!(
@@ -1077,6 +1315,35 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
                 segment_lower, end_pos
             );
             return Some(end_pos);
+        }
+
+        // Check if a valid TLD is a prefix of this segment followed by hyphen
+        // This handles cases like "domain.com-that-you..." where "com" is valid
+        // but "com-that-you..." is not.
+        if let Some(hyphen_pos) = segment.find('-') {
+            let before_hyphen = &segment[..hyphen_pos];
+            let before_hyphen_lower = before_hyphen.to_lowercase();
+            if is_valid_tld(&before_hyphen_lower) {
+                // Also check if the segment before this TLD contains underscores
+                let before_dot = &domain[..dot_pos];
+                let prev_segment = before_dot.rsplit('.').next().unwrap_or(before_dot);
+                if prev_segment.contains('_') {
+                    #[cfg(test)]
+                    eprintln!(
+                        "find_valid_tld_boundary: rejecting TLD '{}' (before hyphen) because prev segment '{}' contains underscore",
+                        before_hyphen_lower, prev_segment
+                    );
+                    continue;
+                }
+
+                let end_pos = dot_pos + 1 + before_hyphen.len();
+                #[cfg(test)]
+                eprintln!(
+                    "find_valid_tld_boundary: found valid TLD '{}' before hyphen at position {}",
+                    before_hyphen_lower, end_pos
+                );
+                return Some(end_pos);
+            }
         }
 
         // For URLs without protocol (requires_exact_tld=true), we need prefix matching
@@ -1883,23 +2150,21 @@ mod debug_tests {
     }
 
     #[test]
-    fn test_external_validator_default_is_external() {
-        // Default should be External
-        assert_eq!(ExternalValidator::default(), ExternalValidator::External);
+    fn test_external_validator_default_is_nom() {
+        // Default should be Nom
+        assert_eq!(ExternalValidator::default(), ExternalValidator::Nom);
 
-        // New extractor should use External by default
+        // New extractor should use Nom by default
         let extractor = Extractor::new();
-        assert_eq!(
-            extractor.get_external_validator(),
-            ExternalValidator::External
-        );
+        assert_eq!(extractor.get_external_validator(), ExternalValidator::Nom);
     }
 
     #[test]
-    fn test_both_backends_produce_same_results() {
-        // Test that both backends produce identical results for common cases
+    fn test_all_backends_produce_same_results() {
+        // Test that all three backends produce identical results
         let external = Extractor::with_external_validator(ExternalValidator::External);
         let pest = Extractor::with_external_validator(ExternalValidator::Pest);
+        let nom = Extractor::with_external_validator(ExternalValidator::Nom);
 
         let test_cases = [
             "Check out http://example.com/path",
@@ -1909,17 +2174,100 @@ mod debug_tests {
             "Japanese TLD: http://example.みんな/path",
             "Multiple: foo.co.jp and bar.co.uk are valid",
             "@mention and #hashtag with http://test.org",
+            // Hyphenated TLD case
+            "text http://domain.com-that-you-should-have-put-a-space-after",
+            // Underscore in subdomain (valid)
+            "test http://sub_domain-dash.twitter.com",
+            // Underscore before TLD (invalid - should NOT extract)
+            "text http://domain-dash_2314352345_dfasd.foo-cow_4352.com",
+            // Leading dash in subdomain (invalid)
+            "test http://-leadingdash.twitter.com",
+            // CJK characters surrounding URLs
+            "http://twitter.com/これは日本語です。example.com中国語http://t.co/abcde한국twitter.comテストexample2.comテストhttp://twitter.com/abcde",
+            // URLs in hashtag or mention (should NOT extract)
+            "#test.com @test.com #http://test.com @http://test.com #t.co/abcde @t.co/abcde",
+            // Domain followed by Japanese characters
+            "example.comてすとですtwitter.みんなです",
+            // URL preceded by $ (should NOT extract)
+            "$http://twitter.com $twitter.com $http://t.co/abcde $t.co/abcde $t.co $TVI.CA $RBS.CA",
+            // Email addresses (should NOT extract)
+            "john.doe.gov@mail.com",
+            "john.doe.jp@mail.com",
+            // URLs with trailing punctuation (should extract URL without punctuation)
+            "text http://example.com.",
+            "text http://example.com?",
+            "text http://example.com!",
         ];
 
         for text in test_cases {
             let external_urls = external.extract_urls(text);
             let pest_urls = pest.extract_urls(text);
+            let nom_urls = nom.extract_urls(text);
+
             assert_eq!(
                 external_urls, pest_urls,
-                "Backends differ on: {}\nExternal: {:?}\nPest: {:?}",
+                "External vs Pest differ on: {}\nExternal: {:?}\nPest: {:?}",
                 text, external_urls, pest_urls
             );
+            assert_eq!(
+                external_urls, nom_urls,
+                "External vs Nom differ on: {}\nExternal: {:?}\nNom: {:?}",
+                text, external_urls, nom_urls
+            );
         }
+    }
+
+    #[test]
+    fn test_emoji_weighting_v2_v3() {
+        // Test emoji weighting with v2 and v3 configs
+        let config_v2 = twitter_text_config::config_v2();
+        let config_v3 = twitter_text_config::config_v3();
+        let text = "H🐱☺👨‍👩‍👧‍👦";
+
+        eprintln!("Text: {:?}", text);
+        eprintln!(
+            "emoji_parsing_enabled v2: {}",
+            config_v2.emoji_parsing_enabled
+        );
+        eprintln!(
+            "emoji_parsing_enabled v3: {}",
+            config_v3.emoji_parsing_enabled
+        );
+
+        let ext_v2 = crate::parse_with_external_validator(
+            text,
+            config_v2,
+            false,
+            ExternalValidator::External,
+        );
+        let nom_v2 =
+            crate::parse_with_external_validator(text, config_v2, false, ExternalValidator::Nom);
+
+        eprintln!("\nV2 config:");
+        eprintln!("  External: weighted_length = {}", ext_v2.weighted_length);
+        eprintln!("  Nom:      weighted_length = {}", nom_v2.weighted_length);
+
+        let ext_v3 = crate::parse_with_external_validator(
+            text,
+            config_v3,
+            false,
+            ExternalValidator::External,
+        );
+        let nom_v3 =
+            crate::parse_with_external_validator(text, config_v3, false, ExternalValidator::Nom);
+
+        eprintln!("\nV3 config:");
+        eprintln!("  External: weighted_length = {}", ext_v3.weighted_length);
+        eprintln!("  Nom:      weighted_length = {}", nom_v3.weighted_length);
+
+        assert_eq!(
+            ext_v2.weighted_length, nom_v2.weighted_length,
+            "V2 mismatch"
+        );
+        assert_eq!(
+            ext_v3.weighted_length, nom_v3.weighted_length,
+            "V3 mismatch"
+        );
     }
 
     #[test]
@@ -1930,5 +2278,91 @@ mod debug_tests {
         let urls = extractor.extract_urls("See http://xn--80abe5aohbnkjb.xn--p1ai/");
         assert_eq!(urls.len(), 1, "Pest backend should extract punycode URLs");
         assert_eq!(urls[0], "http://xn--80abe5aohbnkjb.xn--p1ai/");
+    }
+
+    #[test]
+    fn test_nom_hyphenated_tld_debug() {
+        let text = "text http://domain-dash_2314352345_dfasd.foo-cow_4352.com";
+        eprintln!("Input: {}", text);
+
+        // First, let's see what Pest parses
+        match TwitterTextParser::parse(Rule::tweet, text) {
+            Ok(p) => {
+                for pair in p.flatten() {
+                    let r = pair.as_rule();
+                    if r == Rule::url || r == Rule::host || r == Rule::url_without_protocol {
+                        eprintln!("Pest {:?}: '{}'", r, pair.as_str());
+                    }
+                }
+            }
+            Err(e) => eprintln!("Pest parse error: {}", e),
+        }
+        eprintln!("");
+
+        // Test with Nom parser
+        let nom_entities = nom_parser::parse_tweet(text);
+        eprintln!("Nom entities: {:?}", nom_entities);
+
+        for entity in &nom_entities {
+            eprintln!(
+                "Entity: {:?} value='{}' host_start={:?} host_end={:?}",
+                entity.entity_type, entity.value, entity.host_start, entity.host_end
+            );
+
+            if entity.entity_type == NomEntityType::Url {
+                if let (Some(hs), Some(he)) = (entity.host_start, entity.host_end) {
+                    let host_in_value_start = hs - entity.start;
+                    let host_in_value_end = he - entity.start;
+                    if host_in_value_end <= entity.value.len() {
+                        let domain = &entity.value[host_in_value_start..host_in_value_end];
+                        eprintln!("Domain extracted: '{}'", domain);
+
+                        let boundary = find_valid_tld_boundary(domain, false);
+                        eprintln!("find_valid_tld_boundary result: {:?}", boundary);
+
+                        let trim_result = validate_url_nom(entity, false);
+                        eprintln!("validate_url_nom result: {:?}", trim_result);
+                    }
+                }
+            }
+        }
+
+        // Now test the full extractor
+        let extractor = Extractor::with_external_validator(ExternalValidator::Nom);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted URLs: {:?}", urls);
+
+        // Compare with External
+        let external = Extractor::with_external_validator(ExternalValidator::External);
+        let external_urls = external.extract_urls(text);
+        eprintln!("External URLs: {:?}", external_urls);
+    }
+
+    #[test]
+    fn test_emojis_crate_lookup() {
+        // Simple emoji
+        assert!(emojis::get("😀").is_some(), "Simple emoji should be found");
+
+        // Family emoji (ZWJ sequence)
+        assert!(emojis::get("👨‍👩‍👧‍👦").is_some(), "Family emoji should be found");
+
+        // Skin tone emoji
+        assert!(
+            emojis::get("👋🏽").is_some(),
+            "Skin tone emoji should be found"
+        );
+
+        // Flag
+        assert!(emojis::get("🇺🇸").is_some(), "Flag emoji should be found");
+
+        // Not an emoji
+        assert!(
+            emojis::get("hello").is_none(),
+            "Text should not be found as emoji"
+        );
+        assert!(
+            emojis::get("a").is_none(),
+            "Single letter should not be found as emoji"
+        );
     }
 }

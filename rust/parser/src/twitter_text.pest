@@ -273,19 +273,39 @@ non_punctuation = _{ !(punctuation_char | space | PUNCTUATION) ~ text }
 //
 // Emoji
 //
+// Permissive emoji rule for ExternalValidator::External mode.
+// Matches potential emoji sequences broadly, then validated externally via emojis crate.
+// This is more efficient than the full emoji grammar with all its alternations.
 emoji = {
-    person_directional_sequences |
-    couple_sequences |
-    animal_object_zwj_sequences |
-    man_or_woman_with_optional_skin_tone_and_modifier |
-    person_with_vs16_or_skin_tone_and_trailing_mf_symbol |
-    person_with_optional_skin_tone_and_trailing_mf_symbol |
-    other_zwj_sequences |
-    emojified_symbols |
-    default_text_symbols |
-    variants_allowing_trailing_fe0f_but_not_fe0e |
-    diversity_emoji_with_optional_skin_tone |
-    flags_and_regular_emoji
+    emoji_start ~ emoji_continuation*
+}
+
+// Characters that can start an emoji sequence
+emoji_start = _{
+    // Emoticons, Dingbats, Symbols
+    '\u{00a9}'..'\u{00ae}' |  // © ®
+    '\u{203c}'..'\u{3299}' |  // Various symbols
+    '\u{1f000}'..'\u{1faff}' | // Main emoji blocks
+    // Regional indicators for flags
+    '\u{1f1e0}'..'\u{1f1ff}' |
+    // Keycap base characters
+    "#" | "*" | '0'..'9'
+}
+
+// Characters that can continue an emoji sequence (ZWJ, skin tones, variation selectors, etc.)
+emoji_continuation = _{
+    // Zero-width joiner followed by more emoji
+    ("\u{200d}" ~ emoji_start) |
+    // Skin tone modifiers
+    '\u{1f3fb}'..'\u{1f3ff}' |
+    // Variation selectors
+    "\u{fe0e}" | "\u{fe0f}" |
+    // Keycap combining mark
+    "\u{20e3}" |
+    // Regional indicators (for multi-flag sequences)
+    '\u{1f1e0}'..'\u{1f1ff}' |
+    // Tag characters (for subdivision flags like 🏴󠁧󠁢󠁥󠁮󠁧󠁿)
+    '\u{e0000}'..'\u{e007f}'
 }
 
 // A zero-width-joiner character is used to combine emoji together.

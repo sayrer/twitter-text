@@ -95,7 +95,7 @@ def benchmark_extract(data)
 
   # Warmup old
   WARMUP_ITERATIONS.times do
-    mentions.each { |test| old_extractor.extract_mentioned_screennames(test['text']) }
+    mentions.each { |test| old_extractor.extract_mentioned_screen_names(test['text']) }
     urls.each { |test| old_extractor.extract_urls(test['text']) }
     hashtags.each { |test| old_extractor.extract_hashtags(test['text']) }
     cashtags.each { |test| old_extractor.extract_cashtags(test['text']) }
@@ -104,7 +104,7 @@ def benchmark_extract(data)
   # Benchmark old
   old_time = Benchmark.realtime do
     ITERATIONS.times do
-      mentions.each { |test| old_extractor.extract_mentioned_screennames(test['text']) }
+      mentions.each { |test| old_extractor.extract_mentioned_screen_names(test['text']) }
       urls.each { |test| old_extractor.extract_urls(test['text']) }
       hashtags.each { |test| old_extractor.extract_hashtags(test['text']) }
       cashtags.each { |test| old_extractor.extract_cashtags(test['text']) }

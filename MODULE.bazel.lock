@@ -225,7 +225,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%rust_deps": {
       "general": {
-        "bzlTransitiveDigest": "JkhivYofwSl1aZ/gF8TOjvPKGQtQg9V2Ov8FHEX+2BM=",
+        "bzlTransitiveDigest": "3PpQLDKsM5KOdDk4Msq2WkMMp7obNaKrF2CNopmaFkA=",
         "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -584,6 +584,18 @@
               ],
               "strip_prefix": "either-1.15.0",
               "build_file": "@@//3rdparty/crates:BUILD.either-1.15.0.bazel"
+            }
+          },
+          "twitter_text__emojis-0.6.4": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "sha256": "99e1f1df1f181f2539bac8bf027d31ca5ffbf9e559e3f2d09413b9107b5c02f4",
+              "type": "tar.gz",
+              "urls": [
+                "https://static.crates.io/crates/emojis/0.6.4/download"
+              ],
+              "strip_prefix": "emojis-0.6.4",
+              "build_file": "@@//3rdparty/crates:BUILD.emojis-0.6.4.bazel"
             }
           },
           "twitter_text__equivalent-1.0.2": {
@@ -1786,6 +1798,18 @@
               "build_file": "@@//3rdparty/crates:BUILD.unicode-width-0.2.2.bazel"
             }
           },
+          "twitter_text__unicode_categories-0.1.1": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "sha256": "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e",
+              "type": "tar.gz",
+              "urls": [
+                "https://static.crates.io/crates/unicode_categories/0.1.1/download"
+              ],
+              "strip_prefix": "unicode_categories-0.1.1",
+              "build_file": "@@//3rdparty/crates:BUILD.unicode_categories-0.1.1.bazel"
+            }
+          },
           "twitter_text__unindent-0.2.4": {
             "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
             "attributes": {
@@ -2044,12 +2068,14 @@
             "twitter_text",
             "twitter_text__clap-4.5.53",
             "twitter_text__cxx-1.0.190",
+            "twitter_text__emojis-0.6.4",
             "twitter_text__idna-1.1.0",
             "twitter_text__js-sys-0.3.77",
             "twitter_text__lazy_static-1.5.0",
             "twitter_text__libc-0.2.178",
             "twitter_text__log-0.4.28",
             "twitter_text__magnus-0.8.2",
+            "twitter_text__nom-7.1.3",
             "twitter_text__pest-2.8.4",
             "twitter_text__pest_derive-2.8.4",
             "twitter_text__phf-0.11.3",
@@ -2061,6 +2087,7 @@
             "twitter_text__serde_json-1.0.145",
             "twitter_text__serde_yaml_ng-0.10.0",
             "twitter_text__unicode-normalization-0.1.25",
+            "twitter_text__unicode_categories-0.1.1",
             "twitter_text__wasm-bindgen-0.2.100"
           ],
           "explicitRootModuleDirectDevDeps": [],

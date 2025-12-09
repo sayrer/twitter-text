@@ -1,5 +1,13 @@
 #!/bin/bash
 # Run the Ruby benchmark with proper setup
+#
+# Prerequisites: The old Ruby twitter-text library requires native gems.
+# Install them before running:
+#
+#   brew install libidn
+#   gem install idn-ruby -- --with-idn-dir=/opt/homebrew
+#   gem install unf
+#
 
 set -e
 

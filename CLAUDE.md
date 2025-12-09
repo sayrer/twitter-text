@@ -10,6 +10,10 @@ This repository is a Rust implementation of twitter-text that parses tweet text 
 
 The project uses **Bazel** as the primary build system, with Cargo available for standalone Rust development.
 
+## Adding crates
+
+New crates are add by modifying //3rdparty:crates_vendor, running that, and then making sure the Cargo.toml files match.
+
 ### Common Build Commands
 
 ```bash

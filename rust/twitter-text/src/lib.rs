@@ -6,6 +6,7 @@ pub mod autolinker;
 pub mod entity;
 pub mod extractor;
 pub mod hit_highlighter;
+pub mod nom_parser;
 pub mod tlds;
 pub mod validator;
 

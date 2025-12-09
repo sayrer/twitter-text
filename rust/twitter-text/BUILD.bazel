@@ -14,6 +14,14 @@ twitter_text_srcs = [
     "src/entity.rs",
     "src/extractor.rs",
     "src/hit_highlighter.rs",
+    "src/nom_parser/mod.rs",
+    "src/nom_parser/common.rs",
+    "src/nom_parser/emoji.rs",
+    "src/nom_parser/entity.rs",
+    "src/nom_parser/hashtag.rs",
+    "src/nom_parser/cashtag.rs",
+    "src/nom_parser/mention.rs",
+    "src/nom_parser/url.rs",
     "src/tlds.rs",
     "src/validator.rs",
     "src/ffi.rs",
@@ -23,9 +31,12 @@ twitter_text_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
     "//3rdparty/crates:cxx",   # Rust side of CXX
+    "//3rdparty/crates:emojis",
     "//3rdparty/crates:idna",
+    "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",
+    "//3rdparty/crates:unicode_categories",
     "//3rdparty/crates:unicode-normalization",
 ]
 
@@ -33,9 +44,12 @@ twitter_text_deps = [
 twitter_text_wasm_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
+    "//3rdparty/crates:emojis",
     "//3rdparty/crates:idna",
+    "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",
+    "//3rdparty/crates:unicode_categories",
     "//3rdparty/crates:unicode-normalization",
 ]
 
@@ -46,6 +60,14 @@ twitter_text_wasm_srcs = [
     "src/entity.rs",
     "src/extractor.rs",
     "src/hit_highlighter.rs",
+    "src/nom_parser/mod.rs",
+    "src/nom_parser/common.rs",
+    "src/nom_parser/emoji.rs",
+    "src/nom_parser/entity.rs",
+    "src/nom_parser/hashtag.rs",
+    "src/nom_parser/cashtag.rs",
+    "src/nom_parser/mention.rs",
+    "src/nom_parser/url.rs",
     "src/tlds.rs",
     "src/validator.rs",
 ]

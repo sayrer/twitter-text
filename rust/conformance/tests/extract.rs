@@ -7,9 +7,13 @@ use twitter_text::extractor::Extract;
 use twitter_text::extractor::Extractor;
 use twitter_text::ExternalValidator;
 
-/// Returns all ExternalValidator variants for testing both backends.
-fn all_external_validators() -> [ExternalValidator; 2] {
-    [ExternalValidator::External, ExternalValidator::Pest]
+/// Returns all ExternalValidator variants for testing all backends.
+fn all_external_validators() -> [ExternalValidator; 3] {
+    [
+        ExternalValidator::External,
+        ExternalValidator::Pest,
+        ExternalValidator::Nom,
+    ]
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

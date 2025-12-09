@@ -3,6 +3,12 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 //! Pure Rust twitter-text benchmark
+//!
+//! Supports comparing Pest, External, and Nom validator backends.
+//! Usage:
+//!   benchmark <autolink.yml> <extract.yml> <validate.yml> <parse.yml> [--backend=pest|external|nom|all]
+//!
+//! Default is --backend=all which compares all three backends.
 
 use serde_derive::Deserialize;
 use std::env;
@@ -10,10 +16,19 @@ use std::fs;
 use std::time::Instant;
 use twitter_text::autolinker::Autolinker;
 use twitter_text::extractor::{Extract, Extractor, ValidatingExtractor};
+use twitter_text::ExternalValidator;
 use twitter_text_config::Configuration;
 
 const ITERATIONS: u32 = 1000;
 const WARMUP_ITERATIONS: u32 = 100;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum BackendMode {
+    Pest,
+    External,
+    Nom,
+    All,
+}
 
 #[derive(Debug, Deserialize)]
 struct TestCase {
@@ -57,8 +72,8 @@ struct AutolinkData {
     tests: Vec<TestCase>,
 }
 
-fn benchmark_autolink(data: &AutolinkData) -> f64 {
-    let autolinker = Autolinker::new(false);
+fn benchmark_autolink(data: &AutolinkData, validator: ExternalValidator) -> f64 {
+    let autolinker = Autolinker::with_external_validator(false, validator);
     let tests = &data.tests;
 
     // Warmup
@@ -79,10 +94,10 @@ fn benchmark_autolink(data: &AutolinkData) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_extract(data: &ExtractData) -> f64 {
-    let extractor = Extractor::new();
+fn benchmark_extract(data: &ExtractData, validator: ExternalValidator) -> f64 {
+    let extractor = Extractor::with_external_validator(validator);
 
-    // Collect all texts like the JS benchmark does
+    // Collect all texts
     let mut all_texts: Vec<&str> = Vec::new();
     if let Some(mentions) = &data.tests.mentions {
         for test in mentions {
@@ -105,7 +120,7 @@ fn benchmark_extract(data: &ExtractData) -> f64 {
         }
     }
 
-    // Warmup - call all 4 extract functions for each text (like JS benchmark)
+    // Warmup
     for _ in 0..WARMUP_ITERATIONS {
         for text in &all_texts {
             let _ = extractor.extract_mentioned_screennames(text);
@@ -129,9 +144,9 @@ fn benchmark_extract(data: &ExtractData) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate(data: &ValidateData) -> f64 {
+fn benchmark_validate(data: &ValidateData, validator: ExternalValidator) -> f64 {
     let config = Configuration::default();
-    let extractor = ValidatingExtractor::new(&config);
+    let extractor = ValidatingExtractor::with_external_validator(&config, validator);
     let tweets = data
         .tests
         .tweets
@@ -157,13 +172,14 @@ fn benchmark_validate(data: &ValidateData) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_parse(data: &ParseData) -> f64 {
+fn benchmark_parse(data: &ParseData, validator: ExternalValidator) -> f64 {
     let config = Configuration::default();
 
     // Warmup
     for _ in 0..WARMUP_ITERATIONS {
         for test in &data.tests {
-            let _ = twitter_text::parse(&test.text, &config, true);
+            let _ =
+                twitter_text::parse_with_external_validator(&test.text, &config, true, validator);
         }
     }
 
@@ -171,25 +187,68 @@ fn benchmark_parse(data: &ParseData) -> f64 {
     let start = Instant::now();
     for _ in 0..ITERATIONS {
         for test in &data.tests {
-            let _ = twitter_text::parse(&test.text, &config, true);
+            let _ =
+                twitter_text::parse_with_external_validator(&test.text, &config, true, validator);
         }
     }
     let elapsed = start.elapsed().as_secs_f64();
     ITERATIONS as f64 / elapsed
 }
 
+fn run_benchmarks(
+    autolink_data: &AutolinkData,
+    extract_data: &ExtractData,
+    validate_data: &ValidateData,
+    parse_data: &ParseData,
+    validator: ExternalValidator,
+    label: &str,
+) {
+    let autolink_ops = benchmark_autolink(autolink_data, validator);
+    let extract_ops = benchmark_extract(extract_data, validator);
+    let validate_ops = benchmark_validate(validate_data, validator);
+    let parse_ops = benchmark_parse(parse_data, validator);
+
+    println!("\n{} Backend Results:", label);
+    println!("  Autolink:  {:>10.0} ops/sec", autolink_ops);
+    println!("  Extract:   {:>10.0} ops/sec", extract_ops);
+    println!("  Validate:  {:>10.0} ops/sec", validate_ops);
+    println!("  Parse:     {:>10.0} ops/sec", parse_ops);
+}
+
+fn parse_backend_mode(args: &[String]) -> BackendMode {
+    for arg in args {
+        if arg.starts_with("--backend=") {
+            return match arg.strip_prefix("--backend=").unwrap() {
+                "pest" => BackendMode::Pest,
+                "external" => BackendMode::External,
+                "nom" => BackendMode::Nom,
+                "all" => BackendMode::All,
+                other => {
+                    eprintln!("Unknown backend: {}. Using 'all'.", other);
+                    BackendMode::All
+                }
+            };
+        }
+    }
+    BackendMode::All
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 5 {
         eprintln!(
-            "Usage: {} <autolink.yml> <extract.yml> <validate.yml> <parse.yml>",
+            "Usage: {} <autolink.yml> <extract.yml> <validate.yml> <parse.yml> [--backend=pest|external|nom|all]",
             args[0]
         );
         std::process::exit(1);
     }
 
+    let backend_mode = parse_backend_mode(&args);
+
     println!("Twitter Text Benchmark: Pure Rust");
     println!("==================================");
+    println!("Iterations: {}, Warmup: {}", ITERATIONS, WARMUP_ITERATIONS);
+    println!("Backend mode: {:?}", backend_mode);
 
     // Load data
     let autolink_content = fs::read_to_string(&args[1]).expect("Failed to read autolink.yml");
@@ -206,22 +265,64 @@ fn main() {
     let parse_data: ParseData =
         serde_yaml_ng::from_str(&parse_content).expect("Failed to parse parse.yml");
 
-    let autolink_ops = benchmark_autolink(&autolink_data);
-    let extract_ops = benchmark_extract(&extract_data);
-    let validate_ops = benchmark_validate(&validate_data);
-    let parse_ops = benchmark_parse(&parse_data);
-
-    println!("\nAutolink ({} iterations):", ITERATIONS);
-    println!("  Rust: {:.0} ops/sec", autolink_ops);
-
-    println!("\nExtract ({} iterations):", ITERATIONS);
-    println!("  Rust: {:.0} ops/sec", extract_ops);
-
-    println!("\nValidate ({} iterations):", ITERATIONS);
-    println!("  Rust: {:.0} ops/sec", validate_ops);
-
-    println!("\nParse Tweet ({} iterations):", ITERATIONS);
-    println!("  Rust: {:.0} ops/sec", parse_ops);
+    match backend_mode {
+        BackendMode::External => {
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::External,
+                "External",
+            );
+        }
+        BackendMode::Pest => {
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::Pest,
+                "Pest",
+            );
+        }
+        BackendMode::Nom => {
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::Nom,
+                "Nom",
+            );
+        }
+        BackendMode::All => {
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::External,
+                "External",
+            );
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::Pest,
+                "Pest",
+            );
+            run_benchmarks(
+                &autolink_data,
+                &extract_data,
+                &validate_data,
+                &parse_data,
+                ExternalValidator::Nom,
+                "Nom",
+            );
+        }
+    }
 
     println!("\nDone.");
 }
