@@ -63,6 +63,76 @@ For reference, here's an assessment of replacing Pest entirely:
 - Can be faster than Pest (zero-copy, no VM overhead)
 - Harder to maintain: grammar changes require Rust code changes
 
+## Emoji Matching
+
+The emoji case is similar to TLDs - it's a large set of patterns (emoji sequences, ZWJ combinations, skin tone modifiers, etc.) that Pest handles as a big alternation.
+
+The Unicode Consortium publishes machine-readable emoji data files that could drive a procedural matcher:
+- `emoji-sequences.txt`
+- `emoji-zwj-sequences.txt`
+- `emoji-test.txt` (already in conformance tests)
+
+A procedural emoji matcher would:
+1. Check if a code point is in the emoji range
+2. Handle ZWJ (U+200D) sequences by consuming the full chain
+3. Handle variation selectors (U+FE0E, U+FE0F)
+4. Handle skin tone modifiers (U+1F3FB-U+1F3FF)
+5. Handle flag sequences (regional indicator pairs)
+
+This is more complex than TLD matching since it's stateful (consuming a variable-length sequence), but it's well-defined by Unicode TR51.
+
+## Compositional Configuration
+
+Rather than a single enum, a compositional approach allows testing each optimization independently:
+
+```rust
+pub struct ParserConfig {
+    pub tld_matcher: TldMatcher,     // Pest | External
+    pub emoji_matcher: EmojiMatcher, // Pest | External
+}
+```
+
+This lets you:
+- Test TLD optimization in isolation
+- Test emoji optimization in isolation
+- Combine both when validated
+- Keep pure Pest as a reference implementation
+
+## Conformance Test Coverage
+
+The conformance tests are mostly backend-agnostic - they test through the public API:
+- `autolink.rs`, `extract.rs`, `validate.rs`, `hit_highlighting.rs`, `tlds.rs` - use public API
+- `emoji.rs` - directly uses Pest to validate emoji parsing
+
+For backend changes, all tests except `emoji.rs` would validate correctness through the public API. The `emoji.rs` test specifically validates that the Pest grammar handles all Unicode 11 emoji sequences, so it would need updating if emoji parsing moves to procedural code.
+
+## Phased Optimization Approach
+
+### Phase 1: Extract TLD matching
+- Replace Pest TLD alternation with `phf` perfect hash or hand-written trie
+- Biggest algorithmic win (O(k*n) → O(1) or O(n) in TLD length)
+- Low risk - Pest still handles structural parsing
+- Validate with conformance tests
+
+### Phase 2: Extract emoji matching
+- Replace Pest emoji alternation with procedural Unicode TR51 matcher
+- Similar algorithmic win
+- Validate with conformance tests and `emoji.rs`
+
+### Phase 3: Translate remaining grammar to nom
+- With TLD/emoji removed, the Pest grammar is much simpler
+- Mechanical translation becomes tractable
+- Constant-factor speedup (2-3x) from eliminating bytecode VM
+- nom compiles to native code, enables LLVM inlining
+
+At each phase, the pure Pest backend remains as a reference implementation to validate correctness.
+
+## Why nom alone isn't enough
+
+A direct Pest-to-nom translation preserves PEG ordered-choice semantics. Translating `tld = { "com" | "org" | ... | "zone" }` to `alt(("com", "org", ..., "zone"))` still tries each alternative sequentially - same O(k*n) algorithm, just without interpreter overhead.
+
+The real wins come from changing the algorithm (phases 1-2), not just the parser framework. Phase 3 then provides a constant-factor improvement on top of the algorithmic gains.
+
 ## Recommendation
 
-Start with `PestWithExternalTld` - it's lower risk than a full parser replacement, targets the known bottleneck (TLD matching), and the conformance tests will validate correctness.
+Start with Phase 1 (external TLD matching) - it's the known bottleneck, lowest risk, and the conformance tests will validate correctness. Progress through phases as profiling confirms each optimization.
