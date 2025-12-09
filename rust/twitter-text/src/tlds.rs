@@ -1754,6 +1754,42 @@ pub fn is_valid_tld(tld: &str) -> bool {
     TLDS.contains(tld)
 }
 
+/// Maximum TLD length in bytes (longest is "சிங்கப்பூர்" at 33 bytes)
+const MAX_TLD_LEN: usize = 64;
+
+/// Check if a string is a valid TLD, case-insensitively.
+/// Uses a stack-allocated buffer for lowercase conversion to avoid heap allocations.
+#[inline]
+pub fn is_valid_tld_case_insensitive(tld: &str) -> bool {
+    // Fast path: if already lowercase ASCII, check directly
+    if tld.bytes().all(|b| !b.is_ascii_uppercase()) {
+        return TLDS.contains(tld);
+    }
+
+    // Need to lowercase - use stack buffer if small enough
+    if tld.len() <= MAX_TLD_LEN {
+        let mut buf = [0u8; MAX_TLD_LEN];
+        let mut i = 0;
+        for c in tld.chars() {
+            for lc in c.to_lowercase() {
+                let len = lc.len_utf8();
+                if i + len > MAX_TLD_LEN {
+                    // Overflow - fall back to heap allocation
+                    return TLDS.contains(&tld.to_lowercase());
+                }
+                lc.encode_utf8(&mut buf[i..]);
+                i += len;
+            }
+        }
+        // Safety: we only wrote valid UTF-8 chars
+        let lowered = unsafe { std::str::from_utf8_unchecked(&buf[..i]) };
+        TLDS.contains(lowered)
+    } else {
+        // TLD too long - fall back to heap allocation (shouldn't happen with valid TLDs)
+        TLDS.contains(&tld.to_lowercase())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

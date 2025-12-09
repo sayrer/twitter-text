@@ -19,8 +19,8 @@ use twitter_text::extractor::{Extract, Extractor, ValidatingExtractor};
 use twitter_text::ExternalValidator;
 use twitter_text_config::Configuration;
 
-const ITERATIONS: u32 = 1000;
-const WARMUP_ITERATIONS: u32 = 100;
+const ITERATIONS: u32 = 100000;
+const WARMUP_ITERATIONS: u32 = 10000;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum BackendMode {

@@ -31,10 +31,35 @@ pub use entity::{NomEntity, NomEntityType};
 /// # Returns
 /// A vector of `NomEntity` structs, sorted by start position.
 pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
-    let mut entities = Vec::new();
+    // Pre-allocate for typical tweet entity count
+    let mut entities = Vec::with_capacity(32);
     let mut pos = 0;
+    let bytes = input.as_bytes();
 
-    while pos < input.len() {
+    while pos < bytes.len() {
+        let b = bytes[pos];
+
+        // Fast path: common ASCII characters that usually don't start entities
+        // Space, punctuation, digits - skip quickly
+        if matches!(
+            b,
+            b' ' | b'.'
+                | b','
+                | b'!'
+                | b'?'
+                | b'\''
+                | b'"'
+                | b'-'
+                | b'_'
+                | b'\n'
+                | b'\r'
+                | b'\t'
+                | b'0'..=b'9'
+        ) {
+            pos += 1;
+            continue;
+        }
+
         let remaining = &input[pos..];
 
         // Try to match an entity at this position

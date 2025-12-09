@@ -15,8 +15,7 @@ use nom::{
     bytes::complete::{tag, tag_no_case, take_while, take_while1},
     character::complete::{char, satisfy},
     combinator::{opt, recognize},
-    multi::many0,
-    sequence::{delimited, pair, preceded, tuple},
+    sequence::{delimited, preceded, tuple},
     IResult,
 };
 
@@ -40,16 +39,6 @@ fn protocol(input: &str) -> IResult<&str, &str> {
         opt(tag_no_case("s")),
         tag("://"),
     )))(input)
-}
-
-/// Match a hex digit.
-fn hex_digit(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_hexdigit())(input)
-}
-
-/// Match a percent-encoded character (%XX).
-fn pct_encoded(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((char('%'), hex_digit, hex_digit)))(input)
 }
 
 /// Check if a character is a Latin accent character.
@@ -99,16 +88,6 @@ fn is_uwp_domain_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || is_latin_accent(c)
 }
 
-/// Match a domain character (for segments).
-fn domain_char(input: &str) -> IResult<&str, char> {
-    satisfy(is_domain_char)(input)
-}
-
-/// Match a UWP domain character.
-fn uwp_domain_char(input: &str) -> IResult<&str, char> {
-    satisfy(is_uwp_domain_char)(input)
-}
-
 /// Match a punycode domain segment (xn--...).
 /// Punycode labels start with "xn--" (case insensitive) followed by alphanumerics and hyphens.
 fn punycode_segment(input: &str) -> IResult<&str, &str> {
@@ -124,30 +103,93 @@ fn punycode_segment(input: &str) -> IResult<&str, &str> {
 /// And domain_char allows hyphens between non_punctuation chars.
 /// Punycode segments (xn--...) are handled specially.
 fn domain_segment(input: &str) -> IResult<&str, &str> {
-    alt((
-        // Try punycode first
-        punycode_segment,
-        // Then regular domain segment
-        recognize(tuple((
-            domain_char,
-            many0(alt((
-                // Allow hyphen or underscore followed by domain_char
-                recognize(pair(alt((char('-'), char('_'))), domain_char)),
-                recognize(domain_char),
-            ))),
-        ))),
-    ))(input)
+    // Try punycode first
+    if let Ok(result) = punycode_segment(input) {
+        return Ok(result);
+    }
+
+    // Regular domain segment - manual loop to avoid many0 allocation
+    let mut chars = input.char_indices();
+
+    // Must start with a domain char
+    let (_, first) = chars.next().ok_or_else(|| {
+        nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        ))
+    })?;
+    if !is_domain_char(first) {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    let mut end_pos = first.len_utf8();
+
+    // Continue matching: (hyphen/underscore + domain_char) or domain_char
+    while let Some((pos, c)) = chars.next() {
+        if c == '-' || c == '_' {
+            // Must be followed by domain_char
+            if let Some((_, next)) = chars.next() {
+                if is_domain_char(next) {
+                    end_pos = pos + c.len_utf8() + next.len_utf8();
+                    continue;
+                }
+            }
+            // Hyphen/underscore not followed by domain_char - stop before it
+            break;
+        } else if is_domain_char(c) {
+            end_pos = pos + c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Match a UWP domain segment.
 fn uwp_domain_segment(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        uwp_domain_char,
-        many0(alt((
-            recognize(pair(alt((char('-'), char('_'))), uwp_domain_char)),
-            recognize(uwp_domain_char),
-        ))),
-    )))(input)
+    // Manual loop to avoid many0 allocation
+    let mut chars = input.char_indices();
+
+    // Must start with a UWP domain char
+    let (_, first) = chars.next().ok_or_else(|| {
+        nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        ))
+    })?;
+    if !is_uwp_domain_char(first) {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    let mut end_pos = first.len_utf8();
+
+    // Continue matching: (hyphen/underscore + uwp_domain_char) or uwp_domain_char
+    while let Some((pos, c)) = chars.next() {
+        if c == '-' || c == '_' {
+            // Must be followed by uwp_domain_char
+            if let Some((_, next)) = chars.next() {
+                if is_uwp_domain_char(next) {
+                    end_pos = pos + c.len_utf8() + next.len_utf8();
+                    continue;
+                }
+            }
+            // Hyphen/underscore not followed by uwp_domain_char - stop before it
+            break;
+        } else if is_uwp_domain_char(c) {
+            end_pos = pos + c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Parse a domain: subdomain(s) + TLD.
@@ -280,18 +322,53 @@ fn normal_url(input: &str) -> IResult<&str, (&str, usize, usize)> {
     Ok((remaining, (&start[..consumed], host_start, host_end)))
 }
 
+/// Check if a character is valid in userinfo (before the @).
+fn is_userinfo_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || "-._~:".contains(c) || is_cyrillic(c) || "!$&'()*+,;=".contains(c)
+}
+
 /// Parse userinfo (user:pass@).
 fn userinfo(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        many0(alt((
-            recognize(satisfy(|c| {
-                c.is_ascii_alphanumeric() || "-._~:".contains(c) || is_cyrillic(c)
-            })),
-            pct_encoded,
-            recognize(satisfy(|c| "!$&'()*+,;=".contains(c))),
-        ))),
-        char('@'),
-    )))(input)
+    // Find the @ sign, validating characters along the way
+    let mut chars = input.char_indices().peekable();
+
+    while let Some((pos, c)) = chars.next() {
+        if c == '@' {
+            // Found the @, include it in the match
+            return Ok((&input[pos + 1..], &input[..pos + 1]));
+        } else if c == '%' {
+            // Check for percent-encoded: %XX
+            let h1 = chars.next();
+            let h2 = chars.next();
+            match (h1, h2) {
+                (Some((_, c1)), Some((_, c2)))
+                    if c1.is_ascii_hexdigit() && c2.is_ascii_hexdigit() =>
+                {
+                    // Valid percent-encoded, continue
+                }
+                _ => {
+                    return Err(nom::Err::Error(nom::error::Error::new(
+                        input,
+                        nom::error::ErrorKind::Verify,
+                    )));
+                }
+            }
+        } else if is_userinfo_char(c) {
+            // Valid userinfo char, continue
+        } else {
+            // Invalid character before finding @
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Verify,
+            )));
+        }
+    }
+
+    // No @ found
+    Err(nom::Err::Error(nom::error::Error::new(
+        input,
+        nom::error::ErrorKind::Char,
+    )))
 }
 
 /// Parse host (domain or IP).
@@ -386,49 +463,81 @@ fn is_path_punctuation(c: char) -> bool {
     "!*';:,.$%[]~|&@\u{2013}".contains(c)
 }
 
+/// Check if a character is valid in a URL path (excluding parens which are handled specially).
+fn is_path_char(c: char) -> bool {
+    c != '(' && c != ')' && (is_url_path_end(c) || is_path_punctuation(c) || c == '/')
+}
+
 /// Parse URL path.
 fn path(input: &str) -> IResult<&str, &str> {
-    // Path starts with / and can contain segments
-    let (remaining, matched) = recognize(tuple((
-        char('/'),
-        many0(alt((
-            // Balanced parentheses (for Wikipedia-style URLs)
-            balanced_parens,
-            // Path characters
-            recognize(satisfy(|c| {
-                is_url_path_end(c) || is_path_punctuation(c) || c == '/'
-            })),
-        ))),
-    )))(input)?;
+    // Path must start with /
+    if !input.starts_with('/') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    let mut end_pos = 1; // Start after the initial /
+    let mut chars = input[1..].char_indices().peekable();
+    let mut paren_depth: i32 = 0;
+
+    while let Some((pos, c)) = chars.next() {
+        let abs_pos = pos + 1; // Adjust for skipped initial /
+
+        if c == '(' {
+            paren_depth += 1;
+            end_pos = abs_pos + 1;
+        } else if c == ')' {
+            if paren_depth > 0 {
+                paren_depth -= 1;
+                end_pos = abs_pos + 1;
+            } else {
+                // Unbalanced ) - stop before it
+                break;
+            }
+        } else if is_path_char(c) {
+            end_pos = abs_pos + c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    // If we have unbalanced open parens, we need to backtrack to exclude them
+    // and everything after the last balanced position
+    if paren_depth > 0 {
+        // Find the position of the first unbalanced open paren
+        let mut depth: i32 = 0;
+        let mut last_balanced_end = 1; // After the initial /
+
+        for (pos, c) in input[1..].char_indices() {
+            let abs_pos = pos + 1;
+            if c == '(' {
+                depth += 1;
+            } else if c == ')' {
+                depth -= 1;
+            }
+
+            if depth == 0 {
+                if is_path_char(c) || c == ')' {
+                    last_balanced_end = abs_pos + c.len_utf8();
+                }
+            }
+
+            if abs_pos + c.len_utf8() >= end_pos {
+                break;
+            }
+        }
+
+        end_pos = last_balanced_end;
+    }
+
+    let matched = &input[..end_pos];
 
     // Trim trailing punctuation that shouldn't be part of the URL
     let trimmed = matched.trim_end_matches(|c: char| is_path_punctuation(c) && c != '/');
-    let trim_amount = matched.len() - trimmed.len();
 
-    // Adjust remaining to account for trimmed characters
-    let adjusted_remaining = if trim_amount > 0 {
-        &input[trimmed.len()..]
-    } else {
-        remaining
-    };
-
-    Ok((adjusted_remaining, trimmed))
-}
-
-/// Parse balanced parentheses in URL paths.
-fn balanced_parens(input: &str) -> IResult<&str, &str> {
-    recognize(delimited(
-        char('('),
-        many0(alt((
-            // Nested balanced parens
-            balanced_parens,
-            // Any non-paren character valid in paths
-            recognize(satisfy(|c| {
-                c != '(' && c != ')' && (is_url_path_end(c) || is_path_punctuation(c))
-            })),
-        ))),
-        char(')'),
-    ))(input)
+    Ok((&input[trimmed.len()..], trimmed))
 }
 
 /// Parse query string.

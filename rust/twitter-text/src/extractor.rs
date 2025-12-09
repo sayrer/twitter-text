@@ -4,7 +4,7 @@
 
 use crate::entity::{Entity, Type};
 use crate::nom_parser::{self, NomEntity, NomEntityType};
-use crate::tlds::is_valid_tld;
+use crate::tlds::is_valid_tld_case_insensitive;
 use crate::TwitterTextParseResults;
 use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
 use pest::Parser;
@@ -1105,7 +1105,7 @@ fn validate_url(
                     // Find the last dot to get the TLD portion
                     if let Some(last_dot) = trimmed_domain.rfind('.') {
                         let tld = &trimmed_domain[last_dot + 1..];
-                        if is_valid_tld(&tld.to_lowercase()) {
+                        if is_valid_tld_case_insensitive(tld) {
                             // Calculate bytes from end of original URL span to end of valid domain
                             let domain_end_in_url = domain_span.end() - original_span.start();
                             let url_len = original.len();
@@ -1186,7 +1186,7 @@ fn validate_url_nom(entity: &NomEntity, requires_exact_tld: bool) -> Option<usiz
             let trimmed_domain = &domain[..valid_domain_end];
             if let Some(last_dot) = trimmed_domain.rfind('.') {
                 let tld = &trimmed_domain[last_dot + 1..];
-                if is_valid_tld(&tld.to_lowercase()) {
+                if is_valid_tld_case_insensitive(tld) {
                     let after_domain = original.len() - host_end;
                     let total_trim = domain_trim + after_domain;
                     return Some(total_trim);
@@ -1270,14 +1270,14 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
             if has_script_mixing(segment) {
                 let boundary = find_script_boundary(segment);
                 let effective_segment = &segment[..boundary];
-                let segment_lower = effective_segment.to_lowercase();
 
-                if !segment_lower.is_empty() && is_valid_tld(&segment_lower) {
+                if !effective_segment.is_empty() && is_valid_tld_case_insensitive(effective_segment)
+                {
                     let end_pos = dot_pos + 1 + effective_segment.len();
                     #[cfg(test)]
                     eprintln!(
                         "find_valid_tld_boundary: found valid TLD '{}' at script boundary, position {}",
-                        segment_lower, end_pos
+                        effective_segment, end_pos
                     );
                     return Some(end_pos);
                 }
@@ -1290,10 +1290,9 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
         let after_dot = &domain[dot_pos + 1..];
         let segment_end = after_dot.find('.').unwrap_or(after_dot.len());
         let segment = &after_dot[..segment_end];
-        let segment_lower = segment.to_lowercase();
 
-        // Check if this segment is a valid TLD
-        if is_valid_tld(&segment_lower) {
+        // Check if this segment is a valid TLD (case-insensitive, no heap allocation)
+        if is_valid_tld_case_insensitive(segment) {
             // Check if the segment before this TLD contains underscores
             // If so, this is not a valid URL (domain_segment can't have underscores)
             let before_dot = &domain[..dot_pos];
@@ -1303,7 +1302,7 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
                 #[cfg(test)]
                 eprintln!(
                     "find_valid_tld_boundary: rejecting TLD '{}' because prev segment '{}' contains underscore",
-                    segment_lower, prev_segment
+                    segment, prev_segment
                 );
                 continue;
             }
@@ -1312,7 +1311,7 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
             #[cfg(test)]
             eprintln!(
                 "find_valid_tld_boundary: found valid TLD '{}' at position {}",
-                segment_lower, end_pos
+                segment, end_pos
             );
             return Some(end_pos);
         }
@@ -1322,8 +1321,7 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
         // but "com-that-you..." is not.
         if let Some(hyphen_pos) = segment.find('-') {
             let before_hyphen = &segment[..hyphen_pos];
-            let before_hyphen_lower = before_hyphen.to_lowercase();
-            if is_valid_tld(&before_hyphen_lower) {
+            if is_valid_tld_case_insensitive(before_hyphen) {
                 // Also check if the segment before this TLD contains underscores
                 let before_dot = &domain[..dot_pos];
                 let prev_segment = before_dot.rsplit('.').next().unwrap_or(before_dot);
@@ -1331,7 +1329,7 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
                     #[cfg(test)]
                     eprintln!(
                         "find_valid_tld_boundary: rejecting TLD '{}' (before hyphen) because prev segment '{}' contains underscore",
-                        before_hyphen_lower, prev_segment
+                        before_hyphen, prev_segment
                     );
                     continue;
                 }
@@ -1340,7 +1338,7 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
                 #[cfg(test)]
                 eprintln!(
                     "find_valid_tld_boundary: found valid TLD '{}' before hyphen at position {}",
-                    before_hyphen_lower, end_pos
+                    before_hyphen, end_pos
                 );
                 return Some(end_pos);
             }
@@ -1349,18 +1347,17 @@ fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usi
         // For URLs without protocol (requires_exact_tld=true), we need prefix matching
         // for Unicode TLDs like みんな from みんなです.
         // For URLs with protocol, we don't do prefix matching (grammar already determined the TLD).
-        if requires_exact_tld && !segment_lower.is_ascii() {
+        if requires_exact_tld && !segment.is_ascii() {
             // Check if a valid Unicode TLD is a prefix of this segment
             // We try progressively shorter prefixes
             for (char_idx, _) in segment.char_indices().skip(2) {
                 let prefix = &segment[..char_idx];
-                let prefix_lower = prefix.to_lowercase();
-                if is_valid_tld(&prefix_lower) {
+                if is_valid_tld_case_insensitive(prefix) {
                     let end_pos = dot_pos + 1 + prefix.len();
                     #[cfg(test)]
                     eprintln!(
                         "find_valid_tld_boundary: found valid Unicode TLD prefix '{}' at position {}",
-                        prefix_lower, end_pos
+                        prefix, end_pos
                     );
                     return Some(end_pos);
                 }

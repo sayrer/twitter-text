@@ -5,12 +5,13 @@
 use crate::entity;
 use crate::entity::Entity;
 use crate::extractor::{ExternalValidator, Extract, Extractor};
+use std::borrow::Cow;
 
 type Attributes = Vec<(String, String)>;
-const HREF: &'static str = "href";
-const CLASS: &'static str = "class";
-const TARGET: &'static str = "target";
-const TITLE: &'static str = "title";
+const HREF: &str = "href";
+const CLASS: &str = "class";
+const TARGET: &str = "target";
+const TITLE: &str = "title";
 
 /**
  * Default CSS class for auto-linked list URLs
@@ -208,9 +209,9 @@ impl<'a> Autolinker<'a> {
         buf.push_str("<a");
         for (k, v) in attributes {
             buf.push(' ');
-            buf.push_str(escape_html(k).as_str());
+            buf.push_str(&escape_html(k));
             buf.push_str("=\"");
-            buf.push_str(escape_html(v).as_str());
+            buf.push_str(&escape_html(v));
             buf.push('"');
         }
         buf.push('>');
@@ -231,12 +232,12 @@ impl<'a> Autolinker<'a> {
             _ => format!("<{}>{}</{}>", self.symbol_tag, sym, self.symbol_tag),
         };
         let text = escape_html(original_text);
-        let tagged_text = match self.text_with_symbol_tag {
+        let tagged_text: Cow<'_, str> = match self.text_with_symbol_tag {
             "" => text,
-            _ => format!(
+            _ => Cow::Owned(format!(
                 "<{}>{}</{}>",
                 self.text_with_symbol_tag, text, self.text_with_symbol_tag
-            ),
+            )),
         };
         let inc_sym =
             self.username_include_symbol || !(sym.contains('@') || sym.contains('\u{FF20}'));
@@ -245,7 +246,7 @@ impl<'a> Autolinker<'a> {
             self.link_to_text(entity, &(tagged_symbol + &tagged_text), attributes, buf);
         } else {
             buf.push_str(tagged_symbol.as_str());
-            self.link_to_text(entity, tagged_text.as_str(), attributes, buf);
+            self.link_to_text(entity, &tagged_text, attributes, buf);
         }
     }
 
@@ -397,9 +398,9 @@ impl<'a> Autolinker<'a> {
                 sb += following_ellipsis;
                 sb += "</span>";
 
-                link_text = sb;
+                link_text = Cow::Owned(sb);
             } else {
-                link_text = String::from(entity.get_display_url());
+                link_text = Cow::Owned(String::from(entity.get_display_url()));
             }
         }
 
@@ -492,49 +493,32 @@ fn contains_rtl(s: &str) -> bool {
 
 /**
  * Adapted from <https://github.com/rust-lang/rust/blob/master/src/librustdoc/html/escape.rs>
+ * Returns Cow::Borrowed if no escaping needed, avoiding allocation.
  */
-fn escape_html(s: &str) -> String {
-    let mut last = 0;
-    let mut buf = String::with_capacity(s.len() * 2);
-    for (i, ch) in s.bytes().enumerate() {
-        match ch as char {
-            '<' | '>' | '&' | '\'' | '"' => {
-                buf.push_str(&s[last..i]);
-                let s = match ch as char {
-                    '>' => "&gt;",
-                    '<' => "&lt;",
-                    '&' => "&amp;",
-                    '\'' => "&#39;",
-                    '"' => "&quot;",
-                    _ => unreachable!(),
-                };
-                buf.push_str(s);
-                last = i + 1;
-            }
-            _ => {}
-        }
+fn escape_html(s: &str) -> Cow<'_, str> {
+    // Fast path: check if any escaping is needed
+    let needs_escape = s
+        .bytes()
+        .any(|b| matches!(b, b'<' | b'>' | b'&' | b'\'' | b'"'));
+    if !needs_escape {
+        return Cow::Borrowed(s);
     }
 
-    if last < s.len() {
-        buf.push_str(&s[last..]);
-    }
-
-    buf
-}
-
-fn escape_brackets(s: &str) -> String {
     let mut last = 0;
     let mut buf = String::with_capacity(s.len() + 32);
     for (i, ch) in s.bytes().enumerate() {
-        match ch as char {
-            '<' | '>' => {
+        match ch {
+            b'<' | b'>' | b'&' | b'\'' | b'"' => {
                 buf.push_str(&s[last..i]);
-                let s = match ch as char {
-                    '>' => "&gt;",
-                    '<' => "&lt;",
+                let escaped = match ch {
+                    b'>' => "&gt;",
+                    b'<' => "&lt;",
+                    b'&' => "&amp;",
+                    b'\'' => "&#39;",
+                    b'"' => "&quot;",
                     _ => unreachable!(),
                 };
-                buf.push_str(s);
+                buf.push_str(escaped);
                 last = i + 1;
             }
             _ => {}
@@ -545,7 +529,39 @@ fn escape_brackets(s: &str) -> String {
         buf.push_str(&s[last..]);
     }
 
-    buf
+    Cow::Owned(buf)
+}
+
+fn escape_brackets(s: &str) -> Cow<'_, str> {
+    // Fast path: check if any escaping is needed
+    let needs_escape = s.bytes().any(|b| matches!(b, b'<' | b'>'));
+    if !needs_escape {
+        return Cow::Borrowed(s);
+    }
+
+    let mut last = 0;
+    let mut buf = String::with_capacity(s.len() + 32);
+    for (i, ch) in s.bytes().enumerate() {
+        match ch {
+            b'<' | b'>' => {
+                buf.push_str(&s[last..i]);
+                let escaped = match ch {
+                    b'>' => "&gt;",
+                    b'<' => "&lt;",
+                    _ => unreachable!(),
+                };
+                buf.push_str(escaped);
+                last = i + 1;
+            }
+            _ => {}
+        }
+    }
+
+    if last < s.len() {
+        buf.push_str(&s[last..]);
+    }
+
+    Cow::Owned(buf)
 }
 
 #[cfg(test)]
