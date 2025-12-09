@@ -97,6 +97,12 @@ fn punycode_segment(input: &str) -> IResult<&str, &str> {
     )))(input)
 }
 
+/// Check if a byte is an ASCII domain character (alphanumeric).
+#[inline(always)]
+fn is_ascii_domain_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric()
+}
+
 /// Match a domain segment (label between dots).
 /// Allows domain chars with hyphens and underscores between them.
 /// The Pest grammar allows: subdomain_char = (domain_char ~ "_"? ~ domain_char) | domain_char
@@ -108,11 +114,73 @@ fn domain_segment(input: &str) -> IResult<&str, &str> {
         return Ok(result);
     }
 
-    // Regular domain segment - manual loop to avoid many0 allocation
-    let mut chars = input.char_indices();
+    let bytes = input.as_bytes();
+    if bytes.is_empty() {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Fast path: check if first byte is ASCII
+    let first_byte = bytes[0];
+    if first_byte < 128 {
+        // ASCII path - much faster
+        if !is_ascii_domain_byte(first_byte) {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Satisfy,
+            )));
+        }
+
+        let mut end_pos = 1;
+        let mut i = 1;
+
+        while i < bytes.len() {
+            let b = bytes[i];
+            if b >= 128 {
+                // Non-ASCII: fall back to char-based parsing for rest
+                // SAFETY: end_pos is a valid UTF-8 boundary (ASCII chars are 1 byte)
+                return domain_segment_continue_unicode(input, end_pos);
+            }
+
+            if b == b'-' || b == b'_' {
+                // Must be followed by domain char
+                if i + 1 < bytes.len() {
+                    let next = bytes[i + 1];
+                    if next >= 128 {
+                        // Non-ASCII after hyphen - fall back
+                        return domain_segment_continue_unicode(input, end_pos);
+                    }
+                    if is_ascii_domain_byte(next) {
+                        end_pos = i + 2;
+                        i += 2;
+                        continue;
+                    }
+                }
+                // Hyphen/underscore not followed by domain char - stop before it
+                break;
+            } else if is_ascii_domain_byte(b) {
+                end_pos = i + 1;
+                i += 1;
+            } else {
+                break;
+            }
+        }
+
+        Ok((&input[end_pos..], &input[..end_pos]))
+    } else {
+        // Non-ASCII first char - use full Unicode path
+        domain_segment_unicode(input)
+    }
+}
+
+/// Domain segment parsing for non-ASCII input (full Unicode support).
+fn domain_segment_unicode(input: &str) -> IResult<&str, &str> {
+    let mut chars = input.chars();
 
     // Must start with a domain char
-    let (_, first) = chars.next().ok_or_else(|| {
+    let first = chars.next().ok_or_else(|| {
         nom::Err::Error(nom::error::Error::new(
             input,
             nom::error::ErrorKind::Satisfy,
@@ -127,20 +195,24 @@ fn domain_segment(input: &str) -> IResult<&str, &str> {
 
     let mut end_pos = first.len_utf8();
 
-    // Continue matching: (hyphen/underscore + domain_char) or domain_char
-    while let Some((pos, c)) = chars.next() {
+    // Continue matching
+    loop {
+        let c = match chars.next() {
+            Some(c) => c,
+            None => break,
+        };
+
         if c == '-' || c == '_' {
             // Must be followed by domain_char
-            if let Some((_, next)) = chars.next() {
+            if let Some(next) = chars.next() {
                 if is_domain_char(next) {
-                    end_pos = pos + c.len_utf8() + next.len_utf8();
+                    end_pos += c.len_utf8() + next.len_utf8();
                     continue;
                 }
             }
-            // Hyphen/underscore not followed by domain_char - stop before it
             break;
         } else if is_domain_char(c) {
-            end_pos = pos + c.len_utf8();
+            end_pos += c.len_utf8();
         } else {
             break;
         }
@@ -149,13 +221,110 @@ fn domain_segment(input: &str) -> IResult<&str, &str> {
     Ok((&input[end_pos..], &input[..end_pos]))
 }
 
+/// Continue domain segment parsing after switching from ASCII to Unicode.
+fn domain_segment_continue_unicode(input: &str, start_pos: usize) -> IResult<&str, &str> {
+    let mut end_pos = start_pos;
+    let mut chars = input[start_pos..].chars();
+
+    loop {
+        let c = match chars.next() {
+            Some(c) => c,
+            None => break,
+        };
+
+        if c == '-' || c == '_' {
+            // Must be followed by domain_char
+            if let Some(next) = chars.next() {
+                if is_domain_char(next) {
+                    end_pos += c.len_utf8() + next.len_utf8();
+                    continue;
+                }
+            }
+            break;
+        } else if is_domain_char(c) {
+            end_pos += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
+}
+
+/// Check if a byte is a valid ASCII UWP domain character.
+#[inline(always)]
+fn is_ascii_uwp_domain_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric()
+}
+
 /// Match a UWP domain segment.
 fn uwp_domain_segment(input: &str) -> IResult<&str, &str> {
-    // Manual loop to avoid many0 allocation
-    let mut chars = input.char_indices();
+    let bytes = input.as_bytes();
+    if bytes.is_empty() {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Fast path: check if first byte is ASCII
+    let first_byte = bytes[0];
+    if first_byte < 128 {
+        // ASCII path
+        if !is_ascii_uwp_domain_byte(first_byte) {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Satisfy,
+            )));
+        }
+
+        let mut end_pos = 1;
+        let mut i = 1;
+
+        while i < bytes.len() {
+            let b = bytes[i];
+            if b >= 128 {
+                // Non-ASCII: check if it's a latin accent and continue
+                return uwp_domain_segment_continue_unicode(input, end_pos);
+            }
+
+            if b == b'-' || b == b'_' {
+                // Must be followed by uwp_domain char
+                if i + 1 < bytes.len() {
+                    let next = bytes[i + 1];
+                    if next >= 128 {
+                        // Non-ASCII after hyphen - fall back
+                        return uwp_domain_segment_continue_unicode(input, end_pos);
+                    }
+                    if is_ascii_uwp_domain_byte(next) {
+                        end_pos = i + 2;
+                        i += 2;
+                        continue;
+                    }
+                }
+                // Hyphen/underscore not followed by domain char - stop before it
+                break;
+            } else if is_ascii_uwp_domain_byte(b) {
+                end_pos = i + 1;
+                i += 1;
+            } else {
+                break;
+            }
+        }
+
+        Ok((&input[end_pos..], &input[..end_pos]))
+    } else {
+        // Non-ASCII first char - use full Unicode path
+        uwp_domain_segment_unicode(input)
+    }
+}
+
+/// UWP domain segment parsing for non-ASCII input.
+fn uwp_domain_segment_unicode(input: &str) -> IResult<&str, &str> {
+    let mut chars = input.chars();
 
     // Must start with a UWP domain char
-    let (_, first) = chars.next().ok_or_else(|| {
+    let first = chars.next().ok_or_else(|| {
         nom::Err::Error(nom::error::Error::new(
             input,
             nom::error::ErrorKind::Satisfy,
@@ -170,20 +339,51 @@ fn uwp_domain_segment(input: &str) -> IResult<&str, &str> {
 
     let mut end_pos = first.len_utf8();
 
-    // Continue matching: (hyphen/underscore + uwp_domain_char) or uwp_domain_char
-    while let Some((pos, c)) = chars.next() {
+    loop {
+        let c = match chars.next() {
+            Some(c) => c,
+            None => break,
+        };
+
         if c == '-' || c == '_' {
-            // Must be followed by uwp_domain_char
-            if let Some((_, next)) = chars.next() {
+            if let Some(next) = chars.next() {
                 if is_uwp_domain_char(next) {
-                    end_pos = pos + c.len_utf8() + next.len_utf8();
+                    end_pos += c.len_utf8() + next.len_utf8();
                     continue;
                 }
             }
-            // Hyphen/underscore not followed by uwp_domain_char - stop before it
             break;
         } else if is_uwp_domain_char(c) {
-            end_pos = pos + c.len_utf8();
+            end_pos += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
+}
+
+/// Continue UWP domain segment parsing after switching from ASCII to Unicode.
+fn uwp_domain_segment_continue_unicode(input: &str, start_pos: usize) -> IResult<&str, &str> {
+    let mut end_pos = start_pos;
+    let mut chars = input[start_pos..].chars();
+
+    loop {
+        let c = match chars.next() {
+            Some(c) => c,
+            None => break,
+        };
+
+        if c == '-' || c == '_' {
+            if let Some(next) = chars.next() {
+                if is_uwp_domain_char(next) {
+                    end_pos += c.len_utf8() + next.len_utf8();
+                    continue;
+                }
+            }
+            break;
+        } else if is_uwp_domain_char(c) {
+            end_pos += c.len_utf8();
         } else {
             break;
         }
@@ -468,10 +668,39 @@ fn is_path_char(c: char) -> bool {
     c != '(' && c != ')' && (is_url_path_end(c) || is_path_punctuation(c) || c == '/')
 }
 
+/// Check if an ASCII byte is valid in a URL path (excluding parens).
+#[inline(always)]
+fn is_ascii_path_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric()
+        || matches!(
+            b,
+            b'=' | b'_'
+                | b'-'
+                | b'+'
+                | b'/'
+                | b'!'
+                | b'*'
+                | b'\''
+                | b';'
+                | b':'
+                | b','
+                | b'.'
+                | b'$'
+                | b'%'
+                | b'['
+                | b']'
+                | b'~'
+                | b'|'
+                | b'&'
+                | b'@'
+        )
+}
+
 /// Parse URL path.
 fn path(input: &str) -> IResult<&str, &str> {
     // Path must start with /
-    if !input.starts_with('/') {
+    let bytes = input.as_bytes();
+    if bytes.is_empty() || bytes[0] != b'/' {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
             nom::error::ErrorKind::Char,
@@ -479,57 +708,42 @@ fn path(input: &str) -> IResult<&str, &str> {
     }
 
     let mut end_pos = 1; // Start after the initial /
-    let mut chars = input[1..].char_indices().peekable();
     let mut paren_depth: i32 = 0;
+    let mut i = 1;
 
-    while let Some((pos, c)) = chars.next() {
-        let abs_pos = pos + 1; // Adjust for skipped initial /
+    // Fast ASCII path
+    while i < bytes.len() {
+        let b = bytes[i];
 
-        if c == '(' {
+        if b >= 128 {
+            // Non-ASCII: fall back to char-based parsing
+            return path_continue_unicode(input, end_pos, paren_depth);
+        }
+
+        if b == b'(' {
             paren_depth += 1;
-            end_pos = abs_pos + 1;
-        } else if c == ')' {
+            end_pos = i + 1;
+            i += 1;
+        } else if b == b')' {
             if paren_depth > 0 {
                 paren_depth -= 1;
-                end_pos = abs_pos + 1;
+                end_pos = i + 1;
+                i += 1;
             } else {
                 // Unbalanced ) - stop before it
                 break;
             }
-        } else if is_path_char(c) {
-            end_pos = abs_pos + c.len_utf8();
+        } else if is_ascii_path_byte(b) {
+            end_pos = i + 1;
+            i += 1;
         } else {
             break;
         }
     }
 
-    // If we have unbalanced open parens, we need to backtrack to exclude them
-    // and everything after the last balanced position
+    // Handle unbalanced parens
     if paren_depth > 0 {
-        // Find the position of the first unbalanced open paren
-        let mut depth: i32 = 0;
-        let mut last_balanced_end = 1; // After the initial /
-
-        for (pos, c) in input[1..].char_indices() {
-            let abs_pos = pos + 1;
-            if c == '(' {
-                depth += 1;
-            } else if c == ')' {
-                depth -= 1;
-            }
-
-            if depth == 0 {
-                if is_path_char(c) || c == ')' {
-                    last_balanced_end = abs_pos + c.len_utf8();
-                }
-            }
-
-            if abs_pos + c.len_utf8() >= end_pos {
-                break;
-            }
-        }
-
-        end_pos = last_balanced_end;
+        end_pos = fixup_unbalanced_parens(input, end_pos);
     }
 
     let matched = &input[..end_pos];
@@ -538,6 +752,76 @@ fn path(input: &str) -> IResult<&str, &str> {
     let trimmed = matched.trim_end_matches(|c: char| is_path_punctuation(c) && c != '/');
 
     Ok((&input[trimmed.len()..], trimmed))
+}
+
+/// Continue path parsing after encountering non-ASCII.
+fn path_continue_unicode(
+    input: &str,
+    start_pos: usize,
+    mut paren_depth: i32,
+) -> IResult<&str, &str> {
+    let mut end_pos = start_pos;
+    let mut chars = input[start_pos..].chars();
+
+    loop {
+        let c = match chars.next() {
+            Some(c) => c,
+            None => break,
+        };
+
+        if c == '(' {
+            paren_depth += 1;
+            end_pos += 1;
+        } else if c == ')' {
+            if paren_depth > 0 {
+                paren_depth -= 1;
+                end_pos += 1;
+            } else {
+                break;
+            }
+        } else if is_path_char(c) {
+            end_pos += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    // Handle unbalanced parens
+    if paren_depth > 0 {
+        end_pos = fixup_unbalanced_parens(input, end_pos);
+    }
+
+    let matched = &input[..end_pos];
+    let trimmed = matched.trim_end_matches(|c: char| is_path_punctuation(c) && c != '/');
+
+    Ok((&input[trimmed.len()..], trimmed))
+}
+
+/// Fix up end_pos when we have unbalanced open parens.
+fn fixup_unbalanced_parens(input: &str, end_pos: usize) -> usize {
+    let mut depth: i32 = 0;
+    let mut last_balanced_end = 1; // After the initial /
+
+    for (pos, c) in input[1..].char_indices() {
+        let abs_pos = pos + 1;
+        if c == '(' {
+            depth += 1;
+        } else if c == ')' {
+            depth -= 1;
+        }
+
+        if depth == 0 {
+            if is_path_char(c) || c == ')' {
+                last_balanced_end = abs_pos + c.len_utf8();
+            }
+        }
+
+        if abs_pos + c.len_utf8() >= end_pos {
+            break;
+        }
+    }
+
+    last_balanced_end
 }
 
 /// Parse query string.

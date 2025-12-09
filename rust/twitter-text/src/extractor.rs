@@ -209,7 +209,9 @@ pub trait Extract<'a> {
     /// Uses nom combinators compiled to native code for maximum performance.
     fn extract_impl_nom(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
         let nom_entities = nom_parser::parse_tweet(s);
-        let mut scanned = Vec::new();
+
+        // Pre-filter and count entities we'll keep
+        let mut scanned: Vec<UnprocessedEntity<'a>> = Vec::with_capacity(nom_entities.len());
         let mut entity_count = 0;
 
         for entity in nom_entities {
@@ -222,7 +224,6 @@ pub trait Extract<'a> {
                 if emojis::get(entity.value).is_some() {
                     scanned.push(UnprocessedEntity::NomEntity(entity));
                 }
-                // If not a valid emoji, skip it (treat as regular text)
             } else if r_match(rule) {
                 if rule == Rule::url || rule == Rule::url_without_protocol {
                     // Validate URL and potentially trim to valid TLD boundary
@@ -247,7 +248,6 @@ pub trait Extract<'a> {
                             scanned.push(UnprocessedEntity::NomEntity(entity));
                         }
                     }
-                    // If validation failed, skip this URL
                 } else {
                     entity_count += 1;
                     scanned.push(UnprocessedEntity::NomEntity(entity));
@@ -255,7 +255,7 @@ pub trait Extract<'a> {
             }
         }
 
-        // Reverse so we can pop from the end in document order
+        // Nom entities are already in document order, so just reverse once for pop()
         scanned.reverse();
         self.create_result(s, entity_count, &mut scanned)
     }

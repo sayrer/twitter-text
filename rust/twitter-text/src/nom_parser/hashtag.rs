@@ -10,18 +10,11 @@
 //!
 //! Hashtags must contain at least one letter/mark character.
 
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::satisfy,
-    combinator::{not, peek, recognize},
-    multi::many1,
-    sequence::tuple,
-    IResult,
-};
+use nom::IResult;
 
 /// Check if a character is a hashtag letter or mark.
 /// Corresponds to hashtag_letter_or_mark in the Pest grammar.
+#[inline]
 fn is_hashtag_letter_or_mark(c: char) -> bool {
     use unicode_categories::UnicodeCategories;
     c.is_letter() || c.is_mark()
@@ -29,6 +22,7 @@ fn is_hashtag_letter_or_mark(c: char) -> bool {
 
 /// Check if a character is a hashtag special character.
 /// These are allowed in hashtags but don't count as "letters".
+#[inline]
 fn is_hashtag_special(c: char) -> bool {
     use unicode_categories::UnicodeCategories;
     c.is_number_decimal_digit()
@@ -54,39 +48,57 @@ fn is_hashtag_special(c: char) -> bool {
         )
 }
 
-/// Match the hashtag prefix (# or ＃).
-fn hashtag_prefix(input: &str) -> IResult<&str, &str> {
-    alt((tag("#"), tag("\u{ff03}")))(input)
-}
-
-/// Match a hashtag letter or mark character.
-fn hashtag_letter_or_mark(input: &str) -> IResult<&str, char> {
-    satisfy(is_hashtag_letter_or_mark)(input)
-}
-
-/// Match a hashtag special character.
-fn hashtag_special(input: &str) -> IResult<&str, char> {
-    satisfy(is_hashtag_special)(input)
-}
-
-/// Match hashtag text: must contain at least one letter/mark.
-/// Pattern: (special* letter_or_mark+ special*)+
-fn hashtag_text(input: &str) -> IResult<&str, &str> {
-    // First, ensure we don't start with variation selector or enclosing keycap
-    let (input, _) = not(peek(alt((tag("\u{fe0f}"), tag("\u{20e3}")))))(input)?;
-
-    // Match: (special* letter_or_mark+ special*)+
-    recognize(many1(tuple((
-        recognize(nom::multi::many0(hashtag_special)),
-        recognize(many1(hashtag_letter_or_mark)),
-        recognize(nom::multi::many0(hashtag_special)),
-    ))))(input)
-}
-
 /// Parse a hashtag, returning the matched string slice.
 /// Returns the full hashtag including the # prefix.
 pub fn parse_hashtag(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((hashtag_prefix, hashtag_text)))(input)
+    let bytes = input.as_bytes();
+
+    // Check for hashtag prefix
+    let prefix_len = if bytes.first() == Some(&b'#') {
+        1
+    } else if input.starts_with('\u{ff03}') {
+        '\u{ff03}'.len_utf8()
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    };
+
+    let after_prefix = &input[prefix_len..];
+
+    // Check we don't start with variation selector or enclosing keycap
+    if after_prefix.starts_with('\u{fe0f}') || after_prefix.starts_with('\u{20e3}') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Not,
+        )));
+    }
+
+    // Parse hashtag text - must contain at least one letter/mark
+    let mut end_pos = prefix_len;
+    let mut has_letter = false;
+
+    for c in after_prefix.chars() {
+        if is_hashtag_letter_or_mark(c) {
+            has_letter = true;
+            end_pos += c.len_utf8();
+        } else if is_hashtag_special(c) {
+            end_pos += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    // Must have at least one letter/mark
+    if !has_letter {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Check if the character before a potential hashtag is valid.

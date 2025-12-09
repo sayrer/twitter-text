@@ -39,48 +39,92 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
     while pos < bytes.len() {
         let b = bytes[pos];
 
-        // Fast path: common ASCII characters that usually don't start entities
-        // Space, punctuation, digits - skip quickly
-        if matches!(
-            b,
-            b' ' | b'.'
-                | b','
-                | b'!'
-                | b'?'
-                | b'\''
-                | b'"'
-                | b'-'
-                | b'_'
-                | b'\n'
-                | b'\r'
-                | b'\t'
-                | b'0'..=b'9'
-        ) {
-            pos += 1;
-            continue;
-        }
+        // Fast path: common ASCII characters that can't start entities
+        // This covers ~80% of typical tweet content
+        if b < 128 {
+            // ASCII fast path
+            if matches!(
+                b,
+                b' ' | b'.'
+                    | b','
+                    | b'!'
+                    | b'?'
+                    | b'\''
+                    | b'"'
+                    | b'-'
+                    | b'_'
+                    | b'\n'
+                    | b'\r'
+                    | b'\t'
+                    | b'0'
+                    ..=b'9'
+                        | b'('
+                        | b')'
+                        | b'['
+                        | b']'
+                        | b'{'
+                        | b'}'
+                        | b':'
+                        | b';'
+                        | b'<'
+                        | b'>'
+                        | b'/'
+                        | b'\\'
+                        | b'|'
+                        | b'`'
+                        | b'~'
+                        | b'='
+                        | b'+'
+                        | b'*'
+                        | b'&'
+                        | b'^'
+                        | b'%'
+            ) {
+                pos += 1;
+                continue;
+            }
 
-        let remaining = &input[pos..];
+            let remaining = &input[pos..];
 
-        // Try to match an entity at this position
-        // Pass full input and position so we can check preceding characters
-        if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos) {
-            entities.push(entity);
-            pos += consumed;
+            // Try to match an entity at this position
+            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos) {
+                entities.push(entity);
+                pos += consumed;
+            } else {
+                // Handle special ASCII cases that failed entity parsing
+                if b == b'$' {
+                    // $ followed by URL-like content should be skipped
+                    let after_dollar = &remaining[1..];
+                    let skip = skip_invalid_cashtag_url(after_dollar);
+                    pos += 1 + skip;
+                } else if b == b'@' {
+                    // @ followed by URL-like content (email) should skip
+                    let after_at = &remaining[1..];
+                    let skip = skip_email_domain(after_at);
+                    pos += 1 + skip;
+                } else {
+                    // Regular ASCII char, just skip
+                    pos += 1;
+                }
+            }
         } else {
-            // Skip one character and continue
-            // Need to handle UTF-8 properly
+            // Non-ASCII: need to decode UTF-8
+            let remaining = &input[pos..];
             let c = remaining.chars().next().unwrap();
+            let char_len = c.len_utf8();
 
-            // Check for invalid characters
-            if common::is_invalid_char(c) {
+            // Try to match an entity at this position
+            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos) {
+                entities.push(entity);
+                pos += consumed;
+            } else if common::is_invalid_char(c) {
                 entities.push(NomEntity::new(
                     NomEntityType::InvalidChar,
-                    &remaining[..c.len_utf8()],
+                    &remaining[..char_len],
                     pos,
-                    pos + c.len_utf8(),
+                    pos + char_len,
                 ));
-                pos += c.len_utf8();
+                pos += char_len;
             } else if emoji::is_emoji_start(c) {
                 // Try to parse a potential emoji sequence
                 if let Some((matched, consumed)) = emoji::try_parse_emoji(remaining) {
@@ -92,22 +136,15 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                     ));
                     pos += consumed;
                 } else {
-                    pos += c.len_utf8();
+                    pos += char_len;
                 }
-            } else if c == '$' {
-                // Special case: $ followed by URL-like content should be skipped entirely
-                // to avoid extracting partial URLs like "witter.com" from "$twitter.com"
-                let after_dollar = &remaining[1..];
-                let skip = skip_invalid_cashtag_url(after_dollar);
-                pos += 1 + skip;
-            } else if c == '@' || c == '\u{ff20}' {
-                // Special case: @ followed by URL-like content (email address) should skip
-                // to avoid extracting partial URLs like "ail.com" from "user@mail.com"
-                let after_at = &remaining[c.len_utf8()..];
+            } else if c == '\u{ff20}' {
+                // Fullwidth @ - check for email domain
+                let after_at = &remaining[char_len..];
                 let skip = skip_email_domain(after_at);
-                pos += c.len_utf8() + skip;
+                pos += char_len + skip;
             } else {
-                pos += c.len_utf8();
+                pos += char_len;
             }
         }
     }
@@ -158,9 +195,16 @@ fn try_parse_entity<'a>(
 ) -> Option<(NomEntity<'a>, usize)> {
     // Try each entity type in priority order
     // URLs should come first to avoid hashtag/mention ambiguity in URLs
-    // For now we implement: mentions/lists, hashtags, cashtags
 
-    let first_char = input.chars().next()?;
+    let bytes = input.as_bytes();
+    let first_byte = *bytes.first()?;
+
+    // Fast path for ASCII first character
+    let first_char = if first_byte < 128 {
+        first_byte as char
+    } else {
+        input.chars().next()?
+    };
 
     // Get the character before this position (if any)
     let prev_char = if offset > 0 {
