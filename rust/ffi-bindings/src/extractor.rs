@@ -510,6 +510,51 @@ pub extern "C" fn twitter_text_extractor_extract_mentioned_screennames_with_indi
 }
 
 #[no_mangle]
+pub extern "C" fn twitter_text_extractor_extract_mentions_or_lists_with_indices(
+    extractor: *mut Extractor,
+    text: *const c_char,
+) -> CEntityArray {
+    if extractor.is_null() || text.is_null() {
+        return CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        };
+    }
+
+    let extractor_ref = unsafe { &*extractor };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    let text_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return CEntityArray {
+                entities: std::ptr::null_mut(),
+                length: 0,
+            }
+        }
+    };
+
+    let entities = extractor_ref.extract_mentions_or_lists_with_indices(text_str);
+    let length = entities.len();
+
+    if length == 0 {
+        return CEntityArray {
+            entities: std::ptr::null_mut(),
+            length: 0,
+        };
+    }
+
+    let mut c_entities: Vec<CEntity> = entities.into_iter().map(|e| e.into()).collect();
+
+    let entities_ptr = c_entities.as_mut_ptr();
+    std::mem::forget(c_entities);
+
+    CEntityArray {
+        entities: entities_ptr,
+        length,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn twitter_text_extractor_extract_reply_username(
     extractor: *mut Extractor,
     text: *const c_char,

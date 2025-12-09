@@ -97,6 +97,16 @@ pub extern "C" fn twitter_text_config_default() -> *mut Configuration {
 }
 
 #[no_mangle]
+pub extern "C" fn twitter_text_config_v1() -> *mut Configuration {
+    Box::into_raw(Box::new(twitter_text_config::config_v1().clone()))
+}
+
+#[no_mangle]
+pub extern "C" fn twitter_text_config_v2() -> *mut Configuration {
+    Box::into_raw(Box::new(twitter_text_config::config_v2().clone()))
+}
+
+#[no_mangle]
 pub extern "C" fn twitter_text_config_v3() -> *mut Configuration {
     Box::into_raw(Box::new(twitter_text_config::config_v3().clone()))
 }
@@ -208,7 +218,8 @@ pub extern "C" fn twitter_text_config_get_ranges(
         };
     }
 
-    let mut c_ranges: Vec<TwitterTextWeightedRange> = ranges.iter().map(|r| r.clone().into()).collect();
+    let mut c_ranges: Vec<TwitterTextWeightedRange> =
+        ranges.iter().map(|r| r.clone().into()).collect();
 
     let ranges_ptr = c_ranges.as_mut_ptr();
     std::mem::forget(c_ranges);

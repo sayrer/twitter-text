@@ -22,7 +22,7 @@ rb_test(
         "@bundle//:bundle",
         "//rust/ruby-bindings:check_ruby_version",
         "//rust/ruby-bindings:twittertext",
-        "//rust_bindings/cpp:config_test_data",
+        "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
 )

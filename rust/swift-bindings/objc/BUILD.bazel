@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "objc_library")
+
+# Objective-C wrapper library that provides API-compatible wrapper over the Rust C FFI
+objc_library(
+    name = "TwitterText",
+    srcs = [
+        "TwitterTextWrapper.m",
+    ],
+    hdrs = [
+        "TwitterTextWrapper.h",
+    ],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    deps = [
+        "//rust/ffi-bindings:twitter_text_c_static",
+    ],
+)

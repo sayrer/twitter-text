@@ -26,7 +26,7 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     data = [
-        "//rust_bindings/cpp:config_test_data",
+        "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
 )

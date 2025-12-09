@@ -109,6 +109,12 @@ TwitterTextEntityArray twitter_text_extractor_extract_mentioned_screennames_with
     const char* text
 );
 
+/* Extract mentions or lists with indices */
+TwitterTextEntityArray twitter_text_extractor_extract_mentions_or_lists_with_indices(
+    TwitterTextExtractor* extractor,
+    const char* text
+);
+
 /* Extract reply username - returns NULL if none found */
 TwitterTextEntity* twitter_text_extractor_extract_reply_username(
     TwitterTextExtractor* extractor,

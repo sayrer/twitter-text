@@ -9,14 +9,14 @@ load("@rules_cc//cc:defs.bzl", "cc_test")
 # On Linux: Uses hermetic LLVM toolchain's ASAN runtime
 #
 # To run:
-#   bazel test //rust_bindings/cpp_sanitizers:all
+#   bazel test //rust/cpp-sanitizer-bindings:all
 
 cc_test(
     name = "config_test_asan",
     srcs = [
-        "//rust_bindings/cpp:config_test.cpp"
+        "//rust/cpp-bindings:config_test.cpp"
     ],
-    data = ["//rust_bindings/cpp:config_test_data"] + select({
+    data = ["//rust/cpp-bindings:config_test_data"] + select({
         "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
         "//conditions:default": [],
     }),
@@ -37,7 +37,7 @@ cc_test(
     deps = [
         "//3rdparty/crates:cxx_cc",
         "//rust/twitter-text:twitter_text_wrapper",
-        "//rust_bindings/cpp:twitter_text",
+        "//rust/cpp-bindings:twitter_text",
         "@googletest//:gtest_main",
     ],
 )
@@ -45,8 +45,8 @@ cc_test(
 cc_test(
     name = "autolink_test_asan",
     srcs = [
-        "//rust_bindings/cpp:test_helpers.h",
-        "//rust_bindings/cpp:autolink_test.cpp",
+        "//rust/cpp-bindings:test_helpers.h",
+        "//rust/cpp-bindings:autolink_test.cpp",
         "//rust/ffi-bindings:modifier_headers"
     ],
     data = ["//rust/conformance:yaml"] + select({
@@ -69,7 +69,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        "//rust_bindings/cpp:twitter_text",
+        "//rust/cpp-bindings:twitter_text",
         "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
@@ -78,8 +78,8 @@ cc_test(
 cc_test(
     name = "extractor_test_asan",
     srcs = [
-        "//rust_bindings/cpp:test_helpers.h",
-        "//rust_bindings/cpp:extractor_test.cpp"
+        "//rust/cpp-bindings:test_helpers.h",
+        "//rust/cpp-bindings:extractor_test.cpp"
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
@@ -100,7 +100,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        "//rust_bindings/cpp:twitter_text",
+        "//rust/cpp-bindings:twitter_text",
         "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
@@ -109,7 +109,7 @@ cc_test(
 cc_test(
     name = "hithighlighter_test_asan",
     srcs = [
-        "//rust_bindings/cpp:hithighlighter_test.cpp"
+        "//rust/cpp-bindings:hithighlighter_test.cpp"
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
@@ -130,7 +130,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        "//rust_bindings/cpp:twitter_text",
+        "//rust/cpp-bindings:twitter_text",
         "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],
@@ -139,8 +139,8 @@ cc_test(
 cc_test(
     name = "validator_test_asan",
     srcs = [
-        "//rust_bindings/cpp:test_helpers.h",
-        "//rust_bindings/cpp:validator_test.cpp",
+        "//rust/cpp-bindings:test_helpers.h",
+        "//rust/cpp-bindings:validator_test.cpp",
     ],
     data = ["//rust/conformance:yaml"] + select({
         "@platforms//os:linux": ["@llvm_toolchain_llvm//:lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"],
@@ -161,7 +161,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        "//rust_bindings/cpp:twitter_text",
+        "//rust/cpp-bindings:twitter_text",
         "@googletest//:gtest_main",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp"
     ],

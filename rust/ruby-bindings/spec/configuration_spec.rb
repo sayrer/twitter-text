@@ -7,7 +7,7 @@ RSpec.describe Twittertext::TwitterTextConfiguration do
     end
 
     it 'has working path loading' do
-        path = "rust_bindings/cpp/test_data/test_config.json"
+        path = "rust/cpp-bindings/test_data/test_config.json"
         config = Twittertext::TwitterTextConfiguration.configuration_from_path(path)
         expect(config.get_version).to eq 42
         expect(config.get_max_weighted_tweet_length).to eq 400
@@ -24,7 +24,7 @@ RSpec.describe Twittertext::TwitterTextConfiguration do
     end
 
     it 'has working json reading' do
-        path = "rust_bindings/cpp/test_data/test_config.json"
+        path = "rust/cpp-bindings/test_data/test_config.json"
 
         begin
             f = File.open(path)

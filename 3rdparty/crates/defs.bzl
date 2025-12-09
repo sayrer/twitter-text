@@ -298,6 +298,7 @@ _NORMAL_DEPENDENCIES = {
             "clap": Label("@twitter_text//:clap-4.5.53"),
             "cxx": Label("@twitter_text//:cxx-1.0.190"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
+            "js-sys": Label("@twitter_text//:js-sys-0.3.77"),
             "lazy_static": Label("@twitter_text//:lazy_static-1.5.0"),
             "libc": Label("@twitter_text//:libc-0.2.178"),
             "log": Label("@twitter_text//:log-0.4.28"),
@@ -309,6 +310,7 @@ _NORMAL_DEPENDENCIES = {
             "serde_json": Label("@twitter_text//:serde_json-1.0.145"),
             "serde_yaml_ng": Label("@twitter_text//:serde_yaml_ng-0.10.0"),
             "unicode-normalization": Label("@twitter_text//:unicode-normalization-0.1.25"),
+            "wasm-bindgen": Label("@twitter_text//:wasm-bindgen-0.2.100"),
         },
     },
 }
@@ -532,6 +534,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/block-buffer/0.10.4/download"],
         strip_prefix = "block-buffer-0.10.4",
         build_file = Label("//3rdparty/crates:BUILD.block-buffer-0.10.4.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__bumpalo-3.19.0",
+        sha256 = "46c5e41b57b8bba42a04676d81cb89e9ee8e859a1a66f80a5a72e1cb76b34d43",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/bumpalo/3.19.0/download"],
+        strip_prefix = "bumpalo-3.19.0",
+        build_file = Label("//3rdparty/crates:BUILD.bumpalo-3.19.0.bazel"),
     )
 
     maybe(
@@ -922,6 +934,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/itoa/1.0.15/download"],
         strip_prefix = "itoa-1.0.15",
         build_file = Label("//3rdparty/crates:BUILD.itoa-1.0.15.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__js-sys-0.3.77",
+        sha256 = "1cfaf33c695fc6e08064efbc1f72ec937429614f25eef83af942d0e227c3a28f",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/js-sys/0.3.77/download"],
+        strip_prefix = "js-sys-0.3.77",
+        build_file = Label("//3rdparty/crates:BUILD.js-sys-0.3.77.bazel"),
     )
 
     maybe(
@@ -1676,6 +1698,56 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__wasm-bindgen-0.2.100",
+        sha256 = "1edc8929d7499fc4e8f0be2262a241556cfc54a0bea223790e71446f2aab1ef5",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/wasm-bindgen/0.2.100/download"],
+        strip_prefix = "wasm-bindgen-0.2.100",
+        build_file = Label("//3rdparty/crates:BUILD.wasm-bindgen-0.2.100.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__wasm-bindgen-backend-0.2.100",
+        sha256 = "2f0a0651a5c2bc21487bde11ee802ccaf4c51935d0d3d42a6101f98161700bc6",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/wasm-bindgen-backend/0.2.100/download"],
+        strip_prefix = "wasm-bindgen-backend-0.2.100",
+        build_file = Label("//3rdparty/crates:BUILD.wasm-bindgen-backend-0.2.100.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__wasm-bindgen-macro-0.2.100",
+        sha256 = "7fe63fc6d09ed3792bd0897b314f53de8e16568c2b3f7982f468c0bf9bd0b407",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/wasm-bindgen-macro/0.2.100/download"],
+        strip_prefix = "wasm-bindgen-macro-0.2.100",
+        build_file = Label("//3rdparty/crates:BUILD.wasm-bindgen-macro-0.2.100.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__wasm-bindgen-macro-support-0.2.100",
+        sha256 = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/wasm-bindgen-macro-support/0.2.100/download"],
+        strip_prefix = "wasm-bindgen-macro-support-0.2.100",
+        build_file = Label("//3rdparty/crates:BUILD.wasm-bindgen-macro-support-0.2.100.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__wasm-bindgen-shared-0.2.100",
+        sha256 = "1a05d73b933a847d6cccdda8f838a22ff101ad9bf93e33684f39c1f5f0eece3d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/wasm-bindgen-shared/0.2.100/download"],
+        strip_prefix = "wasm-bindgen-shared-0.2.100",
+        build_file = Label("//3rdparty/crates:BUILD.wasm-bindgen-shared-0.2.100.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__winapi-util-0.1.11",
         sha256 = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22",
         type = "tar.gz",
@@ -1788,6 +1860,7 @@ def crate_repositories():
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
         struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
+        struct(repo = "twitter_text__js-sys-0.3.77", is_dev_dep = False),
         struct(repo = "twitter_text__lazy_static-1.5.0", is_dev_dep = False),
         struct(repo = "twitter_text__libc-0.2.178", is_dev_dep = False),
         struct(repo = "twitter_text__log-0.4.28", is_dev_dep = False),
@@ -1802,4 +1875,5 @@ def crate_repositories():
         struct(repo = "twitter_text__serde_json-1.0.145", is_dev_dep = False),
         struct(repo = "twitter_text__serde_yaml_ng-0.10.0", is_dev_dep = False),
         struct(repo = "twitter_text__unicode-normalization-0.1.25", is_dev_dep = False),
+        struct(repo = "twitter_text__wasm-bindgen-0.2.100", is_dev_dep = False),
     ]

@@ -24,12 +24,12 @@ bazel test //rust/...
 # Build specific language bindings
 bazel build //rust/ruby-bindings:twittertext
 bazel build //rust/java-bindings:twitter_text_java_ffm
-bazel build //rust_bindings/cpp/...
+bazel build //rust/cpp-bindings/...
 
 # Run specific test suites
 bazel test //rust/ruby-bindings/spec:all
 bazel test //rust/java-bindings/tests:all
-bazel test //rust_bindings/cpp/...
+bazel test //rust/cpp-bindings/...
 ```
 
 ### Cargo (for Rust development)
@@ -78,7 +78,7 @@ cargo test -p twitter-text-parser
 - **Ruby** (`rust/ruby-bindings/`): Uses Magnus FFI, requires Ruby 3.3+
 - **Java** (`rust/java-bindings/`): Uses JDK 23+ Foreign Function & Memory API (Project Panama)
 - **Python** (`rust/python-bindings/`): Uses PyO3
-- **C++** (`rust_bindings/cpp/`): Uses cxx.rs for safe Rust-C++ interop
+- **C++** (`rust/cpp-bindings/`): Uses cxx.rs for safe Rust-C++ interop
 - **Swift** (`rust/swift-bindings/`): Uses C FFI with auto-generated Clang modules
 
 ## Testing
@@ -187,6 +187,6 @@ Swift binary tests cannot run via Bazel on Linux because rules_swift passes Darw
 
 - Ruby bindings require system libyaml (`brew install libyaml` on macOS)
 - Java bindings use jextract to generate FFM code from C headers
-- Sanitizer tests available: `bazel test //rust_bindings/cpp_sanitizers/...`
+- Sanitizer tests available: `bazel test //rust/cpp-sanitizer-bindings/...`
 - MODULE.bazel contains all external dependencies and toolchain configurations
 - Swift bindings share the same C FFI layer (`//rust/ffi-bindings`) with Java and C++ bindings

@@ -7,6 +7,8 @@
 typedef struct TwitterTextConfiguration TwitterTextConfiguration;
 
 TwitterTextConfiguration* twitter_text_config_default(void);
+TwitterTextConfiguration* twitter_text_config_v1(void);
+TwitterTextConfiguration* twitter_text_config_v2(void);
 TwitterTextConfiguration* twitter_text_config_v3(void);
 TwitterTextConfiguration* twitter_text_config_from_json(const char* json);
 void twitter_text_config_free(TwitterTextConfiguration* config);

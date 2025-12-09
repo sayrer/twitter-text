@@ -14,7 +14,7 @@ TEST(TwitterTextConfigurationTest, Ctor) {
 }
 
 TEST(TwitterTextConfigurationTest, Path) {
-  auto config = TwitterTextConfiguration::configurationFromPath("rust_bindings/cpp/test_data/test_config.json");
+  auto config = TwitterTextConfiguration::configurationFromPath("rust/cpp-bindings/test_data/test_config.json");
   ASSERT_NE(config, nullptr);
   ASSERT_EQ(config->getVersion(), 42);
   ASSERT_EQ(config->getMaxWeightedTweetLength(), 400);
@@ -31,7 +31,7 @@ TEST(TwitterTextConfigurationTest, Path) {
 }
 
 TEST(TwitterTextConfigurationTest, Json) {
-  std::ifstream t("rust_bindings/cpp/test_data/test_config.json");
+  std::ifstream t("rust/cpp-bindings/test_data/test_config.json");
   std::string str((std::istreambuf_iterator<char>(t)),
                    std::istreambuf_iterator<char>());
   auto config = TwitterTextConfiguration::configurationFromJson(str);
