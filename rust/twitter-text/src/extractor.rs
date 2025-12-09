@@ -13,7 +13,7 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
-// Full TLD parser for TldMatcher::Pest mode
+// Full TLD parser for ExternalValidator::Pest mode
 use twitter_text_parser::twitter_text::full_tld::Rule as FullTldRule;
 use twitter_text_parser::twitter_text::full_tld::TwitterTextFullTldParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
@@ -31,14 +31,14 @@ type FullTldPair<'a> = pest::iterators::Pair<'a, FullTldRule>;
 /// # Current Implementation
 ///
 /// The current Pest grammar uses a permissive "domain-like" pattern for TLDs,
-/// so `TldMatcher::External` (the default) is required for correct TLD validation.
-/// `TldMatcher::Pest` trusts whatever the grammar matches, which may include
+/// so `ExternalValidator::External` (the default) is required for correct TLD validation.
+/// `ExternalValidator::Pest` trusts whatever the grammar matches, which may include
 /// invalid TLDs with the current permissive grammar.
 ///
-/// To use `TldMatcher::Pest` correctly, the grammar would need to be restored
+/// To use `ExternalValidator::Pest` correctly, the grammar would need to be restored
 /// to include the full TLD alternation (the original ~1500 TLD list).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum TldMatcher {
+pub enum ExternalValidator {
     /// Pure Pest parsing - trusts the Pest grammar's TLD matching.
     ///
     /// **Note:** With the current permissive grammar, this will accept any
@@ -70,7 +70,7 @@ pub trait Extract<'a> {
     fn set_extract_url_without_protocol(&mut self, extract_url_without_protocol: bool);
 
     /// Get the TLD matching strategy used by this extractor.
-    fn get_tld_matcher(&self) -> TldMatcher;
+    fn get_external_validator(&self) -> ExternalValidator;
 
     /// Extract entities from the source text that match rules allowed by r_match.
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T;
@@ -97,12 +97,12 @@ pub trait Extract<'a> {
             return self.empty_result();
         }
 
-        let tld_matcher = self.get_tld_matcher();
+        let external_validator = self.get_external_validator();
 
         // Branch based on TLD matcher to use the appropriate parser
-        match tld_matcher {
-            TldMatcher::Pest => self.extract_impl_full_tld(s, r_match),
-            TldMatcher::External => self.extract_impl_external(s, r_match),
+        match external_validator {
+            ExternalValidator::Pest => self.extract_impl_full_tld(s, r_match),
+            ExternalValidator::External => self.extract_impl_external(s, r_match),
         }
     }
 
@@ -122,7 +122,7 @@ pub trait Extract<'a> {
                             let span = pair.as_span();
                             let requires_exact_tld = r == Rule::url_without_protocol;
                             if let Some(trim_bytes) =
-                                validate_url(pair, requires_exact_tld, TldMatcher::External)
+                                validate_url(pair, requires_exact_tld, ExternalValidator::External)
                             {
                                 entity_count += 1;
                                 // If TLD was shorter than parsed, create trimmed span
@@ -353,7 +353,7 @@ pub trait Extract<'a> {
  */
 pub struct Extractor {
     extract_url_without_protocol: bool,
-    tld_matcher: TldMatcher,
+    external_validator: ExternalValidator,
 }
 
 impl Extractor {
@@ -361,15 +361,15 @@ impl Extractor {
     pub fn new() -> Extractor {
         Extractor {
             extract_url_without_protocol: true,
-            tld_matcher: TldMatcher::default(),
+            external_validator: ExternalValidator::default(),
         }
     }
 
     /// Create a new extractor with the specified TLD matcher.
-    pub fn with_tld_matcher(tld_matcher: TldMatcher) -> Extractor {
+    pub fn with_external_validator(external_validator: ExternalValidator) -> Extractor {
         Extractor {
             extract_url_without_protocol: true,
-            tld_matcher,
+            external_validator,
         }
     }
 
@@ -443,8 +443,8 @@ impl<'a> Extract<'a> for Extractor {
         self.extract_url_without_protocol = extract_url_without_protocol;
     }
 
-    fn get_tld_matcher(&self) -> TldMatcher {
-        self.tld_matcher
+    fn get_external_validator(&self) -> ExternalValidator {
+        self.external_validator
     }
 
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Vec<Entity<'a>> {
@@ -498,7 +498,7 @@ impl<'a> Extract<'a> for Extractor {
  */
 pub struct ValidatingExtractor<'a> {
     extract_url_without_protocol: bool,
-    tld_matcher: TldMatcher,
+    external_validator: ExternalValidator,
     config: &'a Configuration,
     ld: LengthData,
 }
@@ -509,7 +509,7 @@ impl<'a> ValidatingExtractor<'a> {
     pub fn new(configuration: &Configuration) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            tld_matcher: TldMatcher::default(),
+            external_validator: ExternalValidator::default(),
             config: configuration,
             ld: LengthData::empty(),
         }
@@ -517,13 +517,13 @@ impl<'a> ValidatingExtractor<'a> {
 
     /// Create a new Extractor with the specified TLD matcher.
     /// [ValidatingExtractor::prep_input] must be called prior to extract.
-    pub fn with_tld_matcher(
+    pub fn with_external_validator(
         configuration: &Configuration,
-        tld_matcher: TldMatcher,
+        external_validator: ExternalValidator,
     ) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            tld_matcher,
+            external_validator,
             config: configuration,
             ld: LengthData::empty(),
         }
@@ -557,7 +557,7 @@ impl<'a> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            tld_matcher: TldMatcher::default(),
+            external_validator: ExternalValidator::default(),
             config: configuration,
             ld: LengthData {
                 normalized_length: length,
@@ -569,15 +569,15 @@ impl<'a> ValidatingExtractor<'a> {
     }
 
     /// Create a new Extractor from text that is already nfc-normalized with the specified TLD matcher.
-    pub fn new_with_nfc_input_and_tld_matcher(
+    pub fn new_with_nfc_input_and_external_validator(
         configuration: &'a Configuration,
         s: &str,
-        tld_matcher: TldMatcher,
+        external_validator: ExternalValidator,
     ) -> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            tld_matcher,
+            external_validator,
             config: configuration,
             ld: LengthData {
                 normalized_length: length,
@@ -611,8 +611,8 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
         self.extract_url_without_protocol = extract_url_without_protocol;
     }
 
-    fn get_tld_matcher(&self) -> TldMatcher {
-        self.tld_matcher
+    fn get_external_validator(&self) -> ExternalValidator {
+        self.external_validator
     }
 
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
@@ -920,10 +920,14 @@ fn calculate_offset(s: &str) -> usize {
 /// Returns Some(0) if URL is valid as-is, Some(n) if n bytes need trimming,
 /// or None if URL is invalid.
 ///
-/// The `tld_matcher` parameter controls how TLDs are validated:
-/// - `TldMatcher::Pest`: Trust the Pest grammar's TLD matching (no external validation)
-/// - `TldMatcher::External`: Use phf lookup for O(1) TLD validation
-fn validate_url(p: Pair, requires_exact_tld: bool, tld_matcher: TldMatcher) -> Option<usize> {
+/// The `external_validator` parameter controls how TLDs are validated:
+/// - `ExternalValidator::Pest`: Trust the Pest grammar's TLD matching (no external validation)
+/// - `ExternalValidator::External`: Use phf lookup for O(1) TLD validation
+fn validate_url(
+    p: Pair,
+    requires_exact_tld: bool,
+    external_validator: ExternalValidator,
+) -> Option<usize> {
     let original_span = p.as_span();
     let original = p.as_str();
     match p.into_inner().find(|pair| {
@@ -942,7 +946,7 @@ fn validate_url(p: Pair, requires_exact_tld: bool, tld_matcher: TldMatcher) -> O
 
             // For Pest backend, trust the grammar's TLD matching entirely
             // Just validate punycode and return without trimming
-            if tld_matcher == TldMatcher::Pest {
+            if external_validator == ExternalValidator::Pest {
                 return if valid_punycode(original, &pair) {
                     Some(0)
                 } else {
@@ -1850,12 +1854,12 @@ mod debug_tests {
         }
     }
 
-    // TldMatcher backend tests
+    // ExternalValidator backend tests
 
     #[test]
-    fn test_tld_matcher_external_validates_tlds() {
+    fn test_external_validator_external_validates_tlds() {
         // External backend should reject invalid TLDs
-        let extractor = Extractor::with_tld_matcher(TldMatcher::External);
+        let extractor = Extractor::with_external_validator(ExternalValidator::External);
 
         // Valid TLD should be extracted
         let urls = extractor.extract_urls("Check out http://example.com/path");
@@ -1868,9 +1872,9 @@ mod debug_tests {
     }
 
     #[test]
-    fn test_tld_matcher_pest_trusts_grammar() {
+    fn test_external_validator_pest_trusts_grammar() {
         // Pest backend trusts whatever the grammar matches
-        let extractor = Extractor::with_tld_matcher(TldMatcher::Pest);
+        let extractor = Extractor::with_external_validator(ExternalValidator::Pest);
 
         // With the permissive grammar, this will also match
         let urls = extractor.extract_urls("Check out http://example.com/path");
@@ -1879,20 +1883,23 @@ mod debug_tests {
     }
 
     #[test]
-    fn test_tld_matcher_default_is_external() {
+    fn test_external_validator_default_is_external() {
         // Default should be External
-        assert_eq!(TldMatcher::default(), TldMatcher::External);
+        assert_eq!(ExternalValidator::default(), ExternalValidator::External);
 
         // New extractor should use External by default
         let extractor = Extractor::new();
-        assert_eq!(extractor.get_tld_matcher(), TldMatcher::External);
+        assert_eq!(
+            extractor.get_external_validator(),
+            ExternalValidator::External
+        );
     }
 
     #[test]
     fn test_both_backends_produce_same_results() {
         // Test that both backends produce identical results for common cases
-        let external = Extractor::with_tld_matcher(TldMatcher::External);
-        let pest = Extractor::with_tld_matcher(TldMatcher::Pest);
+        let external = Extractor::with_external_validator(ExternalValidator::External);
+        let pest = Extractor::with_external_validator(ExternalValidator::Pest);
 
         let test_cases = [
             "Check out http://example.com/path",
@@ -1917,7 +1924,7 @@ mod debug_tests {
 
     #[test]
     fn test_pest_backend_extracts_punycode_urls() {
-        let extractor = Extractor::with_tld_matcher(TldMatcher::Pest);
+        let extractor = Extractor::with_external_validator(ExternalValidator::Pest);
 
         // Punycode URL should be extracted
         let urls = extractor.extract_urls("See http://xn--80abe5aohbnkjb.xn--p1ai/");

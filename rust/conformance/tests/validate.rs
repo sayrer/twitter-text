@@ -4,11 +4,11 @@
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::validator::Validator;
-use twitter_text::TldMatcher;
+use twitter_text::ExternalValidator;
 
-/// Returns all TldMatcher variants for testing both backends.
-fn all_tld_matchers() -> [TldMatcher; 2] {
-    [TldMatcher::External, TldMatcher::Pest]
+/// Returns all ExternalValidator variants for testing both backends.
+fn all_external_validators() -> [ExternalValidator; 2] {
+    [ExternalValidator::External, ExternalValidator::Pest]
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -89,16 +89,16 @@ fn test_validator() {
 fn validate_weighting(
     assertions: &[WeightedTweetAssertion],
     config: &twitter_text_config::Configuration,
-    tld_matcher: TldMatcher,
+    external_validator: ExternalValidator,
 ) {
     for assertion in assertions {
         let expected = &assertion.expected;
         let message = &assertion.description;
-        let result = twitter_text::parse_with_tld_matcher(
+        let result = twitter_text::parse_with_external_validator(
             assertion.text.as_str(),
             config,
             true,
-            tld_matcher,
+            external_validator,
         );
         assert_eq!(
             expected.weighted_length, result.weighted_length,
@@ -136,26 +136,26 @@ fn validate_weighting(
 
 #[test]
 fn test_weighting() {
-    for tld_matcher in all_tld_matchers() {
+    for external_validator in all_external_validators() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         let v2 = twitter_text_config::config_v2();
         let v3 = twitter_text_config::config_v3();
         validate_weighting(
             &manifest.tests.weighted_tweets_counter_test,
             v2,
-            tld_matcher,
+            external_validator,
         );
         validate_weighting(
             &manifest
                 .tests
                 .weighted_tweets_with_discounted_emoji_counter_test,
             v3,
-            tld_matcher,
+            external_validator,
         );
         validate_weighting(
             &manifest.tests.unicode_directional_marker_counter_test,
             v3,
-            tld_matcher,
+            external_validator,
         );
     }
 }

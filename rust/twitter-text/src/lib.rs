@@ -16,8 +16,8 @@ use extractor::{Extract, ValidatingExtractor};
 use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 
-// Re-export TldMatcher for convenience
-pub use extractor::TldMatcher;
+// Re-export ExternalValidator for convenience
+pub use extractor::ExternalValidator;
 
 /// A struct that represents a parsed tweet containing the length of the tweet,
 /// its validity, display ranges etc. The name mirrors Twitter's Java implementation.
@@ -78,33 +78,33 @@ impl TwitterTextParseResults {
 /// length will give all URLs the weight supplied in [Configuration](twitter_text_configuration::Configuration),
 /// regardless of their length.
 ///
-/// This function uses the default TLD matcher (External/phf). Use [parse_with_tld_matcher] to
-/// specify a different TLD matching strategy.
+/// This function uses the default external validator (External/phf). Use [parse_with_external_validator] to
+/// specify a different validation strategy.
 ///
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
 /// NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
 pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
-    parse_with_tld_matcher(text, config, extract_urls, TldMatcher::default())
+    parse_with_external_validator(text, config, extract_urls, ExternalValidator::default())
 }
 
-/// Produce a [TwitterTextParseResults] struct from a [str] using the specified TLD matcher.
+/// Produce a [TwitterTextParseResults] struct from a [str] using the specified external validator.
 ///
 /// If extract_urls is true, the weighted length will give all URLs the weight supplied in
 /// [Configuration](twitter_text_configuration::Configuration), regardless of their length.
 ///
-/// The `tld_matcher` parameter controls how TLDs are validated:
-/// - [TldMatcher::Pest]: Trust the Pest grammar's TLD matching (original behavior)
-/// - [TldMatcher::External]: Use phf lookup for O(1) TLD validation (default, faster)
+/// The `external_validator` parameter controls how TLDs are validated:
+/// - [ExternalValidator::Pest]: Trust the Pest grammar's TLD matching (original behavior)
+/// - [ExternalValidator::External]: Use phf lookup for O(1) TLD validation (default, faster)
 ///
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
-/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input_and_tld_matcher] will be more efficient.
-pub fn parse_with_tld_matcher(
+/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input_and_external_validator] will be more efficient.
+pub fn parse_with_external_validator(
     text: &str,
     config: &Configuration,
     extract_urls: bool,
-    tld_matcher: TldMatcher,
+    external_validator: ExternalValidator,
 ) -> TwitterTextParseResults {
-    let mut extractor = ValidatingExtractor::with_tld_matcher(config, tld_matcher);
+    let mut extractor = ValidatingExtractor::with_external_validator(config, external_validator);
     let input = extractor.prep_input(text);
     if extract_urls {
         extractor

@@ -4,7 +4,7 @@
 
 use crate::entity;
 use crate::entity::Entity;
-use crate::extractor::{Extract, Extractor, TldMatcher};
+use crate::extractor::{ExternalValidator, Extract, Extractor};
 
 type Attributes = Vec<(String, String)>;
 const HREF: &'static str = "href";
@@ -150,12 +150,15 @@ pub struct Autolinker<'a> {
 impl<'a> Autolinker<'a> {
     /// An [Autolinker] with default properties.
     pub fn new(no_follow: bool) -> Autolinker<'a> {
-        Self::with_tld_matcher(no_follow, TldMatcher::default())
+        Self::with_external_validator(no_follow, ExternalValidator::default())
     }
 
     /// An [Autolinker] with a specific TLD matching strategy.
-    pub fn with_tld_matcher(no_follow: bool, tld_matcher: TldMatcher) -> Autolinker<'a> {
-        let mut extractor = Extractor::with_tld_matcher(tld_matcher);
+    pub fn with_external_validator(
+        no_follow: bool,
+        external_validator: ExternalValidator,
+    ) -> Autolinker<'a> {
+        let mut extractor = Extractor::with_external_validator(external_validator);
         extractor.set_extract_url_without_protocol(false);
         Autolinker {
             no_follow,

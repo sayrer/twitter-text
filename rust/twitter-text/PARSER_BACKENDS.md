@@ -86,9 +86,11 @@ This is more complex than TLD matching since it's stateful (consuming a variable
 Rather than a single enum, a compositional approach allows testing each optimization independently:
 
 ```rust
-pub struct ParserConfig {
-    pub tld_matcher: TldMatcher,     // Pest | External
-    pub emoji_matcher: EmojiMatcher, // Pest | External
+pub enum ExternalValidator {
+    /// Pure Pest parsing (original behavior)
+    Pest,
+    /// Pest for structure, external validation via phf/procedural code
+    External,
 }
 ```
 

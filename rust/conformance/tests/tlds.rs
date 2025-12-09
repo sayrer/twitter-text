@@ -4,11 +4,11 @@
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::extractor::Extractor;
-use twitter_text::TldMatcher;
+use twitter_text::ExternalValidator;
 
-/// Returns all TldMatcher variants for testing both backends.
-fn all_tld_matchers() -> [TldMatcher; 2] {
-    [TldMatcher::External, TldMatcher::Pest]
+/// Returns all ExternalValidator variants for testing both backends.
+fn all_external_validators() -> [ExternalValidator; 2] {
+    [ExternalValidator::External, ExternalValidator::Pest]
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -31,8 +31,8 @@ pub struct Manifest {
 
 const MANIFEST_YML: &str = include_str!("tlds.yml");
 
-fn tld_check(assertions: &[Assertion], tld_matcher: TldMatcher) {
-    let extractor = Extractor::with_tld_matcher(tld_matcher);
+fn tld_check(assertions: &[Assertion], external_validator: ExternalValidator) {
+    let extractor = Extractor::with_external_validator(external_validator);
     for assertion in assertions {
         let url_text = extractor.extract_urls(&assertion.text);
         assert!(
@@ -53,9 +53,9 @@ fn tld_check(assertions: &[Assertion], tld_matcher: TldMatcher) {
 
 #[test]
 fn tlds() {
-    for tld_matcher in all_tld_matchers() {
+    for external_validator in all_external_validators() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
-        tld_check(&manifest.tests.country, tld_matcher);
-        tld_check(&manifest.tests.generic, tld_matcher);
+        tld_check(&manifest.tests.country, external_validator);
+        tld_check(&manifest.tests.generic, external_validator);
     }
 }

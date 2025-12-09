@@ -5,11 +5,11 @@
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::extractor::Extract;
 use twitter_text::extractor::Extractor;
-use twitter_text::TldMatcher;
+use twitter_text::ExternalValidator;
 
-/// Returns all TldMatcher variants for testing both backends.
-fn all_tld_matchers() -> [TldMatcher; 2] {
-    [TldMatcher::External, TldMatcher::Pest]
+/// Returns all ExternalValidator variants for testing both backends.
+fn all_external_validators() -> [ExternalValidator; 2] {
+    [ExternalValidator::External, ExternalValidator::Pest]
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -146,10 +146,10 @@ const MANIFEST_YML: &str = include_str!("extract.yml");
 
 #[test]
 fn extract() {
-    for tld_matcher in all_tld_matchers() {
+    for external_validator in all_external_validators() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         for mention_assertion in manifest.tests.mentions {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let strings = extractor.extract_mentioned_screennames(&mention_assertion.text);
             assert_eq!(
                 strings.len(),
@@ -168,7 +168,7 @@ fn extract() {
         }
 
         for mention_assertion in manifest.tests.mentions_with_indices {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities =
                 extractor.extract_mentioned_screennames_with_indices(&mention_assertion.text);
             assert_eq!(
@@ -200,7 +200,7 @@ fn extract() {
         }
 
         for mention_assertion in manifest.tests.mentions_or_lists_with_indices {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let mentions =
                 extractor.extract_mentions_or_lists_with_indices(&mention_assertion.text);
             assert_eq!(
@@ -240,7 +240,7 @@ fn extract() {
         }
 
         for reply_assertion in manifest.tests.replies {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let reply = extractor.extract_reply_username(&reply_assertion.text);
             match reply {
                 Some(r) => assert_eq!(
@@ -258,7 +258,7 @@ fn extract() {
         }
 
         for url_assertion in manifest.tests.urls {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let urls = extractor.extract_urls(&url_assertion.text);
             assert_eq!(
                 urls.len(),
@@ -277,7 +277,7 @@ fn extract() {
         }
 
         for url_assertion in manifest.tests.urls_with_indices {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_urls_with_indices(&url_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -308,7 +308,7 @@ fn extract() {
         }
 
         for url_assertion in manifest.tests.urls_with_directional_markers {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_urls_with_indices(&url_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -339,7 +339,7 @@ fn extract() {
         }
 
         for tco_assertion in manifest.tests.tco_urls_with_params {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_urls_with_indices(&tco_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -358,7 +358,7 @@ fn extract() {
         }
 
         for hashtag_assertion in manifest.tests.hashtags {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let strings = extractor.extract_hashtags(&hashtag_assertion.text);
             assert_eq!(
                 strings.len(),
@@ -377,7 +377,7 @@ fn extract() {
         }
 
         for hashtag_assertion in manifest.tests.hashtags_from_astral {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_hashtags_with_indices(&hashtag_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -396,7 +396,7 @@ fn extract() {
         }
 
         for hashtag_assertion in manifest.tests.hashtags_with_indices {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_hashtags_with_indices(&hashtag_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -427,7 +427,7 @@ fn extract() {
         }
 
         for cashtag_assertion in manifest.tests.cashtags {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let strings = extractor.extract_cashtags(&cashtag_assertion.text);
             assert_eq!(
                 strings.len(),
@@ -446,7 +446,7 @@ fn extract() {
         }
 
         for cashtag_assertion in manifest.tests.cashtags_with_indices {
-            let extractor = Extractor::with_tld_matcher(tld_matcher);
+            let extractor = Extractor::with_external_validator(external_validator);
             let entities = extractor.extract_cashtags_with_indices(&cashtag_assertion.text);
             assert_eq!(
                 entities.len(),
@@ -475,5 +475,5 @@ fn extract() {
                 );
             }
         }
-    } // end for tld_matcher
+    } // end for external_validator
 }
