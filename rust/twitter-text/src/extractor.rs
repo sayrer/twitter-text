@@ -66,20 +66,21 @@ pub trait Extract<'a> {
                 p.flatten().for_each(|pair| {
                     let r = pair.as_rule();
                     if r == Rule::invalid_char || r == Rule::emoji {
-                        scanned.insert(0, UnprocessedEntity::Pair(pair));
+                        scanned.push(UnprocessedEntity::Pair(pair));
                     } else if r_match(r) {
                         if r == Rule::url || r == Rule::url_without_protocol {
                             let span = pair.as_span();
                             if validate_url(pair) {
                                 entity_count += 1;
-                                scanned.insert(0, UnprocessedEntity::UrlSpan(span));
+                                scanned.push(UnprocessedEntity::UrlSpan(span));
                             }
                         } else {
                             entity_count += 1;
-                            scanned.insert(0, UnprocessedEntity::Pair(pair));
+                            scanned.push(UnprocessedEntity::Pair(pair));
                         }
                     }
                 });
+                scanned.reverse();
                 self.create_result(s, entity_count, &mut scanned)
             }
             Err(_e) => self.empty_result(),
