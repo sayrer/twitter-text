@@ -1,0 +1,56 @@
+# Benchmark corpus for parse tweet operations
+# Realistic tweet examples with varied content and encodings
+tests:
+  # ASCII tweets
+  - description: "Simple ASCII tweet"
+    text: "Just setting up my Twitter account"
+
+  - description: "ASCII tweet with URL"
+    text: "Check out https://example.com for more information about our project"
+
+  - description: "ASCII tweet with multiple entities"
+    text: "Hey @user thanks for the #feedback! See our docs at https://docs.example.com $TECH"
+
+  # Emoji tweets
+  - description: "Tweet with emoji"
+    text: "What a great day! 🌞🎉✨ Feeling blessed! 🙏"
+
+  - description: "Emoji-heavy tweet"
+    text: "🔥🔥🔥 This is amazing! 💯💯💯 Best day ever! 🚀🚀🚀 To the moon! 🌙✨⭐️"
+
+  - description: "Tweet with flag emoji"
+    text: "Traveling from 🇺🇸 to 🇯🇵 this weekend! Can't wait! 🛫✈️🛬"
+
+  # CJK tweets
+  - description: "Japanese tweet"
+    text: "今日は東京で素晴らしいカンファレンスに参加しました。多くの新しいことを学びました。#テクノロジー #イノベーション"
+
+  - description: "Chinese tweet"
+    text: "人工智能和机器学习正在改变世界。我们正处于技术革命的中心。未来充满无限可能。"
+
+  - description: "Korean tweet"
+    text: "오늘 서울에서 열린 기술 컨퍼런스에 참석했습니다. 정말 많은 것을 배웠고 좋은 분들을 만났습니다. #기술 #혁신"
+
+  # Mixed content
+  - description: "Japanese with URL and emoji"
+    text: "@TwitterJP さんの新機能が素晴らしい！🎉 詳細はこちら https://t.co/example #Twitter #新機能"
+
+  - description: "Mixed scripts"
+    text: "Learning 日本語 is fun! 한국어 too! Both are challenging but rewarding 🌏📚✨"
+
+  # Long tweets
+  - description: "Long English tweet"
+    text: "This is a longer tweet that approaches the character limit. We want to test how the parser handles extended content with multiple @mentions @user1 @user2, several #hashtags #coding #programming #tech, URLs https://example.com https://docs.example.com, and $CASHTAGS too $AAPL $GOOGL. Plus emoji 🚀🎉!"
+
+  - description: "Long CJK tweet"
+    text: "これは長いツイートのテストです。日本語の文字は英語よりも重みが大きいため、より少ない文字数で制限に近づきます。@ユーザー さんへのメンション、#ハッシュタグ、そして https://example.com のURLも含めています。絵文字も追加します🎉🚀✨"
+
+  # Edge cases
+  - description: "Tweet with ZWJ emoji sequence"
+    text: "Family time! 👨‍👩‍👧‍👦 Working from home 👩‍💻 Love coding! 👨‍💻"
+
+  - description: "Tweet with skin tone modifiers"
+    text: "High five! 🙋🏻‍♀️🙋🏼‍♂️🙋🏽‍♀️🙋🏾‍♂️🙋🏿‍♀️ Diversity matters!"
+
+  - description: "Arabic RTL tweet"
+    text: "مرحباً بالجميع! اليوم كان يوماً رائعاً في المؤتمر التقني. تعلمت الكثير وقابلت أشخاصاً رائعين. #تقنية #ابتكار"

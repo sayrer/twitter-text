@@ -1,0 +1,45 @@
+# Benchmark corpus for autolink operations
+# Realistic tweet examples with varied content and encodings
+tests:
+  # ASCII
+  - description: "Simple ASCII mention"
+    text: "Hey @jack, check out this new feature!"
+
+  - description: "Multiple entities"
+    text: "Thanks @github for #OpenSource! Check https://github.com $MSFT"
+
+  # Emoji
+  - description: "Tweet with emoji"
+    text: "Love this! @twitter 🎉🚀✨ #excited"
+
+  - description: "Emoji-heavy tweet"
+    text: "🔥🔥🔥 @elonmusk dropping 💣💣💣 news about #Tesla $TSLA 🚗⚡"
+
+  # CJK (Chinese/Japanese/Korean)
+  - description: "Japanese tweet"
+    text: "今日は @TwitterJP さんと会議です！#東京 で会いましょう https://t.co/example"
+
+  - description: "Chinese tweet"
+    text: "感谢 @Twitter 的支持！#人工智能 正在改变世界 🌏"
+
+  - description: "Korean tweet"
+    text: "안녕하세요 @TwitterKR 님! #한국어 트윗입니다 💙"
+
+  # Arabic (RTL)
+  - description: "Arabic tweet"
+    text: "مرحباً @Twitter! #تويتر رائع جداً 🎊"
+
+  # Mixed scripts
+  - description: "Mixed CJK and emoji"
+    text: "@user 日本語とEnglish混在 #ハッシュタグ https://example.com 🇯🇵🇺🇸"
+
+  # Long tweet with URL
+  - description: "Long tweet near limit"
+    text: "This is a much longer tweet that approaches the character limit. We're testing how well the parser handles longer content with multiple @mentions and #hashtags throughout the text. Also including a URL https://example.com/very/long/path/to/resource and some $CASHTAGS for good measure."
+
+  # Edge cases
+  - description: "URL with unicode path"
+    text: "Check out https://example.com/path/日本語/page @user #test"
+
+  - description: "Multiple URLs"
+    text: "Links: https://one.com https://two.com https://three.com @user"

@@ -1,0 +1,39 @@
+package(default_visibility = ["//visibility:public"])
+
+# JVM flags for Java FFM
+_JVM_FLAGS = [
+    "--enable-preview",
+    "--enable-native-access=ALL-UNNAMED",
+]
+
+java_binary(
+    name = "benchmark_binary",
+    srcs = ["TwitterTextBenchmark.java"],
+    main_class = "benchmark.TwitterTextBenchmark",
+    deps = [
+        "//java:twitter_text_old",
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:com_fasterxml_jackson_dataformat_jackson_dataformat_yaml",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:com_fasterxml_jackson_core_jackson_core",
+    ],
+    jvm_flags = _JVM_FLAGS,
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+    resources = [
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+    resource_strip_prefix = "benchmark/data",
+)
+
+# Shell wrapper to set up library path for FFI
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":benchmark_binary",
+        "//rust/java-bindings:twitter_text_java_ffm",
+    ],
+)

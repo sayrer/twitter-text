@@ -1,0 +1,18 @@
+package(default_visibility = ["//visibility:public"])
+
+java_library(
+    name = "twitter_text_old",
+    srcs = glob(["src/main/java/**/*.java"]),
+    resources = [
+        "//config:v1.json",
+        "//config:v2.json",
+        "//config:v3.json",
+    ],
+    resource_strip_prefix = "config",
+    deps = [
+        "@maven//:com_fasterxml_jackson_core_jackson_annotations",
+        "@maven//:com_fasterxml_jackson_core_jackson_core",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:com_google_code_findbugs_jsr305",
+    ],
+)

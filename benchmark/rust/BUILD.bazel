@@ -1,0 +1,30 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_binary(
+    name = "benchmark_bin",
+    srcs = ["main.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "@twitter_text__serde-1.0.228//:serde",
+        "@twitter_text__serde_yaml_ng-0.10.0//:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "@twitter_text__serde_derive-1.0.228//:serde_derive",
+    ],
+    edition = "2021",
+)
+
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)

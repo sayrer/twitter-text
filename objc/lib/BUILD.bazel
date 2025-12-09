@@ -1,0 +1,24 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "objc_library")
+
+objc_library(
+    name = "TwitterText",
+    srcs = [
+        "TwitterText.m",
+        "TwitterTextEmoji.m",
+        "TwitterTextEntity.m",
+    ],
+    hdrs = [
+        "TwitterText.h",
+        "TwitterTextEmoji.h",
+        "TwitterTextEntity.h",
+    ],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    deps = [
+        "//objc/ThirdParty/IFUnicodeURL:IFUnicodeURL",
+    ],
+)

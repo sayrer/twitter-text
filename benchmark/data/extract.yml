@@ -1,0 +1,66 @@
+# Benchmark corpus for extract operations
+# Realistic tweet examples with varied content and encodings
+tests:
+  mentions:
+    - description: "Single ASCII mention"
+      text: "Thanks @elonmusk for the update"
+
+    - description: "Multiple mentions"
+      text: "@user1 @user2 @user3 great discussion today!"
+
+    - description: "Mention with emoji around it"
+      text: "🎉 Congrats @winner 🏆 on the achievement!"
+
+    - description: "Mention in Japanese context"
+      text: "素晴らしい投稿です @TwitterJP さん！いつもありがとう"
+
+    - description: "Mention with Arabic"
+      text: "شكراً @Twitter على الدعم الرائع"
+
+  urls:
+    - description: "Simple HTTPS URL"
+      text: "Check out https://github.com/anthropics/claude for more info"
+
+    - description: "URL with unicode in text"
+      text: "日本語のページ https://example.com/日本語 を見てください"
+
+    - description: "Multiple URLs with emoji"
+      text: "🔗 https://one.com 🔗 https://two.com 🔗 https://three.com"
+
+    - description: "Long URL"
+      text: "Documentation at https://docs.example.com/api/v2/reference/endpoints/users/timeline?limit=100&offset=0"
+
+    - description: "URL in CJK sentence"
+      text: "这个网站很有用 https://example.com 大家可以看看"
+
+  hashtags:
+    - description: "ASCII hashtag"
+      text: "Learning about #MachineLearning today"
+
+    - description: "Multiple hashtags"
+      text: "Great day for #coding #programming #rustlang #typescript"
+
+    - description: "Japanese hashtag"
+      text: "今日の #東京 の天気は最高です #日本 #旅行"
+
+    - description: "Hashtag with emoji"
+      text: "🔥 #trending 🔥 #viral 🔥 #amazing"
+
+    - description: "Korean hashtag"
+      text: "오늘 #서울 날씨가 좋네요 #한국여행 #맛집"
+
+    - description: "Mixed script hashtags"
+      text: "#Tokyo #東京 #도쿄 are all the same city!"
+
+  cashtags:
+    - description: "Single cashtag"
+      text: "Watching $AAPL earnings report"
+
+    - description: "Multiple cashtags"
+      text: "Portfolio update: $AAPL $GOOGL $MSFT $AMZN all up today! 📈"
+
+    - description: "Cashtag with emoji"
+      text: "🚀 $TSLA to the moon! 🌙 $BTC looking good too"
+
+    - description: "Cashtag in longer text"
+      text: "The market analysis shows $SPY is trending upward. Combined with $QQQ performance, tech sector looks strong for Q4."

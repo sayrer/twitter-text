@@ -1,0 +1,39 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
+js_binary(
+    name = "benchmark",
+    entry_point = "benchmark.mjs",
+    data = [
+        "//benchmark/data:benchmark_data_js",
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs_lib",
+        "//rust/wasm-bindings/old-js:twitter_text_wrapper",
+        "//js/pkg:twitter_text_old",
+        "//:node_modules/yaml",
+    ],
+)
+
+js_binary(
+    name = "extract_test",
+    entry_point = "extract_test.mjs",
+    data = [
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs_lib",
+        "//rust/wasm-bindings/old-js:twitter_text_wrapper",
+        "//js/pkg:twitter_text_old",
+    ],
+)
+
+js_binary(
+    name = "extract_test2",
+    entry_point = "extract_test2.mjs",
+    data = [
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs_lib",
+    ],
+)
+
+js_binary(
+    name = "extract_test3",
+    entry_point = "extract_test3.mjs",
+    data = [
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs_lib",
+    ],
+)

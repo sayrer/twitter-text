@@ -1,0 +1,78 @@
+# Benchmark corpus for validate operations
+# Realistic tweet examples with varied content and encodings
+tests:
+  tweets:
+    - description: "Valid short ASCII tweet"
+      text: "Hello, world!"
+
+    - description: "Valid tweet with emoji"
+      text: "Great day! 🌞☀️🎉 Feeling amazing!"
+
+    - description: "Valid Japanese tweet"
+      text: "今日は素晴らしい一日でした。東京の天気は最高です！皆さんも良い一日を過ごしてください。"
+
+    - description: "Valid Chinese tweet"
+      text: "人工智能正在改变我们的生活方式。机器学习和深度学习技术日新月异，未来充满可能性。"
+
+    - description: "Valid Korean tweet"
+      text: "오늘 서울에서 멋진 컨퍼런스에 참석했습니다. 많은 것을 배웠고 좋은 사람들을 만났습니다."
+
+    - description: "Valid Arabic tweet"
+      text: "اليوم كان يوماً رائعاً في المؤتمر. تعلمت الكثير من الأشياء الجديدة والمفيدة."
+
+    - description: "Valid mixed content tweet"
+      text: "Meeting with @team today! 🚀 Discussing #roadmap for Q4. Check https://example.com for details. $TECH looking good!"
+
+    - description: "Valid long tweet near limit"
+      text: "This is a longer tweet that tests the validation logic with more content. Including some @mentions and #hashtags to make it realistic. Also adding a URL https://example.com and checking how the weighted length calculation handles all of this together with some emoji 🎉🚀✨ at the end."
+
+    - description: "Valid emoji-heavy tweet"
+      text: "🔥💯🚀✨🎉🏆💪🌟⭐️💫🌈🦄🎯🔮💎👑🌸🍀🎪🎨"
+
+    - description: "Valid max-length CJK"
+      text: "日本語のツイートで文字数制限をテストしています。日本語は英語と比べて一文字あたりの重みが大きいため、より少ない文字数で制限に達します。これは国際化対応の重要なテストケースです。絵文字も含めてテスト🎉"
+
+  usernames:
+    - description: "Valid simple username"
+      text: "twitter"
+
+    - description: "Valid username with numbers"
+      text: "user123"
+
+    - description: "Valid username with underscore"
+      text: "twitter_dev"
+
+    - description: "Valid long username"
+      text: "a]very_long_username_123"
+
+  hashtags:
+    - description: "Valid ASCII hashtag"
+      text: "OpenSource"
+
+    - description: "Valid CamelCase hashtag"
+      text: "MachineLearning"
+
+    - description: "Valid Japanese hashtag"
+      text: "東京"
+
+    - description: "Valid Korean hashtag"
+      text: "한국어"
+
+    - description: "Valid hashtag with numbers"
+      text: "Web3"
+
+  urls:
+    - description: "Valid HTTPS URL"
+      text: "https://twitter.com"
+
+    - description: "Valid URL with path"
+      text: "https://example.com/path/to/page"
+
+    - description: "Valid URL with query"
+      text: "https://example.com/search?q=test&page=1"
+
+    - description: "Valid URL with unicode"
+      text: "https://example.com/日本語"
+
+    - description: "Valid long URL"
+      text: "https://docs.example.com/api/v2/reference/endpoints/users/timeline?limit=100&offset=0&fields=id,name,username"
