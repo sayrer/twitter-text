@@ -191,7 +191,8 @@ h16 = _{ HEX_DIGIT{1,4} }
 invalid_preceding_url_chars = { "_" | "-" | "." | protocol }
 uwp = { invalid_preceding_url_chars ~ uwp_domain | url_without_protocol }
 url_without_protocol = { uwp_domain ~ port? ~ path? ~ query? ~ fragment? }
-uwp_domain = { (uwp_sl_domain | uwp_longer_domain) ~ tld }
+// Short-circuit: require a dot before space/EOF to avoid expensive TLD hunting
+uwp_domain = { &((!space ~ !EOI ~ !"." ~ ANY)* ~ ".") ~ (uwp_sl_domain | uwp_longer_domain) ~ tld }
 uwp_sl_domain = _{ (uwp_domain_char+ ~ "." ~ &tld) ~ !((uwp_domain_char+ ~ "." ~ &tld) | "." ~ &tld | uwp_sl_domain) }
 uwp_longer_domain = _{ uwp_subdomain ~ ("." ~ uwp_subdomain)* ~ "." ~ uwp_sl_domain }
 uwp_subdomain = { !uwp_sl_domain ~ uwp_subdomain_char+ }
