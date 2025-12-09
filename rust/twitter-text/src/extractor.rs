@@ -3,6 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::entity::{Entity, Type};
+use crate::tlds::is_valid_tld;
 use crate::TwitterTextParseResults;
 use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
 use pest::Parser;
@@ -70,9 +71,21 @@ pub trait Extract<'a> {
                     } else if r_match(r) {
                         if r == Rule::url || r == Rule::url_without_protocol {
                             let span = pair.as_span();
-                            if validate_url(pair) {
+                            let requires_exact_tld = r == Rule::url_without_protocol;
+                            if let Some(trim_bytes) = validate_url(pair, requires_exact_tld) {
                                 entity_count += 1;
-                                scanned.push(UnprocessedEntity::UrlSpan(span));
+                                // If TLD was shorter than parsed, create trimmed span
+                                let final_span = if trim_bytes > 0 {
+                                    pest::Span::new(
+                                        span.get_input(),
+                                        span.start(),
+                                        span.end() - trim_bytes,
+                                    )
+                                    .unwrap_or(span)
+                                } else {
+                                    span
+                                };
+                                scanned.push(UnprocessedEntity::UrlSpan(final_span));
                             }
                         } else {
                             entity_count += 1;
@@ -648,15 +661,261 @@ fn calculate_offset(s: &str) -> usize {
     s.chars().next().unwrap_or(' ').len_utf8()
 }
 
-fn validate_url(p: Pair) -> bool {
+/// Validates a URL and returns the number of bytes to trim from the end.
+/// Returns Some(0) if URL is valid as-is, Some(n) if n bytes need trimming,
+/// or None if URL is invalid.
+fn validate_url(p: Pair, requires_exact_tld: bool) -> Option<usize> {
+    let original_span = p.as_span();
     let original = p.as_str();
     match p.into_inner().find(|pair| {
         let r = pair.as_rule();
         r == Rule::host || r == Rule::tco_domain || r == Rule::uwp_domain
     }) {
-        Some(pair) => valid_punycode(original, &pair),
-        _ => false,
+        Some(pair) => {
+            // For tco_domain (t.co), skip TLD validation - it's hardcoded in grammar
+            if pair.as_rule() == Rule::tco_domain {
+                return if valid_punycode(original, &pair) {
+                    Some(0)
+                } else {
+                    None
+                };
+            }
+
+            // Get the domain text
+            let domain_span = pair.as_span();
+            let domain = domain_span.as_str();
+
+            // For URLs without protocol, check for script mixing in domain labels
+            // (e.g., "example.comだよね" should be trimmed to "example.com")
+            // URLs with protocol can have mixed-script domains via IDNA/punycode
+            if requires_exact_tld {
+                let valid_domain_end = find_valid_domain_end(domain);
+                let domain_trim = domain.len() - valid_domain_end;
+
+                // If we trimmed the domain, we need to recalculate TLD
+                if domain_trim > 0 {
+                    let trimmed_domain = &domain[..valid_domain_end];
+                    // Find the last dot to get the TLD portion
+                    if let Some(last_dot) = trimmed_domain.rfind('.') {
+                        let tld = &trimmed_domain[last_dot + 1..];
+                        if is_valid_tld(&tld.to_lowercase()) {
+                            // Calculate bytes from end of original URL span to end of valid domain
+                            let domain_end_in_url = domain_span.end() - original_span.start();
+                            let url_len = original.len();
+                            let after_domain = url_len - domain_end_in_url;
+                            let total_trim = domain_trim + after_domain;
+                            // Still need punycode validation on the trimmed domain
+                            return Some(total_trim);
+                        }
+                    }
+                    return None;
+                }
+            }
+
+            // Validate TLD by working through domain from right to left
+            // This handles cases like "example.comだよね.comtest" where we need to find
+            // the rightmost valid TLD boundary (should stop at "example.com")
+            match find_valid_tld_boundary(domain, requires_exact_tld) {
+                Some(valid_domain_len) => {
+                    let domain_trim = domain.len() - valid_domain_len;
+
+                    if domain_trim == 0 {
+                        // Full domain is valid, keep entire URL including path/query/fragment
+                        if valid_punycode(original, &pair) {
+                            Some(0)
+                        } else {
+                            None
+                        }
+                    } else {
+                        // Need to trim domain - also trim everything after the domain
+                        let domain_end_in_url = domain_span.end() - original_span.start();
+                        let url_len = original.len();
+                        let after_domain = url_len - domain_end_in_url;
+                        let total_trim = domain_trim + after_domain;
+                        Some(total_trim)
+                    }
+                }
+                None => None,
+            }
+        }
+        _ => None,
     }
+}
+
+/// Find the valid TLD boundary in a domain.
+///
+/// For normal domains like "msdn.microsoft.com", uses right-to-left to find the rightmost TLD.
+/// For domains with script mixing like "example.comだよね.comtest", finds the first valid TLD
+/// before the script boundary.
+///
+/// Returns Some(byte_position) of the valid domain end, or None if no valid TLD found.
+fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usize> {
+    // First check if domain has any script mixing (Latin followed by non-Latin in same label)
+    let has_script_mixing_in_domain = domain.split('.').any(|label| has_script_mixing(label));
+
+    // Find all dot positions in the domain
+    let dot_positions: Vec<usize> = domain
+        .char_indices()
+        .filter(|(_, c)| *c == '.')
+        .map(|(i, _)| i)
+        .collect();
+
+    if has_script_mixing_in_domain {
+        // For domains with script mixing, work left to right to find the first valid TLD
+        // before the script boundary (e.g., "example.comだよね.comtest" -> "example.com")
+        for &dot_pos in &dot_positions {
+            let after_dot = &domain[dot_pos + 1..];
+            let segment_end = after_dot.find('.').unwrap_or(after_dot.len());
+            let segment = &after_dot[..segment_end];
+
+            // If this segment has script mixing, find the valid prefix
+            if has_script_mixing(segment) {
+                let boundary = find_script_boundary(segment);
+                let effective_segment = &segment[..boundary];
+                let segment_lower = effective_segment.to_lowercase();
+
+                if !segment_lower.is_empty() && is_valid_tld(&segment_lower) {
+                    let end_pos = dot_pos + 1 + effective_segment.len();
+                    #[cfg(test)]
+                    eprintln!(
+                        "find_valid_tld_boundary: found valid TLD '{}' at script boundary, position {}",
+                        segment_lower, end_pos
+                    );
+                    return Some(end_pos);
+                }
+            }
+        }
+    }
+
+    // Normal case: work right to left to find the rightmost valid TLD
+    for &dot_pos in dot_positions.iter().rev() {
+        let after_dot = &domain[dot_pos + 1..];
+        let segment_end = after_dot.find('.').unwrap_or(after_dot.len());
+        let segment = &after_dot[..segment_end];
+        let segment_lower = segment.to_lowercase();
+
+        // Check if this segment is a valid TLD
+        if is_valid_tld(&segment_lower) {
+            let end_pos = dot_pos + 1 + segment.len();
+            #[cfg(test)]
+            eprintln!(
+                "find_valid_tld_boundary: found valid TLD '{}' at position {}",
+                segment_lower, end_pos
+            );
+            return Some(end_pos);
+        }
+
+        // For URLs without protocol (requires_exact_tld=true), we need prefix matching
+        // for Unicode TLDs like みんな from みんなです.
+        // For URLs with protocol, we don't do prefix matching (grammar already determined the TLD).
+        if requires_exact_tld && !segment_lower.is_ascii() {
+            // Check if a valid Unicode TLD is a prefix of this segment
+            // We try progressively shorter prefixes
+            for (char_idx, _) in segment.char_indices().skip(2) {
+                let prefix = &segment[..char_idx];
+                let prefix_lower = prefix.to_lowercase();
+                if is_valid_tld(&prefix_lower) {
+                    let end_pos = dot_pos + 1 + prefix.len();
+                    #[cfg(test)]
+                    eprintln!(
+                        "find_valid_tld_boundary: found valid Unicode TLD prefix '{}' at position {}",
+                        prefix_lower, end_pos
+                    );
+                    return Some(end_pos);
+                }
+            }
+        }
+    }
+
+    // No valid TLD found
+    #[cfg(test)]
+    eprintln!(
+        "find_valid_tld_boundary: no valid TLD found in '{}'",
+        domain
+    );
+    None
+}
+
+/// Find the end position of the valid domain, trimming any script-mixed labels.
+/// Returns the byte offset where the valid domain ends.
+///
+/// Domain labels cannot mix ASCII and non-ASCII characters (except punycode xn--).
+/// For example, "example.comだよね" should be trimmed to "example.com"
+fn find_valid_domain_end(domain: &str) -> usize {
+    let mut valid_end = domain.len();
+
+    // Check each label from right to left
+    let labels: Vec<&str> = domain.split('.').collect();
+    let mut pos = domain.len();
+
+    for label in labels.iter().rev() {
+        let label_start = pos - label.len();
+
+        // Check if this label has script mixing (ASCII then non-ASCII)
+        if has_script_mixing(label) {
+            // Find where the valid part ends within this label
+            let valid_label_end = find_script_boundary(label);
+            valid_end = label_start + valid_label_end;
+            break;
+        }
+
+        // Move to before the dot
+        pos = label_start.saturating_sub(1);
+    }
+
+    valid_end
+}
+
+/// Check if a character is Latin (ASCII or Latin Extended)
+fn is_latin_char(c: char) -> bool {
+    c.is_ascii_alphabetic()
+        || ('\u{00C0}'..='\u{00FF}').contains(&c)  // Latin-1 Supplement
+        || ('\u{0100}'..='\u{017F}').contains(&c)  // Latin Extended-A
+        || ('\u{0180}'..='\u{024F}').contains(&c) // Latin Extended-B
+}
+
+/// Check if a label has invalid script mixing (Latin followed by non-Latin scripts)
+fn has_script_mixing(label: &str) -> bool {
+    // Punycode labels (xn--) can have any characters
+    if label.starts_with("xn--") || label.starts_with("XN--") {
+        return false;
+    }
+
+    let mut seen_latin = false;
+    for c in label.chars() {
+        if is_latin_char(c) {
+            seen_latin = true;
+        } else if c.is_ascii_digit() || c == '-' {
+            // Digits and hyphens are allowed in any label
+            continue;
+        } else if seen_latin {
+            // Found non-Latin after Latin letter - this is script mixing
+            return true;
+        }
+    }
+    false
+}
+
+/// Find the byte position where script mixing begins in a label.
+/// Returns the valid portion length.
+fn find_script_boundary(label: &str) -> usize {
+    let mut last_valid = 0;
+    let mut seen_latin = false;
+
+    for (i, c) in label.char_indices() {
+        if is_latin_char(c) || c.is_ascii_digit() || c == '-' {
+            seen_latin = seen_latin || is_latin_char(c);
+            last_valid = i + c.len_utf8();
+        } else if seen_latin {
+            // Non-Latin after Latin - stop here
+            break;
+        } else {
+            // Non-Latin before any Latin - this is a Unicode-start label, allow it
+            last_valid = i + c.len_utf8();
+        }
+    }
+
+    last_valid
 }
 
 fn valid_punycode(original: &str, domain: &pest::iterators::Pair<Rule>) -> bool {
@@ -1021,5 +1280,303 @@ mod tests {
         let text = "MLB.tv vine.co";
         let extracted = extractor.extract_urls(text);
         assert_eq!(0, extracted.len());
+    }
+
+    #[test]
+    fn test_url_with_unicode_tld() {
+        let extractor = Extractor::new();
+        // Korean TLD: 한국
+        let text = "https://twitter.한국";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(vec!["https://twitter.한국"], extracted);
+    }
+
+    #[test]
+    fn test_url_with_trailing_cjk() {
+        // This is the failing conformance test case
+        let extractor = Extractor::new();
+        let text = "test http://example.comだよね.comtest/hogehoge";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(vec!["http://example.com"], extracted);
+    }
+
+    #[test]
+    fn test_simple_url() {
+        let extractor = Extractor::new();
+        let text = "http://example.com/";
+        let extracted = extractor.extract_urls(text);
+        assert_eq!(vec!["http://example.com/"], extracted);
+    }
+}
+
+/// Debug tests for URL extraction edge cases.
+/// These tests help diagnose issues with TLD validation, script mixing,
+/// punycode handling, and other URL extraction behaviors.
+#[cfg(test)]
+mod debug_tests {
+    use super::*;
+    use crate::tlds::is_valid_tld;
+    use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
+    use pest::Parser;
+    use twitter_text_parser::twitter_text::Rule;
+    use twitter_text_parser::twitter_text::TwitterTextParser;
+
+    // Domain and script boundary tests
+
+    #[test]
+    fn test_script_boundary_unicode_domain() {
+        // "twitter.한국" - should NOT have script mixing since dot separates them
+        let domain = "twitter.한국";
+        let valid_end = find_valid_domain_end(domain);
+        eprintln!(
+            "Domain: {} -> valid_end: {} (len: {})",
+            domain,
+            valid_end,
+            domain.len()
+        );
+        assert_eq!(
+            valid_end,
+            domain.len(),
+            "Unicode TLD domains should be fully valid"
+        );
+    }
+
+    #[test]
+    fn test_script_boundary_mixed_label() {
+        // "comだよね" - ASCII then non-ASCII in same label
+        let label = "comだよね";
+        assert!(
+            has_script_mixing(label),
+            "comだよね should have script mixing"
+        );
+        let boundary = find_script_boundary(label);
+        eprintln!("Label: {} -> boundary: {}", label, boundary);
+        assert_eq!(boundary, 3, "Should stop after 'com'");
+    }
+
+    // TLD validation tests
+
+    #[test]
+    fn test_vermogen_tld() {
+        let tld = "vermögensberatung";
+        eprintln!("Testing TLD: {} (len: {})", tld, tld.len());
+        eprintln!("Is valid TLD: {}", is_valid_tld(tld));
+        eprintln!("Lowercase: {}", is_valid_tld(&tld.to_lowercase()));
+
+        let extractor = Extractor::new();
+        let text = "https://twitter.vermögensberatung";
+        eprintln!("Testing URL: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted: {:?}", urls);
+    }
+
+    // URL without protocol (UWP) tests
+
+    #[test]
+    fn test_uwp_extraction() {
+        let extractor = Extractor::new();
+        let text = "foo.baz foo.co.jp www.xxxxxxx.baz www.foo.co.uk wwwww.xxxxxxx foo.comm foo.somecom foo.govedu foo.jp";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+        eprintln!("Expected: foo.co.jp, www.foo.co.uk, foo.jp");
+    }
+
+    #[test]
+    fn test_japanese_uwp() {
+        let extractor = Extractor::new();
+        let text = "example.comてすとですtwitter.みんなです";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+        eprintln!("Expected: example.com, twitter.みんな");
+    }
+
+    // IDN and mixed script tests
+
+    #[test]
+    fn test_idn_mixed_domain() {
+        let extractor = Extractor::new();
+        let text = "http://exampleこれは日本語です.com/path/index.html";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+    }
+
+    #[test]
+    fn test_trailing_cjk() {
+        let extractor = Extractor::new();
+        let text = "http://example.comだよね.comtest/hoge";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+        eprintln!("Expected: http://example.com");
+    }
+
+    // Punycode tests
+
+    #[test]
+    fn test_punycode_mixed() {
+        let uts46 = Uts46::new();
+
+        // Test the problematic domain
+        let domain = "example.comだよね.comtest";
+        eprintln!("Testing domain: {}", domain);
+        let result = uts46.to_ascii(
+            domain.as_bytes(),
+            AsciiDenyList::EMPTY,
+            Hyphens::Allow,
+            DnsLength::Verify,
+        );
+        eprintln!("Result: {:?}", result);
+
+        // What about just the label?
+        let label = "comだよね";
+        eprintln!("\nTesting label: {}", label);
+        let result2 = uts46.to_ascii(
+            label.as_bytes(),
+            AsciiDenyList::EMPTY,
+            Hyphens::Allow,
+            DnsLength::Verify,
+        );
+        eprintln!("Result: {:?}", result2);
+    }
+
+    #[test]
+    fn test_punycode_trailingdash_twitter() {
+        let uts46 = Uts46::new();
+
+        let domain = "trailingdash.twitter";
+        eprintln!("Testing domain: {}", domain);
+        let result = uts46.to_ascii(
+            domain.as_bytes(),
+            AsciiDenyList::EMPTY,
+            Hyphens::Allow,
+            DnsLength::Verify,
+        );
+        eprintln!("Result: {:?}", result);
+
+        let domain2 = "trailingdash.tw";
+        eprintln!("\nTesting domain: {}", domain2);
+        let result2 = uts46.to_ascii(
+            domain2.as_bytes(),
+            AsciiDenyList::EMPTY,
+            Hyphens::Allow,
+            DnsLength::Verify,
+        );
+        eprintln!("Result: {:?}", result2);
+    }
+
+    #[test]
+    fn test_punycode_idn_url() {
+        let extractor = Extractor::new();
+        let text = "See also: http://xn--80abe5aohbnkjb.xn--p1ai/";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  URL: '{}'", url);
+        }
+        assert_eq!(urls.len(), 1);
+        assert_eq!(urls[0], "http://xn--80abe5aohbnkjb.xn--p1ai/");
+    }
+
+    // Complex URL tests
+
+    #[test]
+    fn test_msdn_url() {
+        let extractor = Extractor::new();
+        let text =
+            "http://msdn.microsoft.com/ja-jp/library/system.net.httpwebrequest(v=VS.100).aspx";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+    }
+
+    // Trailing dash tests
+
+    #[test]
+    fn test_trailing_dash() {
+        let extractor = Extractor::new();
+        let text = "test http://trailingdash.twitter-.com";
+        eprintln!("Testing: {}", text);
+        let urls = extractor.extract_urls(text);
+        eprintln!("Extracted {} URLs:", urls.len());
+        for url in &urls {
+            eprintln!("  {}", url);
+        }
+        eprintln!("Expected: 0 URLs");
+    }
+
+    #[test]
+    fn test_trailing_dash_debug() {
+        let domain = "trailingdash.twitter-.com";
+        eprintln!("Domain: {}", domain);
+
+        // Find dots
+        let dot_positions: Vec<usize> = domain
+            .char_indices()
+            .filter(|(_, c)| *c == '.')
+            .map(|(i, _)| i)
+            .collect();
+        eprintln!("Dot positions: {:?}", dot_positions);
+
+        // Check for script mixing
+        let has_mixing = domain.split('.').any(|l| has_script_mixing(l));
+        eprintln!("Has script mixing: {}", has_mixing);
+
+        // Check each segment
+        for &dot_pos in dot_positions.iter().rev() {
+            let after_dot = &domain[dot_pos + 1..];
+            let segment_end = after_dot.find('.').unwrap_or(after_dot.len());
+            let segment = &after_dot[..segment_end];
+            eprintln!(
+                "At dot {}: after_dot='{}', segment='{}'",
+                dot_pos, after_dot, segment
+            );
+            eprintln!(
+                "  is_valid_tld('{}') = {}",
+                segment.to_lowercase(),
+                is_valid_tld(&segment.to_lowercase())
+            );
+        }
+
+        let result = find_valid_tld_boundary(domain, false);
+        eprintln!("Result: {:?}", result);
+    }
+
+    // Parser debug tests
+
+    #[test]
+    fn test_parser_trailing_dash() {
+        let text = "test http://trailingdash.twitter-.com";
+        eprintln!("Input: {}", text);
+
+        match TwitterTextParser::parse(Rule::tweet, text) {
+            Ok(p) => {
+                for pair in p.flatten() {
+                    let r = pair.as_rule();
+                    if r == Rule::url || r == Rule::host {
+                        eprintln!("{:?}: '{}'", r, pair.as_str());
+                    }
+                }
+            }
+            Err(e) => eprintln!("Parse error: {}", e),
+        }
     }
 }

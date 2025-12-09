@@ -304,6 +304,7 @@ _NORMAL_DEPENDENCIES = {
             "log": Label("@twitter_text//:log-0.4.28"),
             "magnus": Label("@twitter_text//:magnus-0.8.2"),
             "pest": Label("@twitter_text//:pest-2.8.4"),
+            "phf": Label("@twitter_text//:phf-0.11.3"),
             "proc-macro-error": Label("@twitter_text//:proc-macro-error-1.0.4"),
             "pyo3": Label("@twitter_text//:pyo3-0.20.3"),
             "serde": Label("@twitter_text//:serde-1.0.228"),
@@ -1168,6 +1169,46 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__phf-0.11.3",
+        sha256 = "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf/0.11.3/download"],
+        strip_prefix = "phf-0.11.3",
+        build_file = Label("//3rdparty/crates:BUILD.phf-0.11.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__phf_generator-0.11.3",
+        sha256 = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf_generator/0.11.3/download"],
+        strip_prefix = "phf_generator-0.11.3",
+        build_file = Label("//3rdparty/crates:BUILD.phf_generator-0.11.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__phf_macros-0.11.3",
+        sha256 = "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf_macros/0.11.3/download"],
+        strip_prefix = "phf_macros-0.11.3",
+        build_file = Label("//3rdparty/crates:BUILD.phf_macros-0.11.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__phf_shared-0.11.3",
+        sha256 = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf_shared/0.11.3/download"],
+        strip_prefix = "phf_shared-0.11.3",
+        build_file = Label("//3rdparty/crates:BUILD.phf_shared-0.11.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__portable-atomic-1.11.1",
         sha256 = "f84267b20a16ea918e43c6a88433c2d54fa145c92a811b5b047ccbe153674483",
         type = "tar.gz",
@@ -1274,6 +1315,26 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/quote/1.0.42/download"],
         strip_prefix = "quote-1.0.42",
         build_file = Label("//3rdparty/crates:BUILD.quote-1.0.42.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__rand-0.8.5",
+        sha256 = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/rand/0.8.5/download"],
+        strip_prefix = "rand-0.8.5",
+        build_file = Label("//3rdparty/crates:BUILD.rand-0.8.5.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__rand_core-0.6.4",
+        sha256 = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/rand_core/0.6.4/download"],
+        strip_prefix = "rand_core-0.6.4",
+        build_file = Label("//3rdparty/crates:BUILD.rand_core-0.6.4.bazel"),
     )
 
     maybe(
@@ -1488,6 +1549,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__siphasher-1.0.1",
+        sha256 = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/siphasher/1.0.1/download"],
+        strip_prefix = "siphasher-1.0.1",
+        build_file = Label("//3rdparty/crates:BUILD.siphasher-1.0.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__smallvec-1.15.1",
         sha256 = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03",
         type = "tar.gz",
@@ -1614,6 +1685,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/ucd-trie/0.1.7/download"],
         strip_prefix = "ucd-trie-0.1.7",
         build_file = Label("//3rdparty/crates:BUILD.ucd-trie-0.1.7.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__unicase-2.8.1",
+        sha256 = "75b844d17643ee918803943289730bec8aac480150456169e647ed0b576ba539",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/unicase/2.8.1/download"],
+        strip_prefix = "unicase-2.8.1",
+        build_file = Label("//3rdparty/crates:BUILD.unicase-2.8.1.bazel"),
     )
 
     maybe(
@@ -1867,6 +1948,7 @@ def crate_repositories():
         struct(repo = "twitter_text__magnus-0.8.2", is_dev_dep = False),
         struct(repo = "twitter_text__pest-2.8.4", is_dev_dep = False),
         struct(repo = "twitter_text__pest_derive-2.8.4", is_dev_dep = False),
+        struct(repo = "twitter_text__phf-0.11.3", is_dev_dep = False),
         struct(repo = "twitter_text__proc-macro-error-1.0.4", is_dev_dep = False),
         struct(repo = "twitter_text__pyo3-0.20.3", is_dev_dep = False),
         struct(repo = "twitter_text__pyo3-macros-0.20.3", is_dev_dep = False),

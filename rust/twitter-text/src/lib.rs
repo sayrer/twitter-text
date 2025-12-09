@@ -6,6 +6,7 @@ pub mod autolinker;
 pub mod entity;
 pub mod extractor;
 pub mod hit_highlighter;
+pub mod tlds;
 pub mod validator;
 
 #[cfg(feature = "ffi")]

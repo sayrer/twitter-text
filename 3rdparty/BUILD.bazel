@@ -52,6 +52,10 @@ crates_vendor(
         "serde_yaml_ng": crate.spec(
             version = "0.10.0",
         ),
+        "phf": crate.spec(
+            version = "0.11",
+            features = ["macros", "unicase"],
+        ),
         "magnus": crate.spec(
             version = "0.8.2",
         ),

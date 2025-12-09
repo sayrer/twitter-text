@@ -158,6 +158,18 @@ alias(
 )
 
 alias(
+    name = "phf-0.11.3",
+    actual = "@twitter_text__phf-0.11.3//:phf",
+    tags = ["manual"],
+)
+
+alias(
+    name = "phf",
+    actual = "@twitter_text__phf-0.11.3//:phf",
+    tags = ["manual"],
+)
+
+alias(
     name = "proc-macro-error-1.0.4",
     actual = "@twitter_text__proc-macro-error-1.0.4//:proc_macro_error",
     tags = ["manual"],
@@ -269,6 +281,12 @@ alias(
 alias(
     name = "clap__stdio-fixture",
     actual = "@twitter_text__clap-4.5.53//:stdio-fixture__bin",
+    tags = ["manual"],
+)
+
+alias(
+    name = "phf_generator__gen_hash_test",
+    actual = "@twitter_text__phf_generator-0.11.3//:gen_hash_test__bin",
     tags = ["manual"],
 )
 

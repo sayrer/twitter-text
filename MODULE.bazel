@@ -295,6 +295,7 @@ use_repo(
     "twitter_text__magnus-0.8.2",
     "twitter_text__pest-2.8.4",
     "twitter_text__pest_derive-2.8.4",
+    "twitter_text__phf-0.11.3",
     "twitter_text__proc-macro-error-1.0.4",
     "twitter_text__pyo3-0.20.3",
     "twitter_text__pyo3-macros-0.20.3",
