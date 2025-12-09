@@ -100,7 +100,10 @@ reply = _{ space? ~ username ~ !user_invalid_suffix }
 //
 // URLs beginning with "http"
 //
-possible_url = _{ !(user_prefix | hashtag_prefix | cashtag_prefix) ~ (url | uwp) }
+// Early rejection: only attempt URL parsing if there's a "." before the next space/EOF.
+// This avoids expensive TLD matching at positions that can't possibly be URLs.
+possible_url = _{ !(user_prefix | hashtag_prefix | cashtag_prefix) ~ &url_has_dot ~ (url | uwp) }
+url_has_dot = _{ (!space ~ !"." ~ ANY)* ~ "." }
 url = { tco_url | normal_url }
 tco_url = _{
     (protocol ~ tco_domain ~ "/" ~ alphanumeric{1,40} ~ (query ~ fragment?)? ~ !(alphanumeric | cyrillic_char | latin_accent)) |

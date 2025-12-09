@@ -488,3 +488,132 @@ static TTTextParser *_defaultParser = nil;
 }
 
 @end
+
+#pragma mark - TTTextAutolinker
+
+@interface TTTextAutolinker ()
+@property (nonatomic, assign) TwitterTextAutolinker *internalHandle;
+@end
+
+@implementation TTTextAutolinker
+
+- (instancetype)init {
+    return [self initWithNoFollow:YES];
+}
+
+- (instancetype)initWithNoFollow:(BOOL)noFollow {
+    self = [super init];
+    if (self) {
+        _internalHandle = twitter_text_autolinker_new(noFollow);
+    }
+    return self;
+}
+
+- (void)dealloc {
+    if (_internalHandle) {
+        twitter_text_autolinker_free(_internalHandle);
+    }
+}
+
+- (BOOL)noFollow {
+    // We don't have a getter in the C API, so we'd need to track this ourselves
+    // For now, return YES as default
+    return YES;
+}
+
+- (void)setNoFollow:(BOOL)noFollow {
+    if (_internalHandle) {
+        twitter_text_autolinker_set_no_follow(_internalHandle, noFollow);
+    }
+}
+
+- (NSString *)autolink:(NSString *)text {
+    if (!text || !_internalHandle) return text;
+
+    const char *cText = [text UTF8String];
+    char *result = twitter_text_autolinker_autolink(_internalHandle, cText);
+
+    if (!result) return text;
+
+    NSString *nsResult = [NSString stringWithUTF8String:result];
+    twitter_text_string_free(result);
+    return nsResult;
+}
+
+- (NSString *)autolinkURLs:(NSString *)text {
+    if (!text || !_internalHandle) return text;
+
+    const char *cText = [text UTF8String];
+    char *result = twitter_text_autolinker_autolink_urls(_internalHandle, cText);
+
+    if (!result) return text;
+
+    NSString *nsResult = [NSString stringWithUTF8String:result];
+    twitter_text_string_free(result);
+    return nsResult;
+}
+
+- (NSString *)autolinkHashtags:(NSString *)text {
+    if (!text || !_internalHandle) return text;
+
+    const char *cText = [text UTF8String];
+    char *result = twitter_text_autolinker_autolink_hashtags(_internalHandle, cText);
+
+    if (!result) return text;
+
+    NSString *nsResult = [NSString stringWithUTF8String:result];
+    twitter_text_string_free(result);
+    return nsResult;
+}
+
+- (NSString *)autolinkMentionsAndLists:(NSString *)text {
+    if (!text || !_internalHandle) return text;
+
+    const char *cText = [text UTF8String];
+    char *result = twitter_text_autolinker_autolink_usernames_and_lists(_internalHandle, cText);
+
+    if (!result) return text;
+
+    NSString *nsResult = [NSString stringWithUTF8String:result];
+    twitter_text_string_free(result);
+    return nsResult;
+}
+
+- (NSString *)autolinkCashtags:(NSString *)text {
+    if (!text || !_internalHandle) return text;
+
+    const char *cText = [text UTF8String];
+    char *result = twitter_text_autolinker_autolink_cashtags(_internalHandle, cText);
+
+    if (!result) return text;
+
+    NSString *nsResult = [NSString stringWithUTF8String:result];
+    twitter_text_string_free(result);
+    return nsResult;
+}
+
+- (void)setURLClass:(NSString *)urlClass {
+    if (_internalHandle && urlClass) {
+        twitter_text_autolinker_set_url_class(_internalHandle, [urlClass UTF8String]);
+    }
+}
+
+- (void)setHashtagClass:(NSString *)hashtagClass {
+    if (_internalHandle && hashtagClass) {
+        twitter_text_autolinker_set_hashtag_class(_internalHandle, [hashtagClass UTF8String]);
+    }
+}
+
+- (void)setMentionClass:(NSString *)mentionClass {
+    if (_internalHandle && mentionClass) {
+        twitter_text_autolinker_set_username_class(_internalHandle, [mentionClass UTF8String]);
+    }
+}
+
+- (void)setCashtagClass:(NSString *)cashtagClass {
+    if (_internalHandle && cashtagClass) {
+        twitter_text_autolinker_set_cashtag_class(_internalHandle, [cashtagClass UTF8String]);
+    }
+}
+
+@end

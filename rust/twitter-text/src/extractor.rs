@@ -12,7 +12,7 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 type RuleMatch = fn(Rule) -> bool;
 type Pair<'a> = pest::iterators::Pair<'a, Rule>;
@@ -66,20 +66,22 @@ pub trait Extract<'a> {
                 p.flatten().for_each(|pair| {
                     let r = pair.as_rule();
                     if r == Rule::invalid_char || r == Rule::emoji {
-                        scanned.insert(0, UnprocessedEntity::Pair(pair));
+                        scanned.push(UnprocessedEntity::Pair(pair));
                     } else if r_match(r) {
                         if r == Rule::url || r == Rule::url_without_protocol {
                             let span = pair.as_span();
                             if validate_url(pair) {
                                 entity_count += 1;
-                                scanned.insert(0, UnprocessedEntity::UrlSpan(span));
+                                scanned.push(UnprocessedEntity::UrlSpan(span));
                             }
                         } else {
                             entity_count += 1;
-                            scanned.insert(0, UnprocessedEntity::Pair(pair));
+                            scanned.push(UnprocessedEntity::Pair(pair));
                         }
                     }
                 });
+                // Reverse so we can pop from the end in document order
+                scanned.reverse();
                 self.create_result(s, entity_count, &mut scanned)
             }
             Err(_e) => self.empty_result(),
@@ -353,7 +355,12 @@ impl<'a> ValidatingExtractor<'a> {
 
     /// Initialize the [ValidatingExtractor] text length data.
     pub fn prep_input(&mut self, s: &str) -> String {
-        let nfc: String = s.nfc().collect();
+        // Avoid allocation if already NFC-normalized
+        let nfc: String = if is_nfc(s) {
+            s.to_string()
+        } else {
+            s.nfc().collect()
+        };
         let (nfc_length, nfc_length_utf8) = calculate_length(nfc.as_str());
         let (original_length, original_length_utf8) = calculate_length(s);
         self.ld = LengthData {

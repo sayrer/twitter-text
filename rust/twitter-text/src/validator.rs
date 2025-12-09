@@ -19,11 +19,7 @@ pub struct Validator {
 
 impl Validator {
     pub fn new() -> Validator {
-        Validator {
-            short_url_length: 23,
-            short_url_length_https: 23,
-            config: twitter_text_config::config_v1().clone(),
-        }
+        Validator::with_config(twitter_text_config::config_v1().clone())
     }
 
     pub fn with_config(config: twitter_text_config::Configuration) -> Validator {

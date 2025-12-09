@@ -1,4 +1,4 @@
-load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_test")
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
 
@@ -40,12 +40,29 @@ rust_wasm_bindgen(
     ],
 )
 
+# package.json to mark the nodejs wasm output as CommonJS
+# (needed because root package.json has "type": "module")
+genrule(
+    name = "wasm_nodejs_package_json",
+    outs = ["twitter_text_wasm_nodejs/package.json"],
+    cmd = 'echo \'{"type": "commonjs"}\' > $@',
+)
+
+# Combined library with wasm output and package.json
+js_library(
+    name = "twitter_text_wasm_nodejs_lib",
+    srcs = [
+        ":twitter_text_wasm_nodejs",
+        ":wasm_nodejs_package_json",
+    ],
+)
+
 # JavaScript conformance tests
 js_test(
     name = "wasm_conformance_test",
     entry_point = "tests/twitter_text_wasm_test.mjs",
     data = [
-        ":twitter_text_wasm_nodejs",
+        ":twitter_text_wasm_nodejs_lib",
         "//conformance:conformance_yml",
         "//:node_modules/yaml",
     ],

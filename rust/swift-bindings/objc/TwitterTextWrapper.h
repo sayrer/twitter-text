@@ -49,6 +49,29 @@ typedef NS_ENUM(NSUInteger, TTTextEntityType) {
 
 @end
 
+@interface TTTextAutolinker : NSObject
+
+- (instancetype)init;
+- (instancetype)initWithNoFollow:(BOOL)noFollow;
+
+// Autolink all entities (URLs, hashtags, mentions, cashtags)
+- (NSString *)autolink:(NSString *)text;
+
+// Autolink specific entity types
+- (NSString *)autolinkURLs:(NSString *)text;
+- (NSString *)autolinkHashtags:(NSString *)text;
+- (NSString *)autolinkMentionsAndLists:(NSString *)text;
+- (NSString *)autolinkCashtags:(NSString *)text;
+
+// Configuration
+@property (nonatomic) BOOL noFollow;
+- (void)setURLClass:(NSString *)urlClass;
+- (void)setHashtagClass:(NSString *)hashtagClass;
+- (void)setMentionClass:(NSString *)mentionClass;
+- (void)setCashtagClass:(NSString *)cashtagClass;
+
+@end
+
 FOUNDATION_EXTERN NSString * const kTwitterTextParserConfigurationClassic;
 FOUNDATION_EXTERN NSString * const kTwitterTextParserConfigurationV2;
 FOUNDATION_EXTERN NSString * const kTwitterTextParserConfigurationV3;

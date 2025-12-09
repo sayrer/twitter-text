@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use pest::Parser;
 use pest::iterators::Pairs;
+use pest::Parser;
 use twitter_text_parser::highlighter::HighlightParser;
 use twitter_text_parser::highlighter::Rule;
 
@@ -33,13 +33,8 @@ impl HitHighlighter {
         }
 
         let mut builder = HighlightBuilder::new(text, &self.highlight_tag, &hits);
-        match HighlightParser::parse(Rule::hit_text, text) {
-            Ok(pairs) => {
-                self.walk(pairs, &hits[..], &mut builder);
-            }
-            Err(e) => {
-                println!("Error, {}", e);
-            }
+        if let Ok(pairs) = HighlightParser::parse(Rule::hit_text, text) {
+            self.walk(pairs, &hits[..], &mut builder);
         }
 
         builder.buffer()
@@ -75,7 +70,7 @@ impl HitHighlighter {
                         builder.append_close();
                     }
                 }
-                _ => unreachable!("Should only match silent rules.")
+                _ => unreachable!("Should only match silent rules."),
             }
         }
 
@@ -87,7 +82,7 @@ struct HighlightBuilder {
     buffer: String,
     char_count: usize,
     open: String,
-    close: String
+    close: String,
 }
 
 impl HighlightBuilder {
