@@ -7,6 +7,7 @@ load("@tld_gen_deps//:requirements.bzl", "requirement")
 exports_files([
     "tests/tld_gen_requirements.txt",
     "tests/unicode11-emoji-test.txt",
+    "tests/unicode16-emoji-test.txt",
 ])
 
 rust_test(
@@ -48,7 +49,7 @@ rust_test(
         "//3rdparty/crates:serde_derive",
     ],
     compile_data = [
-        "tests/unicode11-emoji-test.txt",
+        "tests/unicode16-emoji-test.txt",
     ],
     edition = "2018",
 )
