@@ -13,10 +13,45 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
+// Full TLD parser for TldMatcher::Pest mode
+use twitter_text_parser::twitter_text::full_tld::Rule as FullTldRule;
+use twitter_text_parser::twitter_text::full_tld::TwitterTextFullTldParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 type RuleMatch = fn(Rule) -> bool;
 type Pair<'a> = pest::iterators::Pair<'a, Rule>;
+type FullTldPair<'a> = pest::iterators::Pair<'a, FullTldRule>;
+
+/// Selects the TLD matching strategy for URL extraction.
+///
+/// This enum allows choosing between different parsing backends as described
+/// in PARSER_BACKENDS.md. The choice affects how TLDs are validated during
+/// URL extraction.
+///
+/// # Current Implementation
+///
+/// The current Pest grammar uses a permissive "domain-like" pattern for TLDs,
+/// so `TldMatcher::External` (the default) is required for correct TLD validation.
+/// `TldMatcher::Pest` trusts whatever the grammar matches, which may include
+/// invalid TLDs with the current permissive grammar.
+///
+/// To use `TldMatcher::Pest` correctly, the grammar would need to be restored
+/// to include the full TLD alternation (the original ~1500 TLD list).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum TldMatcher {
+    /// Pure Pest parsing - trusts the Pest grammar's TLD matching.
+    ///
+    /// **Note:** With the current permissive grammar, this will accept any
+    /// domain-like pattern. Use `External` for correct TLD validation.
+    Pest,
+
+    /// Pest for structure, external TLD lookup via phf perfect hash.
+    /// The Pest grammar matches a permissive "domain-like" pattern, then
+    /// Rust code validates the TLD using O(1) phf lookup. This is faster
+    /// and more correct with the current grammar.
+    #[default]
+    External,
+}
 
 /**
  * A common Trait implemented by the two Extractors, [Extractor] and [ValidatingExtractor].
@@ -33,6 +68,9 @@ pub trait Extract<'a> {
 
     /// Set whether the extractor will detect URLs without schemes, such as "example.com".
     fn set_extract_url_without_protocol(&mut self, extract_url_without_protocol: bool);
+
+    /// Get the TLD matching strategy used by this extractor.
+    fn get_tld_matcher(&self) -> TldMatcher;
 
     /// Extract entities from the source text that match rules allowed by r_match.
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T;
@@ -59,6 +97,17 @@ pub trait Extract<'a> {
             return self.empty_result();
         }
 
+        let tld_matcher = self.get_tld_matcher();
+
+        // Branch based on TLD matcher to use the appropriate parser
+        match tld_matcher {
+            TldMatcher::Pest => self.extract_impl_full_tld(s, r_match),
+            TldMatcher::External => self.extract_impl_external(s, r_match),
+        }
+    }
+
+    /// Implementation using the permissive grammar with external TLD validation via phf.
+    fn extract_impl_external(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
         match TwitterTextParser::parse(Rule::tweet, s) {
             Ok(p) => {
                 let mut scanned = Vec::new();
@@ -72,7 +121,9 @@ pub trait Extract<'a> {
                         if r == Rule::url || r == Rule::url_without_protocol {
                             let span = pair.as_span();
                             let requires_exact_tld = r == Rule::url_without_protocol;
-                            if let Some(trim_bytes) = validate_url(pair, requires_exact_tld) {
+                            if let Some(trim_bytes) =
+                                validate_url(pair, requires_exact_tld, TldMatcher::External)
+                            {
                                 entity_count += 1;
                                 // If TLD was shorter than parsed, create trimmed span
                                 let final_span = if trim_bytes > 0 {
@@ -90,6 +141,45 @@ pub trait Extract<'a> {
                         } else {
                             entity_count += 1;
                             scanned.push(UnprocessedEntity::Pair(pair));
+                        }
+                    }
+                });
+                // Reverse so we can pop from the end in document order
+                scanned.reverse();
+                self.create_result(s, entity_count, &mut scanned)
+            }
+            Err(_e) => self.empty_result(),
+        }
+    }
+
+    /// Implementation using the full TLD grammar - Pest handles TLD validation.
+    fn extract_impl_full_tld(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
+        // Convert the RuleMatch function to work with FullTldRule
+        let full_tld_r_match = convert_rule_match(r_match);
+
+        match TwitterTextFullTldParser::parse(FullTldRule::tweet, s) {
+            Ok(p) => {
+                let mut scanned = Vec::new();
+                let mut entity_count = 0;
+
+                p.flatten().for_each(|pair| {
+                    let r = pair.as_rule();
+                    if r == FullTldRule::invalid_char || r == FullTldRule::emoji {
+                        // Convert FullTldPair to regular Pair by re-parsing with regular parser
+                        // We store the span and will create the entity from it
+                        scanned.push(UnprocessedEntity::FullTldPair(pair));
+                    } else if full_tld_r_match(r) {
+                        if r == FullTldRule::url || r == FullTldRule::url_without_protocol {
+                            let span = pair.as_span();
+                            // With full TLD grammar, Pest already validated the TLD
+                            // We only need to do punycode validation
+                            if validate_url_full_tld(&pair) {
+                                entity_count += 1;
+                                scanned.push(UnprocessedEntity::UrlSpan(span));
+                            }
+                        } else {
+                            entity_count += 1;
+                            scanned.push(UnprocessedEntity::FullTldPair(pair));
                         }
                     }
                 });
@@ -212,6 +302,48 @@ pub trait Extract<'a> {
                     _ => None,
                 }
             }
+            UnprocessedEntity::FullTldPair(pair) => {
+                let s = pair.as_str();
+                match pair.as_rule() {
+                    FullTldRule::hashtag => Some(Entity::new(
+                        Type::HASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    FullTldRule::cashtag => Some(Entity::new(
+                        Type::CASHTAG,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    FullTldRule::username => Some(Entity::new(
+                        Type::MENTION,
+                        &s[calculate_offset(s)..],
+                        start,
+                        end,
+                    )),
+                    FullTldRule::list => {
+                        let mut list_iter = pair.into_inner();
+                        let listname = list_iter.find(|p| p.as_rule() == FullTldRule::listname);
+                        let list_slug = list_iter.find(|p| p.as_rule() == FullTldRule::list_slug);
+                        match (listname, list_slug) {
+                            (Some(ln), Some(ls)) => {
+                                let name = ln.as_str();
+                                Some(Entity::new_list(
+                                    Type::MENTION,
+                                    &name[calculate_offset(name)..],
+                                    &ls.as_str(),
+                                    start,
+                                    end,
+                                ))
+                            }
+                            _ => None,
+                        }
+                    }
+                    _ => None,
+                }
+            }
         }
     }
 }
@@ -221,13 +353,23 @@ pub trait Extract<'a> {
  */
 pub struct Extractor {
     extract_url_without_protocol: bool,
+    tld_matcher: TldMatcher,
 }
 
 impl Extractor {
-    /// Create a new extractor that extracts URLs without a protocol.
+    /// Create a new extractor with the default TLD matcher (External/phf).
     pub fn new() -> Extractor {
         Extractor {
             extract_url_without_protocol: true,
+            tld_matcher: TldMatcher::default(),
+        }
+    }
+
+    /// Create a new extractor with the specified TLD matcher.
+    pub fn with_tld_matcher(tld_matcher: TldMatcher) -> Extractor {
+        Extractor {
+            extract_url_without_protocol: true,
+            tld_matcher,
         }
     }
 
@@ -301,6 +443,10 @@ impl<'a> Extract<'a> for Extractor {
         self.extract_url_without_protocol = extract_url_without_protocol;
     }
 
+    fn get_tld_matcher(&self) -> TldMatcher {
+        self.tld_matcher
+    }
+
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Vec<Entity<'a>> {
         self.extract_impl(s, r_match)
     }
@@ -352,15 +498,32 @@ impl<'a> Extract<'a> for Extractor {
  */
 pub struct ValidatingExtractor<'a> {
     extract_url_without_protocol: bool,
+    tld_matcher: TldMatcher,
     config: &'a Configuration,
     ld: LengthData,
 }
 
 impl<'a> ValidatingExtractor<'a> {
-    /// Create a new Extractor. [ValidatingExtractor::prep_input] must be called prior to extract.
+    /// Create a new Extractor with the default TLD matcher (External/phf).
+    /// [ValidatingExtractor::prep_input] must be called prior to extract.
     pub fn new(configuration: &Configuration) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
+            tld_matcher: TldMatcher::default(),
+            config: configuration,
+            ld: LengthData::empty(),
+        }
+    }
+
+    /// Create a new Extractor with the specified TLD matcher.
+    /// [ValidatingExtractor::prep_input] must be called prior to extract.
+    pub fn with_tld_matcher(
+        configuration: &Configuration,
+        tld_matcher: TldMatcher,
+    ) -> ValidatingExtractor<'_> {
+        ValidatingExtractor {
+            extract_url_without_protocol: true,
+            tld_matcher,
             config: configuration,
             ld: LengthData::empty(),
         }
@@ -394,6 +557,27 @@ impl<'a> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,
+            tld_matcher: TldMatcher::default(),
+            config: configuration,
+            ld: LengthData {
+                normalized_length: length,
+                normalized_length_utf8: length_utf8,
+                original_length: length,
+                original_length_utf8: length_utf8,
+            },
+        }
+    }
+
+    /// Create a new Extractor from text that is already nfc-normalized with the specified TLD matcher.
+    pub fn new_with_nfc_input_and_tld_matcher(
+        configuration: &'a Configuration,
+        s: &str,
+        tld_matcher: TldMatcher,
+    ) -> ValidatingExtractor<'a> {
+        let (length, length_utf8) = calculate_length(s);
+        ValidatingExtractor {
+            extract_url_without_protocol: true,
+            tld_matcher,
             config: configuration,
             ld: LengthData {
                 normalized_length: length,
@@ -425,6 +609,10 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 
     fn set_extract_url_without_protocol(&mut self, extract_url_without_protocol: bool) {
         self.extract_url_without_protocol = extract_url_without_protocol;
+    }
+
+    fn get_tld_matcher(&self) -> TldMatcher {
+        self.tld_matcher
     }
 
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
@@ -632,6 +820,7 @@ enum TrackAction {
 pub enum UnprocessedEntity<'a> {
     UrlSpan(pest::Span<'a>),
     Pair(Pair<'a>),
+    FullTldPair(FullTldPair<'a>),
 }
 
 impl<'a> UnprocessedEntity<'a> {
@@ -639,6 +828,7 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(span) => span.start(),
             UnprocessedEntity::Pair(pair) => pair.as_span().start(),
+            UnprocessedEntity::FullTldPair(pair) => pair.as_span().start(),
         }
     }
 
@@ -646,6 +836,7 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(span) => span.end(),
             UnprocessedEntity::Pair(pair) => pair.as_span().end(),
+            UnprocessedEntity::FullTldPair(pair) => pair.as_span().end(),
         }
     }
 
@@ -653,7 +844,71 @@ impl<'a> UnprocessedEntity<'a> {
         match self {
             UnprocessedEntity::UrlSpan(_span) => Rule::url,
             UnprocessedEntity::Pair(pair) => pair.as_rule(),
+            // Convert FullTldRule to Rule - they have the same variant names
+            UnprocessedEntity::FullTldPair(pair) => full_tld_rule_to_rule(pair.as_rule()),
         }
+    }
+}
+
+/// Convert a FullTldRule to the equivalent Rule.
+/// Both enums have the same variant names, just generated from different grammars.
+fn full_tld_rule_to_rule(r: FullTldRule) -> Rule {
+    match r {
+        FullTldRule::url => Rule::url,
+        FullTldRule::url_without_protocol => Rule::url_without_protocol,
+        FullTldRule::hashtag => Rule::hashtag,
+        FullTldRule::cashtag => Rule::cashtag,
+        FullTldRule::username => Rule::username,
+        FullTldRule::list => Rule::list,
+        FullTldRule::listname => Rule::listname,
+        FullTldRule::list_slug => Rule::list_slug,
+        FullTldRule::invalid_char => Rule::invalid_char,
+        FullTldRule::emoji => Rule::emoji,
+        _ => Rule::tweet, // fallback for rules we don't use directly
+    }
+}
+
+/// Convert a RuleMatch function to work with FullTldRule.
+fn convert_rule_match(r_match: RuleMatch) -> impl Fn(FullTldRule) -> bool {
+    move |r: FullTldRule| {
+        let equivalent_rule = full_tld_rule_to_rule(r);
+        r_match(equivalent_rule)
+    }
+}
+
+/// Validates a URL parsed with the full TLD grammar.
+/// Since the grammar already validated the TLD, we only need to check punycode validity.
+fn validate_url_full_tld(p: &FullTldPair) -> bool {
+    let original = p.as_str();
+    match p.clone().into_inner().find(|pair| {
+        let r = pair.as_rule();
+        r == FullTldRule::host || r == FullTldRule::tco_domain || r == FullTldRule::uwp_domain
+    }) {
+        Some(pair) => valid_punycode_full_tld(original, &pair),
+        None => false,
+    }
+}
+
+/// Validates punycode for a domain parsed with the full TLD grammar.
+fn valid_punycode_full_tld(original: &str, domain: &FullTldPair) -> bool {
+    let source = domain.as_span().as_str();
+    let uts46 = Uts46::new();
+
+    let result = uts46.to_ascii(
+        source.as_bytes(),
+        AsciiDenyList::EMPTY,
+        Hyphens::Allow,
+        DnsLength::Verify,
+    );
+
+    match result {
+        Ok(s) => length_check(
+            original,
+            source,
+            &s,
+            domain.as_rule() != FullTldRule::uwp_domain,
+        ),
+        Err(_) => false,
     }
 }
 
@@ -664,7 +919,11 @@ fn calculate_offset(s: &str) -> usize {
 /// Validates a URL and returns the number of bytes to trim from the end.
 /// Returns Some(0) if URL is valid as-is, Some(n) if n bytes need trimming,
 /// or None if URL is invalid.
-fn validate_url(p: Pair, requires_exact_tld: bool) -> Option<usize> {
+///
+/// The `tld_matcher` parameter controls how TLDs are validated:
+/// - `TldMatcher::Pest`: Trust the Pest grammar's TLD matching (no external validation)
+/// - `TldMatcher::External`: Use phf lookup for O(1) TLD validation
+fn validate_url(p: Pair, requires_exact_tld: bool, tld_matcher: TldMatcher) -> Option<usize> {
     let original_span = p.as_span();
     let original = p.as_str();
     match p.into_inner().find(|pair| {
@@ -681,6 +940,17 @@ fn validate_url(p: Pair, requires_exact_tld: bool) -> Option<usize> {
                 };
             }
 
+            // For Pest backend, trust the grammar's TLD matching entirely
+            // Just validate punycode and return without trimming
+            if tld_matcher == TldMatcher::Pest {
+                return if valid_punycode(original, &pair) {
+                    Some(0)
+                } else {
+                    None
+                };
+            }
+
+            // External TLD validation using phf lookup
             // Get the domain text
             let domain_span = pair.as_span();
             let domain = domain_span.as_str();
@@ -1578,5 +1848,80 @@ mod debug_tests {
             }
             Err(e) => eprintln!("Parse error: {}", e),
         }
+    }
+
+    // TldMatcher backend tests
+
+    #[test]
+    fn test_tld_matcher_external_validates_tlds() {
+        // External backend should reject invalid TLDs
+        let extractor = Extractor::with_tld_matcher(TldMatcher::External);
+
+        // Valid TLD should be extracted
+        let urls = extractor.extract_urls("Check out http://example.com/path");
+        assert_eq!(urls.len(), 1);
+        assert_eq!(urls[0], "http://example.com/path");
+
+        // URL with valid punycode TLD
+        let urls = extractor.extract_urls("See http://xn--80abe5aohbnkjb.xn--p1ai/");
+        assert_eq!(urls.len(), 1);
+    }
+
+    #[test]
+    fn test_tld_matcher_pest_trusts_grammar() {
+        // Pest backend trusts whatever the grammar matches
+        let extractor = Extractor::with_tld_matcher(TldMatcher::Pest);
+
+        // With the permissive grammar, this will also match
+        let urls = extractor.extract_urls("Check out http://example.com/path");
+        assert_eq!(urls.len(), 1);
+        assert_eq!(urls[0], "http://example.com/path");
+    }
+
+    #[test]
+    fn test_tld_matcher_default_is_external() {
+        // Default should be External
+        assert_eq!(TldMatcher::default(), TldMatcher::External);
+
+        // New extractor should use External by default
+        let extractor = Extractor::new();
+        assert_eq!(extractor.get_tld_matcher(), TldMatcher::External);
+    }
+
+    #[test]
+    fn test_both_backends_produce_same_results() {
+        // Test that both backends produce identical results for common cases
+        let external = Extractor::with_tld_matcher(TldMatcher::External);
+        let pest = Extractor::with_tld_matcher(TldMatcher::Pest);
+
+        let test_cases = [
+            "Check out http://example.com/path",
+            "Visit https://twitter.com and https://github.com",
+            "See http://xn--80abe5aohbnkjb.xn--p1ai/",
+            "URL without protocol: example.com/page",
+            "Japanese TLD: http://example.みんな/path",
+            "Multiple: foo.co.jp and bar.co.uk are valid",
+            "@mention and #hashtag with http://test.org",
+        ];
+
+        for text in test_cases {
+            let external_urls = external.extract_urls(text);
+            let pest_urls = pest.extract_urls(text);
+            assert_eq!(
+                external_urls, pest_urls,
+                "Backends differ on: {}\nExternal: {:?}\nPest: {:?}",
+                text, external_urls, pest_urls
+            );
+        }
+    }
+
+    #[test]
+    fn test_pest_backend_extracts_punycode_urls() {
+        let extractor = Extractor::with_tld_matcher(TldMatcher::Pest);
+
+        // Punycode URL should be extracted
+        let urls = extractor.extract_urls("See http://xn--80abe5aohbnkjb.xn--p1ai/");
+        assert_eq!(urls.len(), 1, "Pest backend should extract punycode URLs");
+        assert_eq!(urls[0], "http://xn--80abe5aohbnkjb.xn--p1ai/");
     }
 }

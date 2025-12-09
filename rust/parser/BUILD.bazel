@@ -4,6 +4,7 @@ load("@rules_rust//rust:defs.bzl", "rust_library")
 
 exports_files([
     "src/twitter_text.pest",
+    "src/twitter_text_full_tld.pest",
 ])
 
 rust_library(
@@ -16,6 +17,7 @@ rust_library(
     compile_data = [
         "src/hit_highlighter.pest",
         "src/twitter_text.pest",
+        "src/twitter_text_full_tld.pest",
     ],
     deps = [
         "//3rdparty/crates:pest",

@@ -4,6 +4,12 @@
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::validator::Validator;
+use twitter_text::TldMatcher;
+
+/// Returns all TldMatcher variants for testing both backends.
+fn all_tld_matchers() -> [TldMatcher; 2] {
+    [TldMatcher::External, TldMatcher::Pest]
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Assertion {
@@ -81,13 +87,19 @@ fn test_validator() {
 }
 
 fn validate_weighting(
-    assertions: Vec<WeightedTweetAssertion>,
+    assertions: &[WeightedTweetAssertion],
     config: &twitter_text_config::Configuration,
+    tld_matcher: TldMatcher,
 ) {
     for assertion in assertions {
-        let expected = assertion.expected;
-        let message = assertion.description;
-        let result = twitter_text::parse(assertion.text.as_str(), config, true);
+        let expected = &assertion.expected;
+        let message = &assertion.description;
+        let result = twitter_text::parse_with_tld_matcher(
+            assertion.text.as_str(),
+            config,
+            true,
+            tld_matcher,
+        );
         assert_eq!(
             expected.weighted_length, result.weighted_length,
             "{}",
@@ -124,15 +136,26 @@ fn validate_weighting(
 
 #[test]
 fn test_weighting() {
-    let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
-    let v2 = twitter_text_config::config_v2();
-    let v3 = twitter_text_config::config_v3();
-    validate_weighting(manifest.tests.weighted_tweets_counter_test, v2);
-    validate_weighting(
-        manifest
-            .tests
-            .weighted_tweets_with_discounted_emoji_counter_test,
-        v3,
-    );
-    validate_weighting(manifest.tests.unicode_directional_marker_counter_test, v3);
+    for tld_matcher in all_tld_matchers() {
+        let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
+        let v2 = twitter_text_config::config_v2();
+        let v3 = twitter_text_config::config_v3();
+        validate_weighting(
+            &manifest.tests.weighted_tweets_counter_test,
+            v2,
+            tld_matcher,
+        );
+        validate_weighting(
+            &manifest
+                .tests
+                .weighted_tweets_with_discounted_emoji_counter_test,
+            v3,
+            tld_matcher,
+        );
+        validate_weighting(
+            &manifest.tests.unicode_directional_marker_counter_test,
+            v3,
+            tld_matcher,
+        );
+    }
 }
