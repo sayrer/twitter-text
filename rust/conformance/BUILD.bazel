@@ -49,6 +49,7 @@ rust_test(
         "//3rdparty/crates:serde_derive",
     ],
     compile_data = [
+        "tests/unicode11-emoji-test.txt",
         "tests/unicode16-emoji-test.txt",
     ],
     edition = "2018",

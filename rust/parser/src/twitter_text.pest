@@ -438,7 +438,7 @@ emojified_symbols = _{
 }
 
 default_text_symbols = _{
-    ("©" | "®" | "\u{2122}" | "\u{265f}") ~ "\u{fe0f}"
+    ("©" | "®" | "\u{2122}" | "\u{265f}" | "\u{26a7}") ~ "\u{fe0f}"?
 }
 
 variants_allowing_trailing_fe0f_but_not_fe0e = _{

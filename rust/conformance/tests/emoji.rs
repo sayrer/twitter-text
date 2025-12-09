@@ -22,7 +22,6 @@ fn test_emoji_parsing() {
         .filter_map(|result| result.ok())
         .filter(|s| !s.starts_with("#"))
         .filter(|s| !(s.trim().len() == 0))
-        .filter(|s| s.contains("fully-qualified")) // Only test RGI fully-qualified emoji
         .map(|s| {
             let mut test_str = String::from("test|");
             match s.find(";") {
