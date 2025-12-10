@@ -7,6 +7,7 @@ public enum EntityType: Int32 {
     case hashtag = 1
     case mention = 2
     case cashtag = 3
+    case federatedMention = 4
 }
 
 /// An entity extracted from tweet text

@@ -219,6 +219,7 @@ fn try_parse_entity<'a>(
         '@' | '\u{ff20}' => {
             // Check for invalid prefix - mentions shouldn't be preceded by alphanumeric, @, or certain punctuation
             // EXCEPT for the special "RT" prefix case (legacy retweet syntax)
+            // Also check for = and / which are invalid for federated mentions
             if let Some(pc) = prev_char {
                 let is_invalid_prefix = pc.is_ascii_alphanumeric()
                     || pc == '_'
@@ -229,7 +230,9 @@ fn try_parse_entity<'a>(
                     || pc == '$'
                     || pc == '%'
                     || pc == '&'
-                    || pc == '*';
+                    || pc == '*'
+                    || pc == '='
+                    || pc == '/';
 
                 if is_invalid_prefix {
                     // Check for RT prefix exception: "RT@" or "RT:@" preceded by space/SOI
@@ -240,31 +243,64 @@ fn try_parse_entity<'a>(
                 }
             }
 
-            // Try list first (longer match), then username
-            if let Ok((remaining, (matched, slug_start_opt))) =
-                mention::parse_mention_or_list(input)
-            {
-                // Check for invalid suffix (@ or latin_accent or :// or -)
-                // If followed by these, don't extract the username
-                if let Some(next_char) = remaining.chars().next() {
-                    if next_char == '@'
-                        || next_char == '\u{ff20}'
-                        || next_char == '-'
-                        || url::is_latin_accent(next_char)
-                        || remaining.starts_with("://")
-                    {
-                        // Invalid suffix - don't extract
-                        return None;
+            // Try federated mention, list, or username (in that order for longest match)
+            if let Ok((remaining, (matched, mention_type))) = mention::parse_any_mention(input) {
+                // For federated mentions, we don't check invalid suffix (it's already parsed correctly)
+                // For username/list, check for invalid suffix
+                match mention_type {
+                    mention::MentionType::Federated => {
+                        let consumed = matched.len();
+                        let entity = NomEntity::new(
+                            NomEntityType::FederatedMention,
+                            matched,
+                            offset,
+                            offset + consumed,
+                        );
+                        return Some((entity, consumed));
+                    }
+                    mention::MentionType::List(slug_start) => {
+                        // Check for invalid suffix (@ or latin_accent or :// or -)
+                        if let Some(next_char) = remaining.chars().next() {
+                            if next_char == '@'
+                                || next_char == '\u{ff20}'
+                                || next_char == '-'
+                                || url::is_latin_accent(next_char)
+                                || remaining.starts_with("://")
+                            {
+                                return None;
+                            }
+                        }
+                        let consumed = matched.len();
+                        let entity = NomEntity::new_list(
+                            matched,
+                            offset,
+                            offset + consumed,
+                            offset + slug_start,
+                        );
+                        return Some((entity, consumed));
+                    }
+                    mention::MentionType::Username => {
+                        // Check for invalid suffix (@ or latin_accent or :// or -)
+                        if let Some(next_char) = remaining.chars().next() {
+                            if next_char == '@'
+                                || next_char == '\u{ff20}'
+                                || next_char == '-'
+                                || url::is_latin_accent(next_char)
+                                || remaining.starts_with("://")
+                            {
+                                return None;
+                            }
+                        }
+                        let consumed = matched.len();
+                        let entity = NomEntity::new(
+                            NomEntityType::Username,
+                            matched,
+                            offset,
+                            offset + consumed,
+                        );
+                        return Some((entity, consumed));
                     }
                 }
-
-                let consumed = matched.len();
-                let entity = if let Some(slug_start) = slug_start_opt {
-                    NomEntity::new_list(matched, offset, offset + consumed, offset + slug_start)
-                } else {
-                    NomEntity::new(NomEntityType::Username, matched, offset, offset + consumed)
-                };
-                return Some((entity, consumed));
             }
         }
 

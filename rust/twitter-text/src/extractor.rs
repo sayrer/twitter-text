@@ -313,6 +313,26 @@ pub trait Extract<'a> {
         self.extract(s, |r| r == Rule::username || r == Rule::list)
     }
 
+    /// Extract all mentions from the text, including regular mentions (@user)
+    /// and federated mentions (Mastodon-style @user@domain.tld).
+    ///
+    /// This matches Mastodon's behavior where extract_mentions_or_lists_with_indices
+    /// returns both local and federated mentions together.
+    ///
+    /// Note: Lists (@user/list) are NOT included - Mastodon doesn't use Twitter-style lists.
+    ///
+    /// Federated mentions follow the format `@username@domain` where:
+    /// - Username: ASCII alphanumeric and underscore, with optional `.` or `-` separators
+    /// - Domain: ASCII alphanumeric and underscore, with optional `.` or `-` separators
+    /// - Max domain length: 253 characters (not enforced by grammar, checked post-extraction)
+    fn extract_federated_mentions_with_indices(&self, s: &'a str) -> Self::T {
+        // Early exit if no at sign present (ASCII @ or full-width ＠)
+        if !s.contains('@') && !s.contains('＠') {
+            return self.empty_result();
+        }
+        self.extract(s, |r| r == Rule::federated_mention || r == Rule::username)
+    }
+
     /// Extract a "reply"--a username that appears at the beginning of a tweet.
     fn extract_reply_username_impl(&self, s: &'a str) -> Self::Mention {
         match TwitterTextParser::parse(Rule::reply, s) {
@@ -328,6 +348,8 @@ pub trait Extract<'a> {
     }
 
     /// Extract all entities from the text (Usernames, Lists, Hashtags, Cashtags, and URLs).
+    /// Does NOT include federated mentions. Use `extract_entities_with_indices_federated`
+    /// to include Mastodon-style @user@domain mentions.
     fn extract_entities_with_indices(&self, s: &'a str) -> Self::T {
         self.extract(s, |r| {
             r == Rule::url
@@ -335,6 +357,20 @@ pub trait Extract<'a> {
                 || r == Rule::cashtag
                 || r == Rule::list
                 || r == Rule::username
+        })
+    }
+
+    /// Extract all entities from the text, including federated mentions.
+    /// This includes Usernames, Lists, Hashtags, Cashtags, URLs, and Mastodon-style
+    /// federated mentions (@user@domain.tld).
+    fn extract_entities_with_indices_federated(&self, s: &'a str) -> Self::T {
+        self.extract(s, |r| {
+            r == Rule::url
+                || r == Rule::hashtag
+                || r == Rule::cashtag
+                || r == Rule::list
+                || r == Rule::username
+                || r == Rule::federated_mention
         })
     }
 
@@ -374,6 +410,9 @@ pub trait Extract<'a> {
                         start,
                         end,
                     )),
+                    Rule::federated_mention => {
+                        Some(Entity::new(Type::FEDERATEDMENTION, s, start, end))
+                    }
                     Rule::list => {
                         let mut list_iter = pair.into_inner();
                         let listname = list_iter.find(|p| p.as_rule() == Rule::listname);
@@ -416,6 +455,9 @@ pub trait Extract<'a> {
                         start,
                         end,
                     )),
+                    FullPestRule::federated_mention => {
+                        Some(Entity::new(Type::FEDERATEDMENTION, s, start, end))
+                    }
                     FullPestRule::list => {
                         let mut list_iter = pair.into_inner();
                         let listname = list_iter.find(|p| p.as_rule() == FullPestRule::listname);
@@ -479,6 +521,10 @@ pub trait Extract<'a> {
                             None
                         }
                     }
+                    NomEntityType::FederatedMention => {
+                        // Federated mentions keep the full value including the @user@domain
+                        Some(Entity::new(Type::FEDERATEDMENTION, s, start, end))
+                    }
                     NomEntityType::Emoji | NomEntityType::InvalidChar => None,
                 }
             }
@@ -539,6 +585,14 @@ impl Extractor {
     /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
     pub fn extract_mentioned_screennames(&self, s: &str) -> Vec<String> {
         self.extract_mentioned_screennames_with_indices(s)
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
+    }
+
+    /// Extract all federated mentions from the text (Mastodon-style @user@domain.tld).
+    pub fn extract_federated_mentions(&self, s: &str) -> Vec<String> {
+        self.extract_federated_mentions_with_indices(s)
             .iter()
             .map(|entity| String::from(entity.get_value()))
             .collect()
@@ -724,6 +778,16 @@ impl<'a> ValidatingExtractor<'a> {
                 original_length_utf8: length_utf8,
             },
         }
+    }
+
+    /// Extract all federated mentions from the text (Mastodon-style @user@domain.tld).
+    /// Returns both regular mentions (@user) and federated mentions (@user@domain).
+    pub fn extract_federated_mentions(&self, s: &'a str) -> Vec<String> {
+        self.extract_federated_mentions_with_indices(s)
+            .entities
+            .iter()
+            .map(|entity| String::from(entity.get_value()))
+            .collect()
     }
 }
 
@@ -1017,6 +1081,7 @@ fn full_pest_rule_to_rule(r: FullPestRule) -> Rule {
         FullPestRule::list_slug => Rule::list_slug,
         FullPestRule::invalid_char => Rule::invalid_char,
         FullPestRule::emoji => Rule::emoji,
+        FullPestRule::federated_mention => Rule::federated_mention,
         _ => Rule::tweet, // fallback for rules we don't use directly
     }
 }
@@ -1038,6 +1103,7 @@ fn nom_entity_type_to_rule(t: NomEntityType) -> Rule {
         NomEntityType::Cashtag => Rule::cashtag,
         NomEntityType::Username => Rule::username,
         NomEntityType::List => Rule::list,
+        NomEntityType::FederatedMention => Rule::federated_mention,
         NomEntityType::Emoji => Rule::emoji,
         NomEntityType::InvalidChar => Rule::invalid_char,
     }
@@ -1878,6 +1944,369 @@ mod tests {
         let text = "http://example.com/";
         let extracted = extractor.extract_urls(text);
         assert_eq!(vec!["http://example.com/"], extracted);
+    }
+
+    // Federated mention tests (Mastodon-style @user@domain.tld)
+    // These tests run on all backends that support federated mentions.
+    fn federated_mention_backends() -> Vec<ExternalValidator> {
+        vec![
+            ExternalValidator::Pest,
+            ExternalValidator::External,
+            ExternalValidator::Nom,
+        ]
+    }
+
+    #[test]
+    fn test_federated_mention_empty_string() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor.extract_federated_mentions("");
+            assert_eq!(0, extracted.len(), "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_no_at_signs() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor.extract_federated_mentions("a string without at signs");
+            assert_eq!(0, extracted.len(), "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_simple() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor.extract_federated_mentions("@user@domain.tld");
+            assert_eq!(
+                vec!["@user@domain.tld"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_in_text() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted =
+                extractor.extract_federated_mentions("hello @user@mastodon.social world");
+            assert_eq!(
+                vec!["@user@mastodon.social"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_with_indices() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor
+                .extract_federated_mentions_with_indices("hello @user@mastodon.social world");
+            assert_eq!(1, extracted.len(), "Failed for {:?}", validator);
+            assert_eq!(
+                "@user@mastodon.social", extracted[0].value,
+                "Failed for {:?}",
+                validator
+            );
+            assert_eq!(6, extracted[0].start, "Failed for {:?}", validator);
+            assert_eq!(27, extracted[0].end, "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_complex_username() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            // Username with dots and hyphens
+            let extracted = extractor.extract_federated_mentions("@user.name-test@domain.tld");
+            assert_eq!(
+                vec!["@user.name-test@domain.tld"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_complex_domain() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            // Domain with subdomains
+            let extracted = extractor.extract_federated_mentions("@user@sub.domain.example.com");
+            assert_eq!(
+                vec!["@user@sub.domain.example.com"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_multiple() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted =
+                extractor.extract_federated_mentions("@user1@domain1.com and @user2@domain2.org");
+            assert_eq!(
+                vec!["@user1@domain1.com", "@user2@domain2.org"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_with_underscore() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor.extract_federated_mentions("@user_name@domain.tld");
+            assert_eq!(
+                vec!["@user_name@domain.tld"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_federated_mention_fullwidth_at() {
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            // Full-width @ (U+FF20) as prefix
+            let extracted = extractor.extract_federated_mentions("＠user@domain.tld");
+            assert_eq!(
+                vec!["＠user@domain.tld"],
+                extracted,
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_local_mention_included_in_federated() {
+        // extract_federated_mentions now returns both regular and federated mentions
+        // (matching Mastodon's behavior)
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let extracted = extractor.extract_federated_mentions("@localuser");
+            assert_eq!(1, extracted.len(), "Failed for {:?}", validator);
+            assert_eq!("localuser", extracted[0], "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_mentions_with_federated_style_text() {
+        // extract_mentions should ignore federated-style mentions (@user@domain)
+        // Only regular mentions are extracted
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let text = "test @sayrer @user1@domain1.com and @user2@domain2.org";
+            let mentions = extractor.extract_mentions_or_lists_with_indices(text);
+            // Only @sayrer is extracted; @user1@domain1.com and @user2@domain2.org are ignored
+            assert_eq!(1, mentions.len(), "Failed for {:?}", validator);
+            assert_eq!("sayrer", mentions[0].value, "Failed for {:?}", validator);
+            assert_eq!(5, mentions[0].start, "Failed for {:?}", validator);
+            assert_eq!(12, mentions[0].end, "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_extract_federated_mentions_mixed_text() {
+        // extract_federated_mentions returns both regular and federated mentions
+        // (matching Mastodon's behavior)
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let text = "test @sayrer @user1@domain1.com and @user2@domain2.org";
+            let federated = extractor.extract_federated_mentions(text);
+            // Should get all three: @sayrer (regular) and the two federated ones
+            assert_eq!(3, federated.len(), "Failed for {:?}", validator);
+            assert_eq!("sayrer", federated[0], "Failed for {:?}", validator);
+            assert_eq!(
+                "@user1@domain1.com", federated[1],
+                "Failed for {:?}",
+                validator
+            );
+            assert_eq!(
+                "@user2@domain2.org", federated[2],
+                "Failed for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_extract_entities_excludes_federated_mentions() {
+        // extract_entities_with_indices should return all entity types EXCEPT federated mentions
+        // This matches Twitter's behavior where federated mentions are a Mastodon extension
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let text = "Check https://example.com @user @user/list @fed@mastodon.social #tag $CASH";
+
+            let entities = extractor.extract_entities_with_indices(text);
+
+            // Should have 5 entities: URL, mention, list, hashtag, cashtag (no federated mention)
+            assert_eq!(
+                5,
+                entities.len(),
+                "Expected 5 entities for {:?}, got {:?}",
+                validator,
+                entities
+            );
+
+            // Verify each entity type is present (list is also Type::MENTION)
+            let url = entities.iter().find(|e| e.t == Type::URL).unwrap();
+            assert_eq!(
+                "https://example.com", url.value,
+                "Failed for {:?}",
+                validator
+            );
+
+            // Find the two mentions (regular and list)
+            let mentions: Vec<_> = entities.iter().filter(|e| e.t == Type::MENTION).collect();
+            assert_eq!(2, mentions.len(), "Expected 2 mentions for {:?}", validator);
+
+            // Regular mention (empty list_slug)
+            let regular_mention = mentions.iter().find(|e| e.list_slug.is_empty()).unwrap();
+            assert_eq!("user", regular_mention.value, "Failed for {:?}", validator);
+
+            // List mention (non-empty list_slug)
+            let list_mention = mentions.iter().find(|e| !e.list_slug.is_empty()).unwrap();
+            assert_eq!("user", list_mention.value, "Failed for {:?}", validator);
+            assert_eq!(
+                "/list", list_mention.list_slug,
+                "Failed for {:?}",
+                validator
+            );
+
+            let hashtag = entities.iter().find(|e| e.t == Type::HASHTAG).unwrap();
+            assert_eq!("tag", hashtag.value, "Failed for {:?}", validator);
+
+            let cashtag = entities.iter().find(|e| e.t == Type::CASHTAG).unwrap();
+            assert_eq!("CASH", cashtag.value, "Failed for {:?}", validator);
+
+            // Verify federated mention is NOT present
+            assert!(
+                !entities.iter().any(|e| e.t == Type::FEDERATEDMENTION),
+                "FEDERATEDMENTION should not be in extract_entities_with_indices for {:?}",
+                validator
+            );
+        }
+    }
+
+    #[test]
+    fn test_validating_extractor_federated_mentions() {
+        // Test that ValidatingExtractor can extract federated mentions
+        // and returns correct parse results
+        let config = Configuration::default();
+        let text = "Hello @local and @user@mastodon.social!";
+
+        let extractor = ValidatingExtractor::new_with_nfc_input(&config, text);
+        let mentions = extractor.extract_federated_mentions(text);
+
+        // Should extract both regular and federated mentions
+        assert_eq!(2, mentions.len());
+        assert_eq!("local", mentions[0]);
+        assert_eq!("@user@mastodon.social", mentions[1]);
+
+        // Also test with_indices to verify parse results
+        let result = extractor.extract_federated_mentions_with_indices(text);
+
+        // Verify parse results are calculated correctly
+        assert!(result.parse_results.is_valid);
+        assert_eq!(39, result.parse_results.weighted_length); // All ASCII, 1 weight each
+
+        // Verify entities
+        assert_eq!(2, result.entities.len());
+        assert_eq!(Type::MENTION, result.entities[0].t);
+        assert_eq!("local", result.entities[0].value);
+        assert_eq!(Type::FEDERATEDMENTION, result.entities[1].t);
+        assert_eq!("@user@mastodon.social", result.entities[1].value);
+    }
+
+    #[test]
+    fn test_extract_entities_with_indices_federated() {
+        // Test that extract_entities_with_indices_federated includes all entity types
+        // including federated mentions
+        for validator in federated_mention_backends() {
+            let extractor = Extractor::with_external_validator(validator);
+            let text = "Check https://example.com @user @user/list @fed@mastodon.social #tag $CASH";
+
+            let entities = extractor.extract_entities_with_indices_federated(text);
+
+            // Should have 6 entities: URL, mention, list, federated mention, hashtag, cashtag
+            assert_eq!(
+                6,
+                entities.len(),
+                "Expected 6 entities for {:?}, got {:?}",
+                validator,
+                entities
+            );
+
+            // Verify each entity type is present
+            let url = entities.iter().find(|e| e.t == Type::URL).unwrap();
+            assert_eq!(
+                "https://example.com", url.value,
+                "Failed for {:?}",
+                validator
+            );
+
+            // Find mentions (regular and list)
+            let mentions: Vec<_> = entities.iter().filter(|e| e.t == Type::MENTION).collect();
+            assert_eq!(2, mentions.len(), "Expected 2 mentions for {:?}", validator);
+
+            // Federated mention IS present
+            let federated = entities
+                .iter()
+                .find(|e| e.t == Type::FEDERATEDMENTION)
+                .unwrap();
+            assert_eq!(
+                "@fed@mastodon.social", federated.value,
+                "Failed for {:?}",
+                validator
+            );
+
+            let hashtag = entities.iter().find(|e| e.t == Type::HASHTAG).unwrap();
+            assert_eq!("tag", hashtag.value, "Failed for {:?}", validator);
+
+            let cashtag = entities.iter().find(|e| e.t == Type::CASHTAG).unwrap();
+            assert_eq!("CASH", cashtag.value, "Failed for {:?}", validator);
+        }
+    }
+
+    #[test]
+    fn test_validating_extractor_entities_federated() {
+        // Test ValidatingExtractor with extract_entities_with_indices_federated
+        let config = Configuration::default();
+        let text = "Check https://example.com @user @fed@mastodon.social #tag $CASH";
+
+        let extractor = ValidatingExtractor::new_with_nfc_input(&config, text);
+        let result = extractor.extract_entities_with_indices_federated(text);
+
+        // Verify parse results
+        assert!(result.parse_results.is_valid);
+
+        // Should have 5 entities: URL, mention, federated mention, hashtag, cashtag
+        assert_eq!(5, result.entities.len());
+
+        // Verify federated mention is included
+        let federated = result
+            .entities
+            .iter()
+            .find(|e| e.t == Type::FEDERATEDMENTION);
+        assert!(federated.is_some());
+        assert_eq!("@fed@mastodon.social", federated.unwrap().value);
     }
 }
 

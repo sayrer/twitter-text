@@ -4,8 +4,13 @@
 
 use crate::extractor::{Extract, Extractor};
 use crate::nom_parser::url::{parse_url, parse_url_without_protocol};
-use crate::parse;
+use crate::parse_with_external_validator;
+use crate::ExternalValidator;
 use twitter_text_config;
+
+use pest::Parser;
+use twitter_text_parser::twitter_text::Rule;
+use twitter_text_parser::twitter_text::TwitterTextParser;
 
 pub const MAX_TWEET_LENGTH: i32 = 280;
 
@@ -14,6 +19,7 @@ pub struct Validator {
     short_url_length_https: i32,
     config: twitter_text_config::Configuration,
     extractor: Extractor,
+    external_validator: ExternalValidator,
 }
 
 impl Validator {
@@ -27,11 +33,22 @@ impl Validator {
             short_url_length_https: 23,
             config,
             extractor: Extractor::new(),
+            external_validator: ExternalValidator::default(),
+        }
+    }
+
+    pub fn with_external_validator(external_validator: ExternalValidator) -> Validator {
+        Validator {
+            short_url_length: 23,
+            short_url_length_https: 23,
+            config: twitter_text_config::config_v1().clone(),
+            extractor: Extractor::new(),
+            external_validator,
         }
     }
 
     pub fn is_valid_tweet(&self, s: &str) -> bool {
-        parse(s, &self.config, false).is_valid
+        parse_with_external_validator(s, &self.config, false, self.external_validator).is_valid
     }
 
     pub fn is_valid_username(&self, s: &str) -> bool {
@@ -69,18 +86,34 @@ impl Validator {
     }
 
     pub fn is_valid_url(&self, s: &str) -> bool {
-        // URL validation: parse succeeds and entire input is consumed
-        match parse_url(s) {
-            Ok((remaining, _)) => remaining.is_empty(),
-            Err(_) => false,
+        match self.external_validator {
+            ExternalValidator::Nom => {
+                // Use Nom parser
+                match parse_url(s) {
+                    Ok((remaining, _)) => remaining.is_empty(),
+                    Err(_) => false,
+                }
+            }
+            ExternalValidator::Pest | ExternalValidator::External => {
+                // Use Pest parser for both Pest and External modes
+                TwitterTextParser::parse(Rule::valid_url, s).is_ok()
+            }
         }
     }
 
     pub fn is_valid_url_without_protocol(&self, s: &str) -> bool {
-        // URL without protocol validation: parse succeeds and entire input is consumed
-        match parse_url_without_protocol(s) {
-            Ok((remaining, _)) => remaining.is_empty(),
-            Err(_) => false,
+        match self.external_validator {
+            ExternalValidator::Nom => {
+                // Use Nom parser
+                match parse_url_without_protocol(s) {
+                    Ok((remaining, _)) => remaining.is_empty(),
+                    Err(_) => false,
+                }
+            }
+            ExternalValidator::Pest | ExternalValidator::External => {
+                // Use Pest parser for both Pest and External modes
+                TwitterTextParser::parse(Rule::url_without_protocol, s).is_ok()
+            }
         }
     }
 

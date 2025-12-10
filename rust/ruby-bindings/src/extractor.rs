@@ -233,6 +233,39 @@ impl Extractor {
         }
         Ok(array)
     }
+
+    pub fn extract_federated_mentions(&self, text: String) -> Result<RArray, Error> {
+        let mentions = self.inner.borrow().extract_federated_mentions(&text);
+        let array = RArray::new();
+        for mention in mentions {
+            array.push(mention)?;
+        }
+        Ok(array)
+    }
+
+    pub fn extract_federated_mentions_with_indices(&self, text: String) -> Result<RArray, Error> {
+        let entities = self
+            .inner
+            .borrow()
+            .extract_federated_mentions_with_indices(&text);
+        let array = RArray::new();
+        for entity in entities.iter() {
+            array.push(Entity::from(entity))?;
+        }
+        Ok(array)
+    }
+
+    pub fn extract_entities_with_indices_federated(&self, text: String) -> Result<RArray, Error> {
+        let entities = self
+            .inner
+            .borrow()
+            .extract_entities_with_indices_federated(&text);
+        let array = RArray::new();
+        for entity in entities.iter() {
+            array.push(Entity::from(entity))?;
+        }
+        Ok(array)
+    }
 }
 
 #[magnus::wrap(class = "Twittertext::ValidatingExtractor", free_immediately, size)]
@@ -316,6 +349,39 @@ impl ValidatingExtractor {
         let mut extractor = RustValidatingExtractor::new(&self.config);
         let input = extractor.prep_input(&text);
         let result = extractor.extract_cashtags_with_indices(&input);
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
+    }
+
+    pub fn extract_federated_mentions(&self, text: String) -> Result<RArray, Error> {
+        let mut extractor = RustValidatingExtractor::new(&self.config);
+        let input = extractor.prep_input(&text);
+        let mentions = extractor.extract_federated_mentions(&input);
+        let array = RArray::new();
+        for mention in mentions {
+            array.push(mention)?;
+        }
+        Ok(array)
+    }
+
+    pub fn extract_federated_mentions_with_indices(
+        &self,
+        text: String,
+    ) -> Result<ExtractResult, Error> {
+        let mut extractor = RustValidatingExtractor::new(&self.config);
+        let input = extractor.prep_input(&text);
+        let result = extractor.extract_federated_mentions_with_indices(&input);
+        let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
+        Ok(ExtractResult::new(entities))
+    }
+
+    pub fn extract_entities_with_indices_federated(
+        &self,
+        text: String,
+    ) -> Result<ExtractResult, Error> {
+        let mut extractor = RustValidatingExtractor::new(&self.config);
+        let input = extractor.prep_input(&text);
+        let result = extractor.extract_entities_with_indices_federated(&input);
         let entities: Vec<Entity> = result.entities.iter().map(Entity::from).collect();
         Ok(ExtractResult::new(entities))
     }

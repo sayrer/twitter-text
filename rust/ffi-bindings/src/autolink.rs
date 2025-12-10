@@ -14,6 +14,7 @@ pub enum TwitterTextEntityType {
     HASHTAG = 1,
     MENTION = 2,
     CASHTAG = 3,
+    FEDERATEDMENTION = 4,
 }
 
 impl From<TwitterTextEntityType> for entity::Type {
@@ -23,6 +24,7 @@ impl From<TwitterTextEntityType> for entity::Type {
             TwitterTextEntityType::HASHTAG => entity::Type::HASHTAG,
             TwitterTextEntityType::MENTION => entity::Type::MENTION,
             TwitterTextEntityType::CASHTAG => entity::Type::CASHTAG,
+            TwitterTextEntityType::FEDERATEDMENTION => entity::Type::FEDERATEDMENTION,
         }
     }
 }
@@ -586,6 +588,7 @@ impl From<&entity::Entity<'_>> for CEntity {
             entity::Type::HASHTAG => TwitterTextEntityType::HASHTAG,
             entity::Type::MENTION => TwitterTextEntityType::MENTION,
             entity::Type::CASHTAG => TwitterTextEntityType::CASHTAG,
+            entity::Type::FEDERATEDMENTION => TwitterTextEntityType::FEDERATEDMENTION,
         };
         CEntity {
             entity_type,

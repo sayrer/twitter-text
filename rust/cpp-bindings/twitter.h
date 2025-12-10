@@ -208,6 +208,15 @@ public:
 
   Vec extractCashtagsWithIndices(std::string text);
 
+  std::vector<ExtractorString> extractFederatedMentions(std::string text) {
+    auto vec = extract_federated_mentions(*extractor, text);
+    return extractorStringsToCpp(vec);
+  }
+
+  Vec extractFederatedMentionsWithIndices(std::string text);
+
+  Vec extractEntitiesWithIndicesFederated(std::string text);
+
 private:
   std::vector<ExtractorString> extractorStringsToCpp(::rust::Vec<ExtractorString> &rustVec) {
     std::vector<ExtractorString> stdv;
@@ -276,6 +285,12 @@ public:
   Extract extractHashtagsWithIndices(const std::string &text);
 
   Extract extractCashtagsWithIndices(const std::string &text);
+
+  std::vector<ExtractorString> extractFederatedMentions(const std::string &text);
+
+  Extract extractFederatedMentionsWithIndices(const std::string &text);
+
+  Extract extractEntitiesWithIndicesFederated(const std::string &text);
 
 private:
   std::vector<Entity> entitiesToCpp(::rust::Vec<Entity> &rustVec) {

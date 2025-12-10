@@ -140,6 +140,26 @@ impl Extractor {
             .map(Entity::from)
             .collect()
     }
+
+    fn extract_federated_mentions(&self, text: &str) -> Vec<String> {
+        self.inner.extract_federated_mentions(text)
+    }
+
+    fn extract_federated_mentions_with_indices(&self, text: &str) -> Vec<Entity> {
+        self.inner
+            .extract_federated_mentions_with_indices(text)
+            .iter()
+            .map(Entity::from)
+            .collect()
+    }
+
+    fn extract_entities_with_indices_federated(&self, text: &str) -> Vec<Entity> {
+        self.inner
+            .extract_entities_with_indices_federated(text)
+            .iter()
+            .map(Entity::from)
+            .collect()
+    }
 }
 
 #[pyclass]
@@ -261,6 +281,32 @@ impl ValidatingExtractor {
         extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
         let input = extractor.prep_input(text);
         let result = extractor.extract_cashtags_with_indices(&input);
+        result.into()
+    }
+
+    fn extract_federated_mentions(&self, py: Python, text: &str) -> Vec<String> {
+        let config = self.config.borrow(py);
+        let mut extractor = RustValidatingExtractor::new(config.inner());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        let input = extractor.prep_input(text);
+        extractor.extract_federated_mentions(&input)
+    }
+
+    fn extract_federated_mentions_with_indices(&self, py: Python, text: &str) -> ExtractResult {
+        let config = self.config.borrow(py);
+        let mut extractor = RustValidatingExtractor::new(config.inner());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        let input = extractor.prep_input(text);
+        let result = extractor.extract_federated_mentions_with_indices(&input);
+        result.into()
+    }
+
+    fn extract_entities_with_indices_federated(&self, py: Python, text: &str) -> ExtractResult {
+        let config = self.config.borrow(py);
+        let mut extractor = RustValidatingExtractor::new(config.inner());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        let input = extractor.prep_input(text);
+        let result = extractor.extract_entities_with_indices_federated(&input);
         result.into()
     }
 }

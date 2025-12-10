@@ -1,6 +1,5 @@
 package com.sayrer.twitter_text;
 
-
 import com.sayrer.twitter_text.TwitterTextEntity;
 import com.sayrer.twitter_text.TwitterTextStringArray;
 import com.sayrer.twitter_text.extractor_h;
@@ -22,7 +21,6 @@ import java.lang.foreign.ValueLayout;
  * </pre>
  */
 public final class Extractor implements AutoCloseable {
-
 
     private MemorySegment handle;
     private boolean closed;
@@ -277,6 +275,220 @@ public final class Extractor implements AutoCloseable {
             Entity.Type.CASHTAG,
             extractor_h.twitter_text_extractor_extract_cashtags_with_indices$handle()
         );
+    }
+
+    /**
+     * Extract federated mentions (Mastodon-style @user@domain.tld) as simple strings.
+     * Returns both regular mentions (@user) and federated mentions (@user@domain).
+     *
+     * @param text the text to extract federated mentions from
+     * @return array of extracted mentions
+     */
+    public String[] extractFederatedMentions(String text) {
+        checkNotClosed();
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment textSegment = arena.allocateFrom(text);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_federated_mentions$handle()
+                .invoke(arena, handle, textSegment);
+
+            String[] result = extractStringArray(arraySegment);
+            extractor_h.twitter_text_string_array_free(arraySegment);
+
+            return result;
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to extract federated mentions",
+                t
+            );
+        }
+    }
+
+    /**
+     * Extract federated mentions with their indices.
+     *
+     * @param text the text to extract federated mentions from
+     * @return list of entities with start/end indices
+     */
+    public java.util.List<Entity> extractFederatedMentionsWithIndices(
+        String text
+    ) {
+        checkNotClosed();
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment textSegment = arena.allocateFrom(text);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_federated_mentions_with_indices$handle()
+                .invoke(arena, handle, textSegment);
+
+            java.util.List<Entity> result = new java.util.ArrayList<>();
+
+            long length = com.sayrer.twitter_text.TwitterTextEntityArray.length(
+                arraySegment
+            );
+
+            if (length > 0) {
+                MemorySegment entitiesPtr =
+                    com.sayrer.twitter_text.TwitterTextEntityArray.entities(
+                        arraySegment
+                    );
+                long entitySize = TwitterTextEntity.sizeof();
+
+                for (int i = 0; i < length; i++) {
+                    MemorySegment entitySegment = entitiesPtr.asSlice(
+                        i * entitySize,
+                        entitySize
+                    );
+
+                    int entityType = TwitterTextEntity.entity_type(
+                        entitySegment
+                    );
+                    int start = TwitterTextEntity.start(entitySegment);
+                    int end = TwitterTextEntity.end(entitySegment);
+                    MemorySegment valuePtr = TwitterTextEntity.value(
+                        entitySegment
+                    );
+                    String value = valuePtr
+                        .reinterpret(Long.MAX_VALUE)
+                        .getString(0);
+
+                    // Map entity type from C enum to Java enum
+                    Entity.Type type = entityType == 4
+                        ? Entity.Type.FEDERATEDMENTION
+                        : Entity.Type.MENTION;
+                    result.add(new Entity(start, end, value, type));
+                }
+            }
+
+            extractor_h.twitter_text_entity_array_free(arraySegment);
+            return result;
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to extract federated mentions with indices",
+                t
+            );
+        }
+    }
+
+    /**
+     * Extract all entities with their indices (URLs, mentions, hashtags, cashtags, lists).
+     * Does NOT include federated mentions. Use extractEntitiesWithIndicesFederated for that.
+     *
+     * @param text the text to extract entities from
+     * @return list of entities with start/end indices
+     */
+    public java.util.List<Entity> extractEntitiesWithIndices(String text) {
+        checkNotClosed();
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment textSegment = arena.allocateFrom(text);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_entities_with_indices$handle()
+                .invoke(arena, handle, textSegment);
+
+            java.util.List<Entity> result = extractEntitiesFromArray(
+                arraySegment
+            );
+            extractor_h.twitter_text_entity_array_free(arraySegment);
+            return result;
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to extract entities with indices",
+                t
+            );
+        }
+    }
+
+    /**
+     * Extract all entities with their indices, including federated mentions.
+     *
+     * @param text the text to extract entities from
+     * @return list of entities with start/end indices
+     */
+    public java.util.List<Entity> extractEntitiesWithIndicesFederated(
+        String text
+    ) {
+        checkNotClosed();
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment textSegment = arena.allocateFrom(text);
+            MemorySegment arraySegment = (MemorySegment) extractor_h
+                .twitter_text_extractor_extract_entities_with_indices_federated$handle()
+                .invoke(arena, handle, textSegment);
+
+            java.util.List<Entity> result = extractEntitiesFromArray(
+                arraySegment
+            );
+            extractor_h.twitter_text_entity_array_free(arraySegment);
+            return result;
+        } catch (Throwable t) {
+            throw new RuntimeException(
+                "Failed to extract entities with indices (federated)",
+                t
+            );
+        }
+    }
+
+    /**
+     * Helper method to extract entities from a TwitterTextEntityArray.
+     */
+    private java.util.List<Entity> extractEntitiesFromArray(
+        MemorySegment arraySegment
+    ) {
+        java.util.List<Entity> result = new java.util.ArrayList<>();
+
+        long length = com.sayrer.twitter_text.TwitterTextEntityArray.length(
+            arraySegment
+        );
+
+        if (length > 0) {
+            MemorySegment entitiesPtr =
+                com.sayrer.twitter_text.TwitterTextEntityArray.entities(
+                    arraySegment
+                );
+            long entitySize = TwitterTextEntity.sizeof();
+
+            for (int i = 0; i < length; i++) {
+                MemorySegment entitySegment = entitiesPtr.asSlice(
+                    i * entitySize,
+                    entitySize
+                );
+
+                int entityType = TwitterTextEntity.entity_type(entitySegment);
+                int start = TwitterTextEntity.start(entitySegment);
+                int end = TwitterTextEntity.end(entitySegment);
+                MemorySegment valuePtr = TwitterTextEntity.value(entitySegment);
+                String value = valuePtr
+                    .reinterpret(Long.MAX_VALUE)
+                    .getString(0);
+
+                // Map entity type from C enum to Java enum
+                Entity.Type type = switch (entityType) {
+                    case 0 -> Entity.Type.URL;
+                    case 1 -> Entity.Type.HASHTAG;
+                    case 2 -> Entity.Type.MENTION;
+                    case 3 -> Entity.Type.CASHTAG;
+                    case 4 -> Entity.Type.FEDERATEDMENTION;
+                    default -> Entity.Type.URL;
+                };
+
+                Entity entity = new Entity(start, end, value, type);
+
+                // Extract optional fields if present
+                MemorySegment listSlugPtr = TwitterTextEntity.list_slug(
+                    entitySegment
+                );
+                if (listSlugPtr.address() != 0) {
+                    String listSlug = listSlugPtr
+                        .reinterpret(Long.MAX_VALUE)
+                        .getString(0);
+                    if (!listSlug.isEmpty()) {
+                        entity.setListSlug(listSlug);
+                    }
+                }
+
+                result.add(entity);
+            }
+        }
+
+        return result;
     }
 
     /**

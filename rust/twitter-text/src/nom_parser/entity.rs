@@ -13,6 +13,7 @@ pub enum NomEntityType {
     Cashtag,
     Username,
     List,
+    FederatedMention,
     Emoji,
     InvalidChar,
 }

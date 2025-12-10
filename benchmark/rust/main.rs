@@ -147,10 +147,10 @@ fn benchmark_extract(data: &ExtractData, validator: ExternalValidator) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_tweet(data: &ValidateData, _validator: ExternalValidator) -> f64 {
+fn benchmark_validate_tweet(data: &ValidateData, external_validator: ExternalValidator) -> f64 {
     use twitter_text::validator::Validator;
 
-    let validator = Validator::new();
+    let validator = Validator::with_external_validator(external_validator);
     let tweets = data
         .tests
         .tweets
@@ -176,10 +176,10 @@ fn benchmark_validate_tweet(data: &ValidateData, _validator: ExternalValidator) 
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_all(data: &ValidateData, _validator: ExternalValidator) -> f64 {
+fn benchmark_validate_all(data: &ValidateData, external_validator: ExternalValidator) -> f64 {
     use twitter_text::validator::Validator;
 
-    let validator = Validator::new();
+    let validator = Validator::with_external_validator(external_validator);
     let tweets = data
         .tests
         .tweets

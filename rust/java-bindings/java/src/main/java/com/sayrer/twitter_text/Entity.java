@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
  * Represents an entity found in text (URL, hashtag, mention, cashtag).
  */
 public class Entity {
+
     public int start;
     public int end;
     public String value;
@@ -19,7 +20,8 @@ public class Entity {
         URL,
         HASHTAG,
         MENTION,
-        CASHTAG
+        CASHTAG,
+        FEDERATEDMENTION,
     }
 
     public Entity(int start, int end, String value, Type type) {
@@ -32,7 +34,13 @@ public class Entity {
     /**
      * Constructor with listSlug support (for conformance tests).
      */
-    public Entity(int start, int end, String value, String listSlug, Type type) {
+    public Entity(
+        int start,
+        int end,
+        String value,
+        String listSlug,
+        Type type
+    ) {
         this.start = start;
         this.end = end;
         this.value = value;
@@ -44,7 +52,12 @@ public class Entity {
      * Constructor for creating an entity from a Matcher.
      * Used by tests to create entities from regex matches.
      */
-    public Entity(Matcher matcher, Type type, int groupNumber, int groupNumber2) {
+    public Entity(
+        Matcher matcher,
+        Type type,
+        int groupNumber,
+        int groupNumber2
+    ) {
         this.start = matcher.start();
         this.end = matcher.end();
         this.value = matcher.group();
@@ -102,10 +115,12 @@ public class Entity {
         if (!(obj instanceof Entity)) return false;
 
         Entity other = (Entity) obj;
-        return start == other.start &&
-               end == other.end &&
-               type == other.type &&
-               (value == null ? other.value == null : value.equals(other.value));
+        return (
+            start == other.start &&
+            end == other.end &&
+            type == other.type &&
+            (value == null ? other.value == null : value.equals(other.value))
+        );
     }
 
     @Override

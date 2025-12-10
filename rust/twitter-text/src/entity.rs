@@ -8,6 +8,7 @@ pub enum Type {
     HASHTAG,
     MENTION,
     CASHTAG,
+    FEDERATEDMENTION,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -18,14 +19,22 @@ pub struct Entity<'a> {
     pub value: &'a str,
     pub list_slug: &'a str,
     pub display_url: &'a str,
-    pub expanded_url: &'a str
+    pub expanded_url: &'a str,
 }
 
 impl<'a> Entity<'a> {
-    pub fn get_type(&self) -> Type { self.t }
-    pub fn get_start(&self) -> i32 { self.start }
-    pub fn get_end(&self) -> i32 { self.end }
-    pub fn get_value(&self) -> &str { &self.value }
+    pub fn get_type(&self) -> Type {
+        self.t
+    }
+    pub fn get_start(&self) -> i32 {
+        self.start
+    }
+    pub fn get_end(&self) -> i32 {
+        self.end
+    }
+    pub fn get_value(&self) -> &str {
+        &self.value
+    }
     pub fn get_list_slug(&self) -> &'a str {
         &self.list_slug
     }
@@ -40,11 +49,21 @@ impl<'a> Entity<'a> {
         Entity::new_list(t, value, "", start, end)
     }
 
-    pub fn new_list(t: Type, value: &'a str, list_slug: &'a str, start: i32, end: i32) -> Entity<'a> {
+    pub fn new_list(
+        t: Type,
+        value: &'a str,
+        list_slug: &'a str,
+        start: i32,
+        end: i32,
+    ) -> Entity<'a> {
         Entity {
-            t, value, list_slug, start, end,
+            t,
+            value,
+            list_slug,
+            start,
+            end,
             display_url: "",
-            expanded_url: ""
+            expanded_url: "",
         }
     }
 }

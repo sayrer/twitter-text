@@ -59,6 +59,25 @@ public class Extractor {
         return entity
     }
 
+    /// Extract federated mentions (Mastodon-style @user@domain.tld) from the text
+    /// Note: This also includes regular mentions for Mastodon compatibility
+    public func extractFederatedMentions(from text: String) -> [Entity] {
+        let entitiesArray = twitter_text_extractor_extract_federated_mentions_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
+    }
+
+    /// Extract all entities including federated mentions from the text
+    public func extractEntitiesWithIndicesFederated(from text: String) -> [Entity] {
+        let entitiesArray = twitter_text_extractor_extract_entities_with_indices_federated(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
+    }
+
+    /// Extract all entities (URLs, mentions, hashtags, cashtags) excluding federated mentions
+    public func extractEntities(from text: String) -> [Entity] {
+        let entitiesArray = twitter_text_extractor_extract_entities_with_indices(handle, text)
+        return extractEntitiesFromArray(entitiesArray)
+    }
+
     private func extractEntitiesFromArray(_ entitiesArray: TwitterTextEntityArray) -> [Entity] {
         var result: [Entity] = []
 

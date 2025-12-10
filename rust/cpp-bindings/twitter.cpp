@@ -282,6 +282,32 @@ Extractor<std::vector<Entity>, Entity*>::extractCashtagsWithIndices(std::string 
   return entitiesToCpp(vec);
 }
 
+template <>
+::rust::Vec<Entity>
+Extractor<>::extractFederatedMentionsWithIndices(std::string text) {
+  return extract_federated_mentions_with_indices(*extractor, text);
+}
+
+template <>
+std::vector<Entity>
+Extractor<std::vector<Entity>, Entity*>::extractFederatedMentionsWithIndices(std::string text) {
+  auto vec = extract_federated_mentions_with_indices(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
+template <>
+::rust::Vec<Entity>
+Extractor<>::extractEntitiesWithIndicesFederated(std::string text) {
+  return extract_entities_with_indices_federated(*extractor, text);
+}
+
+template <>
+std::vector<Entity>
+Extractor<std::vector<Entity>, Entity*>::extractEntitiesWithIndicesFederated(std::string text) {
+  auto vec = extract_entities_with_indices_federated(*extractor, text);
+  return entitiesToCpp(vec);
+}
+
 // ValidatingExtractor
 
 template <>
@@ -375,6 +401,56 @@ template <>
 SwigExtractResult* 
 ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractCashtagsWithIndices(const std::string &text) {
   auto result = extract_cashtags_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::vector<ExtractorString>
+ValidatingExtractor<>::extractFederatedMentions(const std::string &text) {
+  auto vec = extract_federated_mentions_validated(*extractor, text);
+  std::vector<ExtractorString> stdv;
+  stdv.reserve(vec.size());
+  for (ExtractorString es : vec) {
+    stdv.push_back(es);
+  }
+  return stdv;
+}
+
+template <>
+std::vector<ExtractorString>
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractFederatedMentions(const std::string &text) {
+  auto vec = extract_federated_mentions_validated(*extractor, text);
+  std::vector<ExtractorString> stdv;
+  stdv.reserve(vec.size());
+  for (ExtractorString es : vec) {
+    stdv.push_back(es);
+  }
+  return stdv;
+}
+
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractFederatedMentionsWithIndices(const std::string &text) {
+  return extract_federated_mentions_with_indices_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractFederatedMentionsWithIndices(const std::string &text) {
+  auto result = extract_federated_mentions_with_indices_validated(*extractor, text);
+  return convertResult(*result);
+}
+
+template <>
+std::unique_ptr<ExtractResult>
+ValidatingExtractor<>::extractEntitiesWithIndicesFederated(const std::string &text) {
+  return extract_entities_with_indices_federated_validated(*extractor, text);
+}
+
+template <>
+SwigExtractResult* 
+ValidatingExtractor<SwigExtractResult*, SwigMentionResult*>::extractEntitiesWithIndicesFederated(const std::string &text) {
+  auto result = extract_entities_with_indices_federated_validated(*extractor, text);
   return convertResult(*result);
 }
 

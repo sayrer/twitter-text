@@ -59,6 +59,11 @@ impl Entity {
     pub fn is_cashtag(&self) -> bool {
         self.entity_type == EntityType::CASHTAG as i32
     }
+
+    #[wasm_bindgen(js_name = "isFederatedMention")]
+    pub fn is_federated_mention(&self) -> bool {
+        self.entity_type == EntityType::FEDERATEDMENTION as i32
+    }
 }
 
 impl<'a> From<&RustEntity<'a>> for Entity {
@@ -176,6 +181,30 @@ impl Extractor {
     #[wasm_bindgen(js_name = "extractCashtagsWithIndices")]
     pub fn extract_cashtags_with_indices(&self, text: &str) -> Array {
         let entities = self.inner.extract_cashtags_with_indices(text);
+        entities
+            .iter()
+            .map(|e| JsValue::from(Entity::from(e)))
+            .collect()
+    }
+
+    #[wasm_bindgen(js_name = "extractFederatedMentions")]
+    pub fn extract_federated_mentions(&self, text: &str) -> Array {
+        let mentions = self.inner.extract_federated_mentions(text);
+        mentions.into_iter().map(JsValue::from).collect()
+    }
+
+    #[wasm_bindgen(js_name = "extractFederatedMentionsWithIndices")]
+    pub fn extract_federated_mentions_with_indices(&self, text: &str) -> Array {
+        let entities = self.inner.extract_federated_mentions_with_indices(text);
+        entities
+            .iter()
+            .map(|e| JsValue::from(Entity::from(e)))
+            .collect()
+    }
+
+    #[wasm_bindgen(js_name = "extractEntitiesWithIndicesFederated")]
+    pub fn extract_entities_with_indices_federated(&self, text: &str) -> Array {
+        let entities = self.inner.extract_entities_with_indices_federated(text);
         entities
             .iter()
             .map(|e| JsValue::from(Entity::from(e)))

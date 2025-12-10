@@ -634,4 +634,103 @@ TEST(ValidatingExtractorTest, Yaml) {
   delete extractor;
 }
 
+TEST(ExtractorTest, FederatedMentions) {
+  Extractor<> extractor;
+
+  // Simple federated mention
+  auto mentions = extractor.extractFederatedMentions("Hello @user@mastodon.social!");
+  ASSERT_EQ(mentions.size(), 1);
+  ASSERT_EQ(std::string(mentions[0].s), "@user@mastodon.social");
+
+  // With indices
+  auto entities = extractor.extractFederatedMentionsWithIndices("Hello @user@mastodon.social!");
+  ASSERT_EQ(entities.size(), 1);
+  ASSERT_EQ(std::string(entities[0].value), "@user@mastodon.social");
+  ASSERT_EQ(entities[0].start, 6);
+  ASSERT_EQ(entities[0].end, 27);
+  ASSERT_EQ(entities[0].entity_type, 4); // FEDERATEDMENTION
+
+  // Multiple federated mentions
+  mentions = extractor.extractFederatedMentions("@alice@example.com and @bob@other.org");
+  ASSERT_EQ(mentions.size(), 2);
+  ASSERT_EQ(std::string(mentions[0].s), "@alice@example.com");
+  ASSERT_EQ(std::string(mentions[1].s), "@bob@other.org");
+
+  // Mixed with regular mentions
+  mentions = extractor.extractFederatedMentions("@regular and @federated@domain.com");
+  ASSERT_EQ(mentions.size(), 2);
+  // extractFederatedMentions returns BOTH regular and federated mentions (Mastodon-style)
+  // Note: regular mentions don't include the @ prefix in the value
+  ASSERT_EQ(std::string(mentions[0].s), "regular");
+  ASSERT_EQ(std::string(mentions[1].s), "@federated@domain.com");
+}
+
+TEST(ExtractorTest, EntitiesWithIndicesFederated) {
+  Extractor<> extractor;
+
+  // Test that extractEntitiesWithIndicesFederated includes federated mentions
+  auto entities = extractor.extractEntitiesWithIndicesFederated(
+      "Check @user@mastodon.social and https://example.com #hashtag $CASH");
+  
+  // Should have: URL, hashtag, cashtag, federated mention
+  ASSERT_EQ(entities.size(), 4);
+  
+  // Find the federated mention
+  bool foundFederated = false;
+  for (const auto& entity : entities) {
+    if (entity.entity_type == 4) { // FEDERATEDMENTION
+      foundFederated = true;
+      ASSERT_EQ(std::string(entity.value), "@user@mastodon.social");
+    }
+  }
+  ASSERT_TRUE(foundFederated);
+
+  // Regular extractEntitiesWithIndices should NOT include federated mentions
+  auto regularEntities = extractor.extractEntitiesWithIndices(
+      "Check @user@mastodon.social and https://example.com #hashtag $CASH");
+  
+  // Should have: URL, hashtag, cashtag, regular mention (but NOT federated)
+  bool foundFederatedInRegular = false;
+  for (const auto& entity : regularEntities) {
+    if (entity.entity_type == 4) {
+      foundFederatedInRegular = true;
+    }
+  }
+  ASSERT_FALSE(foundFederatedInRegular);
+}
+
+TEST(ValidatingExtractorTest, FederatedMentions) {
+  TwitterTextConfiguration config;
+  ValidatingExtractor<> extractor(config);
+
+  // Simple federated mention
+  auto mentions = extractor.extractFederatedMentions("Hello @user@mastodon.social!");
+  ASSERT_EQ(mentions.size(), 1);
+  ASSERT_EQ(std::string(mentions[0].s), "@user@mastodon.social");
+
+  // With indices
+  auto result = extractor.extractFederatedMentionsWithIndices("Hello @user@mastodon.social!");
+  ASSERT_EQ(result->entities.size(), 1);
+  ASSERT_EQ(std::string(result->entities[0].value), "@user@mastodon.social");
+  ASSERT_EQ(result->entities[0].entity_type, 4); // FEDERATEDMENTION
+}
+
+TEST(ValidatingExtractorTest, EntitiesWithIndicesFederated) {
+  TwitterTextConfiguration config;
+  ValidatingExtractor<> extractor(config);
+
+  // Test extractEntitiesWithIndicesFederated includes federated mentions
+  auto result = extractor.extractEntitiesWithIndicesFederated(
+      "Check @user@mastodon.social and https://example.com #hashtag");
+  
+  bool foundFederated = false;
+  for (const auto& entity : result->entities) {
+    if (entity.entity_type == 4) {
+      foundFederated = true;
+      ASSERT_EQ(std::string(entity.value), "@user@mastodon.social");
+    }
+  }
+  ASSERT_TRUE(foundFederated);
+}
+
 } // twitter_text

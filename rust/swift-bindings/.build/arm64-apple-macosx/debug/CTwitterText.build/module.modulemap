@@ -1,0 +1,4 @@
+module CTwitterText {
+    umbrella "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include"
+    export *
+}

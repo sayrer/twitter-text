@@ -1,0 +1,54 @@
+{
+  "": {
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/master.swiftdeps"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Autolinker.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Configuration.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Entity.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Extractor.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/HitHighlighter.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Parser.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.dia"
+  },
+  "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Validator.swift": {
+    "dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.d",
+    "object": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.swift.o",
+    "swiftmodule": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator~partial.swiftmodule",
+    "swift-dependencies": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.swiftdeps",
+    "diagnostics": "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.dia"
+  }
+}

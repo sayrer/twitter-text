@@ -342,6 +342,86 @@ describe("TLD Conformance Tests", () => {
 });
 
 // ============================================================================
+// Federated Mention Tests
+// ============================================================================
+
+describe("Federated Mention Tests", () => {
+  const extractor = new wasm.Extractor();
+
+  test("extracts simple federated mention", () => {
+    const mentions = extractor.extractFederatedMentions(
+      "Hello @user@mastodon.social!",
+    );
+    const values = Array.from(mentions);
+    assert.strictEqual(values.length, 1);
+    assert.strictEqual(values[0], "@user@mastodon.social");
+  });
+
+  test("extracts federated mentions with indices", () => {
+    const entities = extractor.extractFederatedMentionsWithIndices(
+      "Hello @user@mastodon.social!",
+    );
+    const arr = Array.from(entities);
+    assert.strictEqual(arr.length, 1);
+    assert.strictEqual(arr[0].value, "@user@mastodon.social");
+    assert.strictEqual(arr[0].start, 6);
+    assert.strictEqual(arr[0].end, 27);
+    assert.strictEqual(arr[0].entityType, 4); // FEDERATEDMENTION
+    assert.strictEqual(arr[0].isFederatedMention(), true);
+  });
+
+  test("extracts multiple federated mentions", () => {
+    const mentions = extractor.extractFederatedMentions(
+      "@alice@example.com and @bob@other.org",
+    );
+    const values = Array.from(mentions);
+    assert.strictEqual(values.length, 2);
+    assert.strictEqual(values[0], "@alice@example.com");
+    assert.strictEqual(values[1], "@bob@other.org");
+  });
+
+  test("extracts mixed regular and federated mentions", () => {
+    const mentions = extractor.extractFederatedMentions(
+      "@regular and @federated@domain.com",
+    );
+    const values = Array.from(mentions);
+    assert.strictEqual(values.length, 2);
+    // Regular mentions don't include @ prefix
+    assert.strictEqual(values[0], "regular");
+    assert.strictEqual(values[1], "@federated@domain.com");
+  });
+
+  test("extractEntitiesWithIndicesFederated includes federated mentions", () => {
+    const entities = extractor.extractEntitiesWithIndicesFederated(
+      "Check @user@mastodon.social and https://example.com #hashtag $CASH",
+    );
+    const arr = Array.from(entities);
+    assert.strictEqual(arr.length, 4);
+
+    // Find federated mention
+    const federated = arr.find((e) => e.entityType === 4);
+    assert.ok(federated, "Should find federated mention");
+    assert.strictEqual(federated.value, "@user@mastodon.social");
+    assert.strictEqual(federated.isFederatedMention(), true);
+  });
+
+  test("extractEntitiesWithIndices excludes federated mentions", () => {
+    const entities = extractor.extractEntitiesWithIndices(
+      "Check @user@mastodon.social and https://example.com #hashtag $CASH",
+    );
+    const arr = Array.from(entities);
+
+    // Should NOT find federated mention (entity_type 4)
+    const federated = arr.find((e) => e.entityType === 4);
+    assert.strictEqual(
+      federated,
+      undefined,
+      "Should not find federated mention in regular entities",
+    );
+  });
+});
+
+// ============================================================================
 // Configuration Tests
 // ============================================================================
 

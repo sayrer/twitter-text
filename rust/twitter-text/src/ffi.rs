@@ -142,6 +142,9 @@ pub mod ffi {
         fn extract_hashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
         fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
         fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_federated_mentions(r: &RustExtractor, text: &str) -> Vec<ExtractorString>;
+        fn extract_federated_mentions_with_indices(r: &RustExtractor, text: &str) -> Vec<Entity>;
+        fn extract_entities_with_indices_federated(r: &RustExtractor, text: &str) -> Vec<Entity>;
 
         // ValidatingExtractor
         type RustValidatingExtractor;
@@ -178,6 +181,18 @@ pub mod ffi {
             text: &str,
         ) -> UniquePtr<ExtractResult>;
         fn extract_cashtags_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_federated_mentions_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> Vec<ExtractorString>;
+        fn extract_federated_mentions_with_indices_validated(
+            e: &RustValidatingExtractor,
+            text: &str,
+        ) -> UniquePtr<ExtractResult>;
+        fn extract_entities_with_indices_federated_validated(
             e: &RustValidatingExtractor,
             text: &str,
         ) -> UniquePtr<ExtractResult>;
@@ -406,6 +421,7 @@ pub fn autolink_entities(
                 1 => crate::entity::Type::HASHTAG,
                 2 => crate::entity::Type::MENTION,
                 3 => crate::entity::Type::CASHTAG,
+                4 => crate::entity::Type::FEDERATEDMENTION,
                 _ => crate::entity::Type::URL, // default fallback
             },
             start: e.start,
@@ -509,6 +525,27 @@ pub fn extract_cashtags(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorStri
 
 pub fn extract_cashtags_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
     r.0.extract_cashtags_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
+}
+
+pub fn extract_federated_mentions(r: &RustExtractor, text: &str) -> Vec<ffi::ExtractorString> {
+    r.0.extract_federated_mentions(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
+}
+
+pub fn extract_federated_mentions_with_indices(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.0.extract_federated_mentions_with_indices(text)
+        .iter()
+        .map(|e| ffi::Entity::from(e))
+        .collect()
+}
+
+pub fn extract_entities_with_indices_federated(r: &RustExtractor, text: &str) -> Vec<ffi::Entity> {
+    r.0.extract_entities_with_indices_federated(text)
         .iter()
         .map(|e| ffi::Entity::from(e))
         .collect()
@@ -664,6 +701,62 @@ pub fn extract_cashtags_with_indices_validated(
 
     UniquePtr::new(ffi::ExtractResult::from(
         extractor.extract_cashtags_with_indices(text),
+    ))
+}
+
+pub fn extract_federated_mentions_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> Vec<ffi::ExtractorString> {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        return extractor
+            .extract_federated_mentions(text.as_str())
+            .iter()
+            .map(|s| ffi::ExtractorString::new(s))
+            .collect();
+    }
+
+    extractor
+        .extract_federated_mentions(text)
+        .iter()
+        .map(|s| ffi::ExtractorString::new(s))
+        .collect()
+}
+
+pub fn extract_federated_mentions_with_indices_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_federated_mentions_with_indices(text.as_str());
+        return UniquePtr::new(ffi::ExtractResult::from(result));
+    }
+
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_federated_mentions_with_indices(text),
+    ))
+}
+
+pub fn extract_entities_with_indices_federated_validated(
+    fve: &RustValidatingExtractor,
+    text: &str,
+) -> UniquePtr<ffi::ExtractResult> {
+    let mut extractor = ValidatingExtractor::new(&fve.config);
+    extractor.set_extract_url_without_protocol(fve.extract_url_without_protocol);
+    if fve.normalize {
+        let text = extractor.prep_input(text);
+        let result = extractor.extract_entities_with_indices_federated(text.as_str());
+        return UniquePtr::new(ffi::ExtractResult::from(result));
+    }
+
+    UniquePtr::new(ffi::ExtractResult::from(
+        extractor.extract_entities_with_indices_federated(text),
     ))
 }
 

@@ -64,6 +64,18 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
         "extract_entities_with_indices",
         method!(Extractor::extract_entities_with_indices, 1),
     )?;
+    extractor_class.define_method(
+        "extract_federated_mentions",
+        method!(Extractor::extract_federated_mentions, 1),
+    )?;
+    extractor_class.define_method(
+        "extract_federated_mentions_with_indices",
+        method!(Extractor::extract_federated_mentions_with_indices, 1),
+    )?;
+    extractor_class.define_method(
+        "extract_entities_with_indices_federated",
+        method!(Extractor::extract_entities_with_indices_federated, 1),
+    )?;
 
     let entity_class = module.define_class("Entity", ruby.class_object())?;
     entity_class.define_method("entity_type", method!(Entity::entity_type, 0))?;
@@ -123,6 +135,24 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     validating_extractor_class.define_method(
         "set_normalize",
         method!(ValidatingExtractor::set_normalize, 1),
+    )?;
+    validating_extractor_class.define_method(
+        "extract_federated_mentions",
+        method!(ValidatingExtractor::extract_federated_mentions, 1),
+    )?;
+    validating_extractor_class.define_method(
+        "extract_federated_mentions_with_indices",
+        method!(
+            ValidatingExtractor::extract_federated_mentions_with_indices,
+            1
+        ),
+    )?;
+    validating_extractor_class.define_method(
+        "extract_entities_with_indices_federated",
+        method!(
+            ValidatingExtractor::extract_entities_with_indices_federated,
+            1
+        ),
     )?;
 
     let extract_result_class = module.define_class("ExtractResult", ruby.class_object())?;

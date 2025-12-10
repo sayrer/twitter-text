@@ -1,0 +1,932 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.xctest/Contents/MacOS/TwitterTextPackageTests",
+      "packagePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings",
+      "productName" : "TwitterTextPackageTests"
+    }
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.TwitterText-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/sources",
+      "importPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Autolinker.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Entity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Extractor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/HitHighlighter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Parser.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Validator.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "TwitterText",
+      "moduleOutputPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterText.swiftmodule",
+      "objects" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.15",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j20",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-Xcc",
+        "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+        "-module-cache-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/include/TwitterText-Swift.h",
+        "-color-diagnostics",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bindings"
+      ],
+      "outputFileMapPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterText.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Autolinker.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Configuration.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Entity.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Extractor.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/HitHighlighter.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Parser.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Validator.swift"
+      ],
+      "tempsPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.TwitterTextPackageTests-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/sources",
+      "importPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterTextTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "TwitterTextPackageTests",
+      "moduleOutputPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterTextPackageTests.swiftmodule",
+      "objects" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.15",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j20",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-Xcc",
+        "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+        "-module-cache-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/include/TwitterTextPackageTests-Swift.h",
+        "-color-diagnostics",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bindings"
+      ],
+      "outputFileMapPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterTextPackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.TwitterTextTests-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/sources",
+      "importPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/AutolinkTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/EmojiTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ExtractTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/HitHighlightTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestHelpers.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestRunner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TldTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ValidateTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterText.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "TwitterTextTests",
+      "moduleOutputPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterTextTests.swiftmodule",
+      "objects" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/AutolinkTests.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/EmojiTests.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ExtractTests.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/HitHighlightTests.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestHelpers.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestRunner.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TldTests.swift.o",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ValidateTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j20",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-Xcc",
+        "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+        "-module-cache-path",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-color-diagnostics",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "swift_bindings"
+      ],
+      "outputFileMapPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/AutolinkTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/EmojiTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ExtractTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/HitHighlightTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestHelpers.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestRunner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TldTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ValidateTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules/TwitterTextTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/AutolinkTests.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/EmojiTests.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ExtractTests.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/HitHighlightTests.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestHelpers.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestRunner.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TldTests.swift",
+        "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ValidateTests.swift"
+      ],
+      "tempsPath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "TwitterText" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "TwitterText",
+      "-package-name",
+      "swift_bindings",
+      "-c",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Autolinker.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Configuration.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Entity.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Extractor.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/HitHighlighter.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Parser.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Validator.swift",
+      "-I",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.15",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j20",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-Xcc",
+      "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+      "-module-cache-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/include/TwitterText-Swift.h",
+      "-color-diagnostics",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bindings",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "TwitterTextPackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "TwitterTextPackageTests",
+      "-package-name",
+      "swift_bindings",
+      "-c",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift",
+      "-I",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.15",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j20",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-Xcc",
+      "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+      "-module-cache-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/include/TwitterTextPackageTests-Swift.h",
+      "-color-diagnostics",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bindings",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "TwitterTextTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "TwitterTextTests",
+      "-package-name",
+      "swift_bindings",
+      "-c",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/AutolinkTests.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/EmojiTests.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ExtractTests.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/HitHighlightTests.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestHelpers.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestRunner.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TldTests.swift",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ValidateTests.swift",
+      "-I",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j20",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-Xcc",
+      "-fmodule-map-file=/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/CTwitterText.build/module.modulemap",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/CTwitterText/include",
+      "-module-cache-path",
+      "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-color-diagnostics",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "swift_bindings",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "CTwitterText" : [
+
+    ],
+    "TwitterText" : [
+      "CTwitterText"
+    ],
+    "TwitterTextPackageTests" : [
+      "TwitterTextTests",
+      "TwitterText",
+      "CTwitterText"
+    ],
+    "TwitterTextTests" : [
+      "TwitterText",
+      "CTwitterText"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift" : {
+      "inputs" : [
+
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift"
+        }
+      ]
+    }
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Autolinker.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Entity.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Extractor.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/HitHighlighter.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Parser.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Sources/TwitterText/Validator.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/sources"
+    },
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/sources"
+    },
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Autolinker.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Configuration.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Entity.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Extractor.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/HitHighlighter.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Parser.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterText.build/Validator.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/AutolinkTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/EmojiTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ExtractTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/HitHighlightTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestHelpers.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TestRunner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/TldTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/ValidateTests.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.product/Objects.LinkFileList"
+    },
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/AutolinkTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/EmojiTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ExtractTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/HitHighlightTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestHelpers.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TestRunner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/TldTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/Tests/TwitterTextTests/ValidateTests.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextTests.build/sources"
+    },
+    "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

@@ -25,7 +25,7 @@ text = _{ !invalid_char ~ (emoji | ANY) }
 // In particular, placing URLs before other entities helps resolve ambiguities where
 // URL fragments might also be interpreted as hashtags (see <goo.gl/4udoLK>).
 //
-entity = _{ possible_url | possible_hashtag | possible_mention | possible_cashtag }
+entity = _{ possible_url | possible_hashtag | possible_federated_mention | possible_mention | possible_cashtag }
 
 //
 // CASHTAGS
@@ -95,6 +95,32 @@ list = { listname ~ list_slug }
 // REPLY
 //
 reply = _{ space? ~ username ~ !user_invalid_suffix }
+
+
+//
+// FEDERATED MENTION (Mastodon-style @user@domain.tld)
+//
+// Username: ASCII alphanumeric and underscore, with optional . or - separators between segments
+federated_username_char = _{ ASCII_ALPHANUMERIC | "_" }
+federated_username_segment = _{ federated_username_char+ }
+federated_username = _{ federated_username_segment ~ (("." | "-")+ ~ federated_username_segment)* }
+
+// Domain: ASCII alphanumeric and underscore, with . or - separators (max 253 chars checked post-extraction)
+federated_domain_char = _{ ASCII_ALPHANUMERIC | "_" }
+federated_domain_segment = _{ federated_domain_char+ }
+federated_domain = _{ federated_domain_segment ~ (("." | "-")+ ~ federated_domain_segment)* }
+
+// Invalid prefix characters that would make this not a federated mention
+federated_mention_invalid_prefix = _{ ASCII_ALPHANUMERIC | "_" | "=" | "/" }
+
+// The federated mention itself: @username@domain
+federated_mention = { user_prefix ~ federated_username ~ "@" ~ federated_domain }
+
+// For validation
+valid_federated_mention = { SOI ~ federated_mention ~ EOI }
+
+// Possible federated mention (with invalid prefix handling)
+possible_federated_mention = _{ federated_mention_invalid_prefix ~ federated_mention | federated_mention }
 
 
 //

@@ -429,6 +429,11 @@ impl<'a> Autolinker<'a> {
                 entity::Type::HASHTAG => self.link_to_hashtag(entity, text, &mut buf),
                 entity::Type::MENTION => self.link_to_mention_and_list(entity, text, &mut buf),
                 entity::Type::CASHTAG => self.link_to_cashtag(entity, text, &mut buf),
+                entity::Type::FEDERATEDMENTION => {
+                    // Federated mentions are not auto-linked by default
+                    // Just output the text as-is
+                    buf += entity.get_value();
+                }
             }
             offset = entity.get_end() as usize;
         }

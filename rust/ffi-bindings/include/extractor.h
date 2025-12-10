@@ -121,6 +121,30 @@ TwitterTextEntity* twitter_text_extractor_extract_reply_username(
     const char* text
 );
 
+/* Extract federated mentions (Mastodon-style @user@domain.tld) as simple strings */
+TwitterTextStringArray twitter_text_extractor_extract_federated_mentions(
+    TwitterTextExtractor* extractor,
+    const char* text
+);
+
+/* Extract federated mentions with indices */
+TwitterTextEntityArray twitter_text_extractor_extract_federated_mentions_with_indices(
+    TwitterTextExtractor* extractor,
+    const char* text
+);
+
+/* Extract all entities with indices (URLs, mentions, hashtags, cashtags, lists) */
+TwitterTextEntityArray twitter_text_extractor_extract_entities_with_indices(
+    TwitterTextExtractor* extractor,
+    const char* text
+);
+
+/* Extract all entities with indices, including federated mentions */
+TwitterTextEntityArray twitter_text_extractor_extract_entities_with_indices_federated(
+    TwitterTextExtractor* extractor,
+    const char* text
+);
+
 /* ============================================================================
  * Validating Extractor API (with parse results)
  * ========================================================================= */
@@ -181,6 +205,24 @@ TwitterTextExtractResult twitter_text_validating_extractor_extract_entities_with
 
 /* Extract reply username with validation data */
 TwitterTextMentionResult twitter_text_validating_extractor_extract_reply_username(
+    TwitterTextValidatingExtractor* extractor,
+    const char* text
+);
+
+/* Extract federated mentions (Mastodon-style @user@domain.tld) as simple strings */
+TwitterTextStringArray twitter_text_validating_extractor_extract_federated_mentions(
+    TwitterTextValidatingExtractor* extractor,
+    const char* text
+);
+
+/* Extract federated mentions with validation data */
+TwitterTextExtractResult twitter_text_validating_extractor_extract_federated_mentions_with_indices(
+    TwitterTextValidatingExtractor* extractor,
+    const char* text
+);
+
+/* Extract all entities with validation data, including federated mentions */
+TwitterTextExtractResult twitter_text_validating_extractor_extract_entities_with_indices_federated(
     TwitterTextValidatingExtractor* extractor,
     const char* text
 );
