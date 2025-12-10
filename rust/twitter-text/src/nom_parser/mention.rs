@@ -13,8 +13,12 @@
 //! - 1-25 characters (letter followed by alphanumeric, underscore, or hyphen)
 
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::satisfy, combinator::recognize,
-    multi::many_m_n, sequence::tuple, IResult,
+    branch::alt,
+    bytes::complete::{tag, take_while1, take_while_m_n},
+    character::complete::satisfy,
+    combinator::recognize,
+    sequence::tuple,
+    IResult,
 };
 
 /// Match the @ prefix (regular or fullwidth).
@@ -22,14 +26,15 @@ fn at_prefix(input: &str) -> IResult<&str, &str> {
     alt((tag("@"), tag("\u{ff20}")))(input)
 }
 
-/// Match a username character (alphanumeric or underscore).
-fn username_char(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_alphanumeric() || c == '_')(input)
+/// Check if a character is a valid username character (alphanumeric or underscore).
+#[inline]
+fn is_username_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
 }
 
 /// Match the username text (1-20 valid characters).
 fn username_text(input: &str) -> IResult<&str, &str> {
-    recognize(many_m_n(1, 20, username_char))(input)
+    take_while_m_n(1, 20, is_username_char)(input)
 }
 
 /// Parse a username/mention, returning the matched string slice.
@@ -38,16 +43,17 @@ pub fn parse_username(input: &str) -> IResult<&str, &str> {
     recognize(tuple((at_prefix, username_text)))(input)
 }
 
-/// Match a list slug character (alphanumeric, underscore, or hyphen).
-fn list_slug_char(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')(input)
+/// Check if a character is a valid list slug character (alphanumeric, underscore, or hyphen).
+#[inline]
+fn is_list_slug_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_' || c == '-'
 }
 
 /// Match the list slug text (starts with letter, then 0-24 more chars, total 1-25).
 fn list_slug_text(input: &str) -> IResult<&str, &str> {
     recognize(tuple((
         satisfy(|c| c.is_ascii_alphabetic()),
-        many_m_n(0, 24, list_slug_char),
+        take_while_m_n(0, 24, is_list_slug_char),
     )))(input)
 }
 
@@ -93,56 +99,86 @@ pub fn valid_mention_predecessor(c: char) -> bool {
 
 // Federated mention parsing (Mastodon-style @user@domain.tld)
 
-/// Match a federated username character (alphanumeric or underscore).
-fn federated_username_char(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_alphanumeric() || c == '_')(input)
+/// Check if a character is a valid federated username character (alphanumeric or underscore).
+#[inline]
+fn is_federated_username_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
 }
 
-/// Match a federated username segment (one or more valid chars).
-fn federated_username_segment(input: &str) -> IResult<&str, &str> {
-    recognize(nom::multi::many1(federated_username_char))(input)
+/// Check if a character is a federated separator (dot or hyphen).
+#[inline]
+fn is_federated_separator(c: char) -> bool {
+    c == '.' || c == '-'
 }
 
-/// Match federated username separator (one or more dots or hyphens).
-fn federated_username_separator(input: &str) -> IResult<&str, &str> {
-    recognize(nom::multi::many1(satisfy(|c| c == '.' || c == '-')))(input)
-}
-
-/// Match a federated username: segment followed by zero or more (separator + segment).
+/// Match a federated username: alphanumeric/underscore chars with dots/hyphens between segments.
+/// Pattern: segment (separator+ segment)*
 fn federated_username(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        federated_username_segment,
-        nom::multi::many0(tuple((
-            federated_username_separator,
-            federated_username_segment,
-        ))),
-    )))(input)
+    // Must start with at least one username char
+    let (remaining, first_segment) = take_while1(is_federated_username_char)(input)?;
+
+    // Continue consuming (separator+ segment)* without allocating
+    let mut end_pos = first_segment.len();
+    let mut rest = remaining;
+
+    loop {
+        // Try to match one or more separators
+        match take_while1::<_, _, nom::error::Error<&str>>(is_federated_separator)(rest) {
+            Ok((after_sep, sep)) => {
+                // Must be followed by a segment
+                match take_while1::<_, _, nom::error::Error<&str>>(is_federated_username_char)(
+                    after_sep,
+                ) {
+                    Ok((after_segment, segment)) => {
+                        end_pos += sep.len() + segment.len();
+                        rest = after_segment;
+                    }
+                    Err(_) => break,
+                }
+            }
+            Err(_) => break,
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
-/// Match a federated domain character (alphanumeric or underscore).
-fn federated_domain_char(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_alphanumeric() || c == '_')(input)
+/// Check if a character is a valid federated domain character (alphanumeric or underscore).
+#[inline]
+fn is_federated_domain_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
 }
 
-/// Match a federated domain segment (one or more valid chars).
-fn federated_domain_segment(input: &str) -> IResult<&str, &str> {
-    recognize(nom::multi::many1(federated_domain_char))(input)
-}
-
-/// Match federated domain separator (one or more dots or hyphens).
-fn federated_domain_separator(input: &str) -> IResult<&str, &str> {
-    recognize(nom::multi::many1(satisfy(|c| c == '.' || c == '-')))(input)
-}
-
-/// Match a federated domain: segment followed by zero or more (separator + segment).
+/// Match a federated domain: alphanumeric/underscore chars with dots/hyphens between segments.
+/// Pattern: segment (separator+ segment)*
 fn federated_domain(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        federated_domain_segment,
-        nom::multi::many0(tuple((
-            federated_domain_separator,
-            federated_domain_segment,
-        ))),
-    )))(input)
+    // Must start with at least one domain char
+    let (remaining, first_segment) = take_while1(is_federated_domain_char)(input)?;
+
+    // Continue consuming (separator+ segment)* without allocating
+    let mut end_pos = first_segment.len();
+    let mut rest = remaining;
+
+    loop {
+        // Try to match one or more separators
+        match take_while1::<_, _, nom::error::Error<&str>>(is_federated_separator)(rest) {
+            Ok((after_sep, sep)) => {
+                // Must be followed by a segment
+                match take_while1::<_, _, nom::error::Error<&str>>(is_federated_domain_char)(
+                    after_sep,
+                ) {
+                    Ok((after_segment, segment)) => {
+                        end_pos += sep.len() + segment.len();
+                        rest = after_segment;
+                    }
+                    Err(_) => break,
+                }
+            }
+            Err(_) => break,
+        }
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Parse a federated mention (@username@domain).
