@@ -55,6 +55,9 @@ struct ExtractData {
 #[derive(Debug, Deserialize)]
 struct ValidateTests {
     tweets: Option<Vec<TestCase>>,
+    usernames: Option<Vec<TestCase>>,
+    hashtags: Option<Vec<TestCase>>,
+    urls: Option<Vec<TestCase>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -144,9 +147,10 @@ fn benchmark_extract(data: &ExtractData, validator: ExternalValidator) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate(data: &ValidateData, validator: ExternalValidator) -> f64 {
-    let config = Configuration::default();
-    let extractor = ValidatingExtractor::with_external_validator(&config, validator);
+fn benchmark_validate_tweet(data: &ValidateData, _validator: ExternalValidator) -> f64 {
+    use twitter_text::validator::Validator;
+
+    let validator = Validator::new();
     let tweets = data
         .tests
         .tweets
@@ -157,7 +161,7 @@ fn benchmark_validate(data: &ValidateData, validator: ExternalValidator) -> f64 
     // Warmup
     for _ in 0..WARMUP_ITERATIONS {
         for test in tweets {
-            let _ = extractor.extract_urls_with_indices(&test.text);
+            let _ = validator.is_valid_tweet(&test.text);
         }
     }
 
@@ -165,7 +169,72 @@ fn benchmark_validate(data: &ValidateData, validator: ExternalValidator) -> f64 
     let start = Instant::now();
     for _ in 0..ITERATIONS {
         for test in tweets {
-            let _ = extractor.extract_urls_with_indices(&test.text);
+            let _ = validator.is_valid_tweet(&test.text);
+        }
+    }
+    let elapsed = start.elapsed().as_secs_f64();
+    ITERATIONS as f64 / elapsed
+}
+
+fn benchmark_validate_all(data: &ValidateData, _validator: ExternalValidator) -> f64 {
+    use twitter_text::validator::Validator;
+
+    let validator = Validator::new();
+    let tweets = data
+        .tests
+        .tweets
+        .as_ref()
+        .map(|v| v.as_slice())
+        .unwrap_or(&[]);
+    let usernames = data
+        .tests
+        .usernames
+        .as_ref()
+        .map(|v| v.as_slice())
+        .unwrap_or(&[]);
+    let hashtags = data
+        .tests
+        .hashtags
+        .as_ref()
+        .map(|v| v.as_slice())
+        .unwrap_or(&[]);
+    let urls = data
+        .tests
+        .urls
+        .as_ref()
+        .map(|v| v.as_slice())
+        .unwrap_or(&[]);
+
+    // Warmup
+    for _ in 0..WARMUP_ITERATIONS {
+        for test in tweets {
+            let _ = validator.is_valid_tweet(&test.text);
+        }
+        for test in usernames {
+            let _ = validator.is_valid_username(&test.text);
+        }
+        for test in hashtags {
+            let _ = validator.is_valid_hashtag(&test.text);
+        }
+        for test in urls {
+            let _ = validator.is_valid_url(&test.text);
+        }
+    }
+
+    // Benchmark
+    let start = Instant::now();
+    for _ in 0..ITERATIONS {
+        for test in tweets {
+            let _ = validator.is_valid_tweet(&test.text);
+        }
+        for test in usernames {
+            let _ = validator.is_valid_username(&test.text);
+        }
+        for test in hashtags {
+            let _ = validator.is_valid_hashtag(&test.text);
+        }
+        for test in urls {
+            let _ = validator.is_valid_url(&test.text);
         }
     }
     let elapsed = start.elapsed().as_secs_f64();
@@ -205,14 +274,16 @@ fn run_benchmarks(
 ) {
     let autolink_ops = benchmark_autolink(autolink_data, validator);
     let extract_ops = benchmark_extract(extract_data, validator);
-    let validate_ops = benchmark_validate(validate_data, validator);
+    let validate_tweet_ops = benchmark_validate_tweet(validate_data, validator);
+    let validate_all_ops = benchmark_validate_all(validate_data, validator);
     let parse_ops = benchmark_parse(parse_data, validator);
 
     println!("\n{} Backend Results:", label);
-    println!("  Autolink:  {:>10.0} ops/sec", autolink_ops);
-    println!("  Extract:   {:>10.0} ops/sec", extract_ops);
-    println!("  Validate:  {:>10.0} ops/sec", validate_ops);
-    println!("  Parse:     {:>10.0} ops/sec", parse_ops);
+    println!("  Autolink:       {:>10.0} ops/sec", autolink_ops);
+    println!("  Extract:        {:>10.0} ops/sec", extract_ops);
+    println!("  Validate Tweet: {:>10.0} ops/sec", validate_tweet_ops);
+    println!("  Validate All:   {:>10.0} ops/sec", validate_all_ops);
+    println!("  Parse:          {:>10.0} ops/sec", parse_ops);
 }
 
 fn parse_backend_mode(args: &[String]) -> BackendMode {

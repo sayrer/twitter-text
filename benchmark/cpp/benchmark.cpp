@@ -104,7 +104,7 @@ double benchmarkExtract(
     return ITERATIONS / elapsed.count();
 }
 
-double benchmarkValidate(const std::vector<TestCase>& tweets) {
+double benchmarkValidateTweet(const std::vector<TestCase>& tweets) {
     twitter_text::Validator validator;
 
     // Warmup
@@ -119,6 +119,51 @@ double benchmarkValidate(const std::vector<TestCase>& tweets) {
     for (int i = 0; i < ITERATIONS; i++) {
         for (const auto& test : tweets) {
             validator.isValidTweet(test.text);
+        }
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    return ITERATIONS / elapsed.count();
+}
+
+double benchmarkValidateAll(
+    const std::vector<TestCase>& tweets,
+    const std::vector<TestCase>& usernames,
+    const std::vector<TestCase>& hashtags,
+    const std::vector<TestCase>& urls
+) {
+    twitter_text::Validator validator;
+
+    // Warmup - call all 4 validate functions
+    for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+        for (const auto& test : tweets) {
+            validator.isValidTweet(test.text);
+        }
+        for (const auto& test : usernames) {
+            validator.isValidUsername(test.text);
+        }
+        for (const auto& test : hashtags) {
+            validator.isValidHashtag(test.text);
+        }
+        for (const auto& test : urls) {
+            validator.isValidUrl(test.text);
+        }
+    }
+
+    // Benchmark
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < ITERATIONS; i++) {
+        for (const auto& test : tweets) {
+            validator.isValidTweet(test.text);
+        }
+        for (const auto& test : usernames) {
+            validator.isValidUsername(test.text);
+        }
+        for (const auto& test : hashtags) {
+            validator.isValidHashtag(test.text);
+        }
+        for (const auto& test : urls) {
+            validator.isValidUrl(test.text);
         }
     }
     auto end = std::chrono::high_resolution_clock::now();
@@ -182,9 +227,18 @@ int main(int argc, char* argv[]) {
         cashtagTests = loadTests(extractYaml["tests"]["cashtags"]);
     }
 
-    std::vector<TestCase> validateTests;
+    std::vector<TestCase> validateTweets, validateUsernames, validateHashtags, validateUrls;
     if (validateYaml["tests"]["tweets"]) {
-        validateTests = loadTests(validateYaml["tests"]["tweets"]);
+        validateTweets = loadTests(validateYaml["tests"]["tweets"]);
+    }
+    if (validateYaml["tests"]["usernames"]) {
+        validateUsernames = loadTests(validateYaml["tests"]["usernames"]);
+    }
+    if (validateYaml["tests"]["hashtags"]) {
+        validateHashtags = loadTests(validateYaml["tests"]["hashtags"]);
+    }
+    if (validateYaml["tests"]["urls"]) {
+        validateUrls = loadTests(validateYaml["tests"]["urls"]);
     }
 
     auto parseTests = loadTests(parseYaml["tests"]);
@@ -192,7 +246,8 @@ int main(int argc, char* argv[]) {
     // Run benchmarks
     double autolinkOps = benchmarkAutolink(autolinkTests);
     double extractOps = benchmarkExtract(mentionTests, urlTests, hashtagTests, cashtagTests);
-    double validateOps = benchmarkValidate(validateTests);
+    double validateTweetOps = benchmarkValidateTweet(validateTweets);
+    double validateAllOps = benchmarkValidateAll(validateTweets, validateUsernames, validateHashtags, validateUrls);
     double parseOps = benchmarkParse(parseTests);
 
     // Print results
@@ -205,8 +260,12 @@ int main(int argc, char* argv[]) {
     std::cout << "  C++: " << static_cast<int>(extractOps) << " ops/sec" << std::endl;
 
     std::cout << std::endl;
-    std::cout << "Validate (" << ITERATIONS << " iterations):" << std::endl;
-    std::cout << "  C++: " << static_cast<int>(validateOps) << " ops/sec" << std::endl;
+    std::cout << "Validate Tweet (" << ITERATIONS << " iterations):" << std::endl;
+    std::cout << "  C++: " << static_cast<int>(validateTweetOps) << " ops/sec" << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "Validate All (" << ITERATIONS << " iterations):" << std::endl;
+    std::cout << "  C++: " << static_cast<int>(validateAllOps) << " ops/sec" << std::endl;
 
     std::cout << std::endl;
     std::cout << "Parse Tweet (" << ITERATIONS << " iterations):" << std::endl;

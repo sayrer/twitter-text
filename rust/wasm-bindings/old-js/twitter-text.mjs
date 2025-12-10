@@ -115,7 +115,11 @@ function extractEntitiesWithIndices(text) {
     if (e.isUrl()) {
       return { url: e.value, indices: [e.start, e.end] };
     } else if (e.isMention()) {
-      return { screenName: e.value, listSlug: e.listSlug || "", indices: [e.start, e.end] };
+      return {
+        screenName: e.value,
+        listSlug: e.listSlug || "",
+        indices: [e.start, e.end],
+      };
     } else if (e.isHashtag()) {
       return { hashtag: e.value, indices: [e.start, e.end] };
     } else if (e.isCashtag()) {
@@ -222,6 +226,10 @@ function autoLinkUsernamesOrLists(text, options = {}) {
 const validator = new wasm.Validator();
 
 function isValidTweetText(text, config) {
+  // Fast path: no config or default config uses the simple validator
+  if (!config || config === configs.defaults || config === configs.version3) {
+    return validator.isValidTweet(text);
+  }
   // The old API uses config objects, we need to use the appropriate config
   if (config === configs.version1) {
     return validator.isValidTweet(text);
@@ -243,7 +251,11 @@ function isValidHashtag(text) {
   return validator.isValidHashtag(text);
 }
 
-function isValidUrl(text, unicodeDomainsAllowed = true, requireProtocol = true) {
+function isValidUrl(
+  text,
+  unicodeDomainsAllowed = true,
+  requireProtocol = true,
+) {
   if (requireProtocol) {
     return validator.isValidUrl(text);
   } else {
@@ -305,8 +317,10 @@ function modifyIndicesFromUTF16ToUnicode(text, entities) {
 
   for (const entity of entities) {
     if (entity.indices) {
-      entity.indices[0] = utf16ToUnicode.get(entity.indices[0]) ?? entity.indices[0];
-      entity.indices[1] = utf16ToUnicode.get(entity.indices[1]) ?? entity.indices[1];
+      entity.indices[0] =
+        utf16ToUnicode.get(entity.indices[0]) ?? entity.indices[0];
+      entity.indices[1] =
+        utf16ToUnicode.get(entity.indices[1]) ?? entity.indices[1];
     }
   }
 }
@@ -325,8 +339,10 @@ function modifyIndicesFromUnicodeToUTF16(text, entities) {
 
   for (const entity of entities) {
     if (entity.indices) {
-      entity.indices[0] = unicodeToUtf16.get(entity.indices[0]) ?? entity.indices[0];
-      entity.indices[1] = unicodeToUtf16.get(entity.indices[1]) ?? entity.indices[1];
+      entity.indices[0] =
+        unicodeToUtf16.get(entity.indices[0]) ?? entity.indices[0];
+      entity.indices[1] =
+        unicodeToUtf16.get(entity.indices[1]) ?? entity.indices[1];
     }
   }
 }

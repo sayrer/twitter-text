@@ -49,7 +49,8 @@ public class TwitterTextBenchmark {
 
         benchmarkAutolink(autolinkData);
         benchmarkExtract(extractData);
-        benchmarkValidate(validateData);
+        benchmarkValidateTweet(validateData);
+        benchmarkValidateAll(validateData);
         benchmarkParse(parseData);
 
         // Print sink to ensure it's not optimized away
@@ -217,7 +218,7 @@ public class TwitterTextBenchmark {
     }
 
     @SuppressWarnings("unchecked")
-    private static void benchmarkValidate(Map<String, Object> data) {
+    private static void benchmarkValidateTweet(Map<String, Object> data) {
         Map<String, Object> tests = (Map<String, Object>) data.get("tests");
         List<Map<String, Object>> tweets = (List<
             Map<String, Object>
@@ -274,7 +275,96 @@ public class TwitterTextBenchmark {
             long elapsedRust = System.nanoTime() - startRust;
             double opsPerSecRust = (ITERATIONS * 1_000_000_000.0) / elapsedRust;
 
-            printResults("Validate", opsPerSecOld, opsPerSecRust);
+            printResults("Validate Tweet", opsPerSecOld, opsPerSecRust);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void benchmarkValidateAll(Map<String, Object> data) {
+        Map<String, Object> tests = (Map<String, Object>) data.get("tests");
+        List<Map<String, Object>> tweets = (List<
+            Map<String, Object>
+        >) tests.get("tweets");
+        List<Map<String, Object>> usernames = (List<
+            Map<String, Object>
+        >) tests.get("usernames");
+        List<Map<String, Object>> hashtags = (List<
+            Map<String, Object>
+        >) tests.get("hashtags");
+        List<Map<String, Object>> urls = (List<Map<String, Object>>) tests.get(
+            "urls"
+        );
+
+        // Rust FFI version only - old Java doesn't have isValidUsername/Hashtag/Url
+        try (
+            com.sayrer.twitter_text.Validator rustValidator =
+                com.sayrer.twitter_text.Validator.create()
+        ) {
+            // Warmup rust - all 4 validation types
+            for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+                for (Map<String, Object> test : tweets) {
+                    sink += rustValidator.isValidTweet(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : usernames) {
+                    sink += rustValidator.isValidUsername(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : hashtags) {
+                    sink += rustValidator.isValidHashtag(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : urls) {
+                    sink += rustValidator.isValidUrl((String) test.get("text"))
+                        ? 1
+                        : 0;
+                }
+            }
+
+            // Benchmark rust - all 4 validation types
+            long startRust = System.nanoTime();
+            for (int i = 0; i < ITERATIONS; i++) {
+                for (Map<String, Object> test : tweets) {
+                    sink += rustValidator.isValidTweet(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : usernames) {
+                    sink += rustValidator.isValidUsername(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : hashtags) {
+                    sink += rustValidator.isValidHashtag(
+                            (String) test.get("text")
+                        )
+                        ? 1
+                        : 0;
+                }
+                for (Map<String, Object> test : urls) {
+                    sink += rustValidator.isValidUrl((String) test.get("text"))
+                        ? 1
+                        : 0;
+                }
+            }
+            long elapsedRust = System.nanoTime() - startRust;
+            double opsPerSecRust = (ITERATIONS * 1_000_000_000.0) / elapsedRust;
+
+            System.out.printf("%nValidate All (%d iterations):%n", ITERATIONS);
+            System.out.printf("  Rust FFI:  %,.0f ops/sec%n", opsPerSecRust);
         }
     }
 

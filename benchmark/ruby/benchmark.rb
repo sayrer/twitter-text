@@ -82,10 +82,17 @@ end
 
 def benchmark_extract(data)
   tests = data['tests']
-  mentions = tests['mentions']
-  urls = tests['urls']
-  hashtags = tests['hashtags']
-  cashtags = tests['cashtags']
+  mentions = tests['mentions'] || []
+  urls = tests['urls'] || []
+  hashtags = tests['hashtags'] || []
+  cashtags = tests['cashtags'] || []
+
+  # Collect all texts (like other language benchmarks)
+  all_texts = []
+  mentions.each { |test| all_texts << test['text'] }
+  urls.each { |test| all_texts << test['text'] }
+  hashtags.each { |test| all_texts << test['text'] }
+  cashtags.each { |test| all_texts << test['text'] }
 
   # Old Ruby implementation
   old_extractor = Object.new.extend(Twitter::TwitterText::Extractor)
@@ -93,40 +100,48 @@ def benchmark_extract(data)
   # Rust implementation
   rust_extractor = Twittertext::Extractor.new
 
-  # Warmup old
+  # Warmup old - call all 4 extract functions for each text
   WARMUP_ITERATIONS.times do
-    mentions.each { |test| old_extractor.extract_mentioned_screen_names(test['text']) }
-    urls.each { |test| old_extractor.extract_urls(test['text']) }
-    hashtags.each { |test| old_extractor.extract_hashtags(test['text']) }
-    cashtags.each { |test| old_extractor.extract_cashtags(test['text']) }
+    all_texts.each do |text|
+      old_extractor.extract_mentioned_screen_names(text)
+      old_extractor.extract_urls(text)
+      old_extractor.extract_hashtags(text)
+      old_extractor.extract_cashtags(text)
+    end
   end
 
   # Benchmark old
   old_time = Benchmark.realtime do
     ITERATIONS.times do
-      mentions.each { |test| old_extractor.extract_mentioned_screen_names(test['text']) }
-      urls.each { |test| old_extractor.extract_urls(test['text']) }
-      hashtags.each { |test| old_extractor.extract_hashtags(test['text']) }
-      cashtags.each { |test| old_extractor.extract_cashtags(test['text']) }
+      all_texts.each do |text|
+        old_extractor.extract_mentioned_screen_names(text)
+        old_extractor.extract_urls(text)
+        old_extractor.extract_hashtags(text)
+        old_extractor.extract_cashtags(text)
+      end
     end
   end
   old_ops_per_sec = ITERATIONS / old_time
 
-  # Warmup rust
+  # Warmup rust - call all 4 extract functions for each text
   WARMUP_ITERATIONS.times do
-    mentions.each { |test| rust_extractor.extract_mentioned_screennames(test['text']) }
-    urls.each { |test| rust_extractor.extract_urls(test['text']) }
-    hashtags.each { |test| rust_extractor.extract_hashtags(test['text']) }
-    cashtags.each { |test| rust_extractor.extract_cashtags(test['text']) }
+    all_texts.each do |text|
+      rust_extractor.extract_mentioned_screennames(text)
+      rust_extractor.extract_urls(text)
+      rust_extractor.extract_hashtags(text)
+      rust_extractor.extract_cashtags(text)
+    end
   end
 
   # Benchmark rust
   rust_time = Benchmark.realtime do
     ITERATIONS.times do
-      mentions.each { |test| rust_extractor.extract_mentioned_screennames(test['text']) }
-      urls.each { |test| rust_extractor.extract_urls(test['text']) }
-      hashtags.each { |test| rust_extractor.extract_hashtags(test['text']) }
-      cashtags.each { |test| rust_extractor.extract_cashtags(test['text']) }
+      all_texts.each do |text|
+        rust_extractor.extract_mentioned_screennames(text)
+        rust_extractor.extract_urls(text)
+        rust_extractor.extract_hashtags(text)
+        rust_extractor.extract_cashtags(text)
+      end
     end
   end
   rust_ops_per_sec = ITERATIONS / rust_time
@@ -134,9 +149,9 @@ def benchmark_extract(data)
   print_results("Extract", old_ops_per_sec, rust_ops_per_sec)
 end
 
-def benchmark_validate(data)
+def benchmark_validate_tweet(data)
   tests = data['tests']
-  tweets = tests['tweets']
+  tweets = tests['tweets'] || []
 
   # Old Ruby implementation
   old_validator = Object.new.extend(Twitter::TwitterText::Validation)
@@ -170,7 +185,61 @@ def benchmark_validate(data)
   end
   rust_ops_per_sec = ITERATIONS / rust_time
 
-  print_results("Validate", old_ops_per_sec, rust_ops_per_sec)
+  print_results("Validate Tweet", old_ops_per_sec, rust_ops_per_sec)
+end
+
+def benchmark_validate_all(data)
+  tests = data['tests']
+  tweets = tests['tweets'] || []
+  usernames = tests['usernames'] || []
+  hashtags = tests['hashtags'] || []
+  urls = tests['urls'] || []
+
+  # Old Ruby implementation
+  old_validator = Object.new.extend(Twitter::TwitterText::Validation)
+
+  # Rust implementation
+  rust_validator = Twittertext::Validator.new
+
+  # Warmup old - call all 4 validate functions
+  WARMUP_ITERATIONS.times do
+    tweets.each { |test| old_validator.parse_tweet(test['text'])[:valid] }
+    usernames.each { |test| old_validator.valid_username?(test['text']) }
+    hashtags.each { |test| old_validator.valid_hashtag?(test['text']) }
+    urls.each { |test| old_validator.valid_url?(test['text']) }
+  end
+
+  # Benchmark old
+  old_time = Benchmark.realtime do
+    ITERATIONS.times do
+      tweets.each { |test| old_validator.parse_tweet(test['text'])[:valid] }
+      usernames.each { |test| old_validator.valid_username?(test['text']) }
+      hashtags.each { |test| old_validator.valid_hashtag?(test['text']) }
+      urls.each { |test| old_validator.valid_url?(test['text']) }
+    end
+  end
+  old_ops_per_sec = ITERATIONS / old_time
+
+  # Warmup rust - call all 4 validate functions
+  WARMUP_ITERATIONS.times do
+    tweets.each { |test| rust_validator.is_valid_tweet(test['text']) }
+    usernames.each { |test| rust_validator.is_valid_username(test['text']) }
+    hashtags.each { |test| rust_validator.is_valid_hashtag(test['text']) }
+    urls.each { |test| rust_validator.is_valid_url(test['text']) }
+  end
+
+  # Benchmark rust
+  rust_time = Benchmark.realtime do
+    ITERATIONS.times do
+      tweets.each { |test| rust_validator.is_valid_tweet(test['text']) }
+      usernames.each { |test| rust_validator.is_valid_username(test['text']) }
+      hashtags.each { |test| rust_validator.is_valid_hashtag(test['text']) }
+      urls.each { |test| rust_validator.is_valid_url(test['text']) }
+    end
+  end
+  rust_ops_per_sec = ITERATIONS / rust_time
+
+  print_results("Validate All", old_ops_per_sec, rust_ops_per_sec)
 end
 
 def benchmark_parse(data)
@@ -239,7 +308,8 @@ parse_data = load_yaml('parse.yml')
 
 benchmark_autolink(autolink_data)
 benchmark_extract(extract_data)
-benchmark_validate(validate_data)
+benchmark_validate_tweet(validate_data)
+benchmark_validate_all(validate_data)
 benchmark_parse(parse_data)
 
 puts

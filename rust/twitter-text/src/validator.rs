@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
+use crate::extractor::{Extract, Extractor};
 use crate::parse;
+use crate::ExternalValidator;
 use twitter_text_config;
 
 use pest::Parser;
@@ -15,6 +17,7 @@ pub struct Validator {
     short_url_length: i32,
     short_url_length_https: i32,
     config: twitter_text_config::Configuration,
+    extractor: Extractor,
 }
 
 impl Validator {
@@ -27,6 +30,7 @@ impl Validator {
             short_url_length: 23,
             short_url_length_https: 23,
             config,
+            extractor: Extractor::new(),
         }
     }
 
@@ -35,22 +39,48 @@ impl Validator {
     }
 
     pub fn is_valid_username(&self, s: &str) -> bool {
-        TwitterTextParser::parse(Rule::valid_username, s).is_ok()
+        // Username must start with @ and have 1-20 valid characters
+        if !s.starts_with('@') && !s.starts_with('＠') {
+            return false;
+        }
+        let mentions = self.extractor.extract_mentioned_screennames(s);
+        // Valid if exactly one mention that spans the whole string (minus the @)
+        mentions.len() == 1 && mentions[0].chars().count() == s.chars().count() - 1
     }
 
     pub fn is_valid_list(&self, s: &str) -> bool {
-        TwitterTextParser::parse(Rule::valid_list, s).is_ok()
+        // List must be @username/listname format
+        if !s.starts_with('@') && !s.starts_with('＠') {
+            return false;
+        }
+        let lists = self.extractor.extract_mentions_or_lists_with_indices(s);
+        // Valid if exactly one list entity that spans the whole string
+        if lists.len() != 1 {
+            return false;
+        }
+        let list = &lists[0];
+        !list.list_slug.is_empty() && list.end as usize == s.chars().count()
     }
 
     pub fn is_valid_hashtag(&self, s: &str) -> bool {
-        TwitterTextParser::parse(Rule::hashtag, s).is_ok()
+        // Hashtag must start with # and have valid hashtag text
+        if !s.starts_with('#') && !s.starts_with('＃') {
+            return false;
+        }
+        let hashtags = self.extractor.extract_hashtags(s);
+        // Valid if exactly one hashtag that spans the whole string (minus the #)
+        hashtags.len() == 1 && hashtags[0].chars().count() == s.chars().count() - 1
     }
 
     pub fn is_valid_url(&self, s: &str) -> bool {
+        // TODO: Update to use Nom instead of Pest
+        // URL validation uses Pest for pure syntax validation (no TLD check)
+        // This allows IP addresses and other valid URL formats
         TwitterTextParser::parse(Rule::valid_url, s).is_ok()
     }
 
     pub fn is_valid_url_without_protocol(&self, s: &str) -> bool {
+        // TODO: Update to use Nom instead of Pest
         TwitterTextParser::parse(Rule::url_without_protocol, s).is_ok()
     }
 

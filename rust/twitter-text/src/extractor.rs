@@ -263,29 +263,53 @@ pub trait Extract<'a> {
     /// Extract all URLs from the text, subject to value returned by [Extract::get_extract_url_without_protocol].
     fn extract_urls_with_indices(&self, s: &'a str) -> Self::T {
         if self.get_extract_url_without_protocol() {
+            // Early exit if no dot present (URLs without protocol need a dot)
+            if !s.contains('.') {
+                return self.empty_result();
+            }
             self.extract(s, |r| r == Rule::url || r == Rule::url_without_protocol)
         } else {
+            // Early exit if no colon present (protocol URLs need a colon)
+            if !s.contains(':') {
+                return self.empty_result();
+            }
             self.extract(s, |r| r == Rule::url)
         }
     }
 
     /// Extract all Hashtags from the text
     fn extract_hashtags_with_indices(&self, s: &'a str) -> Self::T {
+        // Early exit if no hash sign present (ASCII # or full-width ＃)
+        if !s.contains('#') && !s.contains('＃') {
+            return self.empty_result();
+        }
         self.extract(s, |r| r == Rule::hashtag)
     }
 
     /// Extract all Cashtags from the text
     fn extract_cashtags_with_indices(&self, s: &'a str) -> Self::T {
+        // Early exit if no dollar sign present
+        if !s.contains('$') {
+            return self.empty_result();
+        }
         self.extract(s, |r| r == Rule::cashtag)
     }
 
     /// Extract all usernames from the text.
     fn extract_mentioned_screennames_with_indices(&self, s: &'a str) -> Self::T {
+        // Early exit if no at sign present (ASCII @ or full-width ＠)
+        if !s.contains('@') && !s.contains('＠') {
+            return self.empty_result();
+        }
         self.extract(s, |r| r == Rule::username)
     }
 
     /// Extract all usernames and lists from the text.
     fn extract_mentions_or_lists_with_indices(&self, s: &'a str) -> Self::T {
+        // Early exit if no at sign present (ASCII @ or full-width ＠)
+        if !s.contains('@') && !s.contains('＠') {
+            return self.empty_result();
+        }
         self.extract(s, |r| r == Rule::username || r == Rule::list)
     }
 
@@ -731,6 +755,16 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
 
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T {
         self.extract_impl(s, r_match)
+    }
+
+    // Override to skip early exit - ValidatingExtractor must always scan full text
+    // to calculate weighted length, even when no URLs are present.
+    fn extract_urls_with_indices(&self, s: &'a str) -> Self::T {
+        if self.get_extract_url_without_protocol() {
+            self.extract(s, |r| r == Rule::url || r == Rule::url_without_protocol)
+        } else {
+            self.extract(s, |r| r == Rule::url)
+        }
     }
 
     fn create_result(

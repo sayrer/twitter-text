@@ -44,8 +44,8 @@ if (runfilesDir) {
   ).default;
 }
 
-const ITERATIONS = 100;
-const WARMUP_ITERATIONS = 10;
+const ITERATIONS = 1000;
+const WARMUP_ITERATIONS = 100;
 
 // Global sink to prevent escape analysis from optimizing away results
 // We accumulate values and print at the end to ensure work isn't eliminated
@@ -247,14 +247,11 @@ function benchmarkExtract() {
   printResults("Extract", oldResult, rustResult);
 }
 
-// Validate benchmark
-function benchmarkValidate() {
+// Validate Tweet benchmark (tweets only - comparable across all implementations)
+function benchmarkValidateTweet() {
   const data = loadYaml("validate.yml");
 
   const tweetTexts = data.tests.tweets.map((t) => t.text);
-  const usernameTexts = data.tests.usernames.map((t) => t.text);
-  const hashtagTexts = data.tests.hashtags.map((t) => t.text);
-  const urlTexts = data.tests.urls.map((t) => t.text);
 
   // Correctness check
   let errors = 0;
@@ -272,6 +269,43 @@ function benchmarkValidate() {
       }
     }
   }
+  if (errors > 0) {
+    console.log(`  [WARNING] ${errors} validate tweet mismatches`);
+  }
+
+  // Return count of valid results to thwart escape analysis
+  const oldFn = () => {
+    let acc = 0;
+    for (const text of tweetTexts) {
+      acc += oldTwitterText.isValidTweetText(text) ? 1 : 0;
+    }
+    return acc;
+  };
+
+  const rustFn = () => {
+    let acc = 0;
+    for (const text of tweetTexts) {
+      acc += rustTwitterText.isValidTweetText(text) ? 1 : 0;
+    }
+    return acc;
+  };
+
+  const oldResult = runBenchmark("Validate Tweet (old)", oldFn, ITERATIONS);
+  const rustResult = runBenchmark("Validate Tweet (rust)", rustFn, ITERATIONS);
+  printResults("Validate Tweet", oldResult, rustResult);
+}
+
+// Validate All benchmark (tweets, usernames, hashtags, urls)
+function benchmarkValidateAll() {
+  const data = loadYaml("validate.yml");
+
+  const tweetTexts = data.tests.tweets.map((t) => t.text);
+  const usernameTexts = data.tests.usernames.map((t) => t.text);
+  const hashtagTexts = data.tests.hashtags.map((t) => t.text);
+  const urlTexts = data.tests.urls.map((t) => t.text);
+
+  // Correctness check
+  let errors = 0;
   for (const text of usernameTexts) {
     const oldResult = oldTwitterText.isValidUsername(text);
     const rustResult = rustTwitterText.isValidUsername(text);
@@ -285,7 +319,7 @@ function benchmarkValidate() {
     }
   }
   if (errors > 0) {
-    console.log(`  [WARNING] ${errors} validate mismatches`);
+    console.log(`  [WARNING] ${errors} validate all mismatches`);
   }
 
   // Return count of valid results to thwart escape analysis
@@ -323,9 +357,9 @@ function benchmarkValidate() {
     return acc;
   };
 
-  const oldResult = runBenchmark("Validate (old)", oldFn, ITERATIONS);
-  const rustResult = runBenchmark("Validate (rust)", rustFn, ITERATIONS);
-  printResults("Validate", oldResult, rustResult);
+  const oldResult = runBenchmark("Validate All (old)", oldFn, ITERATIONS);
+  const rustResult = runBenchmark("Validate All (rust)", rustFn, ITERATIONS);
+  printResults("Validate All", oldResult, rustResult);
 }
 
 // Parse tweet benchmark
@@ -391,7 +425,8 @@ console.log("====================================================");
 
 benchmarkAutolink();
 benchmarkExtract();
-benchmarkValidate();
+benchmarkValidateTweet();
+benchmarkValidateAll();
 benchmarkParse();
 
 // Print sink value to ensure it's not optimized away

@@ -27,6 +27,9 @@ struct ExtractData: Decodable {
 
 struct ValidateTests: Decodable {
     let tweets: [TestCase]?
+    let usernames: [TestCase]?
+    let hashtags: [TestCase]?
+    let urls: [TestCase]?
 }
 
 struct ValidateData: Decodable {
@@ -110,7 +113,7 @@ func benchmarkExtract(_ data: ExtractData) -> Double {
     return Double(ITERATIONS) / elapsed
 }
 
-func benchmarkValidate(_ data: ValidateData) -> Double {
+func benchmarkValidateTweet(_ data: ValidateData) -> Double {
     let validator = Validator()
     let tweets = data.tests.tweets ?? []
 
@@ -126,6 +129,49 @@ func benchmarkValidate(_ data: ValidateData) -> Double {
     for _ in 0..<ITERATIONS {
         for test in tweets {
             _ = validator.isValidTweet(test.text)
+        }
+    }
+    let elapsed = CFAbsoluteTimeGetCurrent() - start
+    return Double(ITERATIONS) / elapsed
+}
+
+func benchmarkValidateAll(_ data: ValidateData) -> Double {
+    let validator = Validator()
+    let tweets = data.tests.tweets ?? []
+    let usernames = data.tests.usernames ?? []
+    let hashtags = data.tests.hashtags ?? []
+    let urls = data.tests.urls ?? []
+
+    // Warmup - call all 4 validate functions
+    for _ in 0..<WARMUP_ITERATIONS {
+        for test in tweets {
+            _ = validator.isValidTweet(test.text)
+        }
+        for test in usernames {
+            _ = validator.isValidUsername(test.text)
+        }
+        for test in hashtags {
+            _ = validator.isValidHashtag(test.text)
+        }
+        for test in urls {
+            _ = validator.isValidURL(test.text)
+        }
+    }
+
+    // Benchmark
+    let start = CFAbsoluteTimeGetCurrent()
+    for _ in 0..<ITERATIONS {
+        for test in tweets {
+            _ = validator.isValidTweet(test.text)
+        }
+        for test in usernames {
+            _ = validator.isValidUsername(test.text)
+        }
+        for test in hashtags {
+            _ = validator.isValidHashtag(test.text)
+        }
+        for test in urls {
+            _ = validator.isValidURL(test.text)
         }
     }
     let elapsed = CFAbsoluteTimeGetCurrent() - start
@@ -174,7 +220,8 @@ let parseData: ParseData = loadYAML(from: parsePath)
 
 let autolinkOps = benchmarkAutolink(autolinkData)
 let extractOps = benchmarkExtract(extractData)
-let validateOps = benchmarkValidate(validateData)
+let validateTweetOps = benchmarkValidateTweet(validateData)
+let validateAllOps = benchmarkValidateAll(validateData)
 let parseOps = benchmarkParse(parseData)
 
 print("")
@@ -186,8 +233,12 @@ print("Extract (\(ITERATIONS) iterations):")
 print("  Swift: \(Int(extractOps)) ops/sec")
 
 print("")
-print("Validate (\(ITERATIONS) iterations):")
-print("  Swift: \(Int(validateOps)) ops/sec")
+print("Validate Tweet (\(ITERATIONS) iterations):")
+print("  Swift: \(Int(validateTweetOps)) ops/sec")
+
+print("")
+print("Validate All (\(ITERATIONS) iterations):")
+print("  Swift: \(Int(validateAllOps)) ops/sec")
 
 print("")
 print("Parse Tweet (\(ITERATIONS) iterations):")

@@ -80,7 +80,7 @@ static double benchmarkExtract(NSDictionary *data) {
     return ITERATIONS / elapsed;
 }
 
-static double benchmarkValidate(NSDictionary *data) {
+static double benchmarkValidateTweet(NSDictionary *data) {
     NSDictionary *tests = data[@"tests"];
     NSArray *tweets = tests[@"tweets"];
 
@@ -101,6 +101,9 @@ static double benchmarkValidate(NSDictionary *data) {
     CFAbsoluteTime elapsed = CFAbsoluteTimeGetCurrent() - start;
     return ITERATIONS / elapsed;
 }
+
+// Note: Obj-C wrapper doesn't have isValidUsername/Hashtag/Url methods,
+// so Validate All benchmark is not available for this implementation.
 
 static double benchmarkParse(NSDictionary *data) {
     NSArray *tests = data[@"tests"];
@@ -143,12 +146,12 @@ int main(int argc, const char * argv[]) {
 
         double autolinkOps = benchmarkAutolink(autolinkData);
         double extractOps = benchmarkExtract(extractData);
-        double validateOps = benchmarkValidate(validateData);
+        double validateTweetOps = benchmarkValidateTweet(validateData);
         double parseOps = benchmarkParse(parseData);
 
         // Output JSON for easy parsing
-        printf("{\"autolink\": %.2f, \"extract\": %.2f, \"validate\": %.2f, \"parse\": %.2f}\n",
-               autolinkOps, extractOps, validateOps, parseOps);
+        printf("{\"autolink\": %.2f, \"extract\": %.2f, \"validate_tweet\": %.2f, \"parse\": %.2f}\n",
+               autolinkOps, extractOps, validateTweetOps, parseOps);
     }
     return 0;
 }
