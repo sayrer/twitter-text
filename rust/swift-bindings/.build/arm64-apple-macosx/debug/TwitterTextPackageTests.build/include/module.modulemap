@@ -1,3 +1,0 @@
-module TwitterTextPackageTests {
-    header "/Users/sayrer/github/sayrer/twitter-text/rust/swift-bindings/.build/arm64-apple-macosx/debug/TwitterTextPackageTests.build/include/TwitterTextPackageTests-Swift.h"
-}
