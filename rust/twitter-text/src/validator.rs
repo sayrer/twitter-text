@@ -3,13 +3,9 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::extractor::{Extract, Extractor};
+use crate::nom_parser::url::{parse_url, parse_url_without_protocol};
 use crate::parse;
-use crate::ExternalValidator;
 use twitter_text_config;
-
-use pest::Parser;
-use twitter_text_parser::twitter_text::Rule;
-use twitter_text_parser::twitter_text::TwitterTextParser;
 
 pub const MAX_TWEET_LENGTH: i32 = 280;
 
@@ -73,15 +69,19 @@ impl Validator {
     }
 
     pub fn is_valid_url(&self, s: &str) -> bool {
-        // TODO: Update to use Nom instead of Pest
-        // URL validation uses Pest for pure syntax validation (no TLD check)
-        // This allows IP addresses and other valid URL formats
-        TwitterTextParser::parse(Rule::valid_url, s).is_ok()
+        // URL validation: parse succeeds and entire input is consumed
+        match parse_url(s) {
+            Ok((remaining, _)) => remaining.is_empty(),
+            Err(_) => false,
+        }
     }
 
     pub fn is_valid_url_without_protocol(&self, s: &str) -> bool {
-        // TODO: Update to use Nom instead of Pest
-        TwitterTextParser::parse(Rule::url_without_protocol, s).is_ok()
+        // URL without protocol validation: parse succeeds and entire input is consumed
+        match parse_url_without_protocol(s) {
+            Ok((remaining, _)) => remaining.is_empty(),
+            Err(_) => false,
+        }
     }
 
     pub fn get_max_tweet_length(&self) -> i32 {

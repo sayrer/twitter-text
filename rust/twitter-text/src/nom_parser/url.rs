@@ -394,11 +394,18 @@ fn uwp_domain_segment_continue_unicode(input: &str, start_pos: usize) -> IResult
 
 /// Parse a domain: subdomain(s) + TLD.
 /// Returns the matched domain and the TLD portion for validation.
+///
+/// The segment immediately before the TLD (the "domain segment") must NOT contain underscores.
+/// Subdomains (earlier segments) may contain underscores.
+///
+/// Valid: test_underscore.twitter.com (underscore in subdomain)
+/// Invalid: foo.bar_baz.com (underscore in domain segment before TLD)
 fn domain(input: &str) -> IResult<&str, (&str, &str)> {
     let start = input;
 
     // Match one or more segments separated by dots, ending with a TLD
     let mut remaining = input;
+    let mut prev_segment: Option<&str> = None;
 
     loop {
         // Try to match a segment
@@ -410,13 +417,32 @@ fn domain(input: &str) -> IResult<&str, (&str, &str)> {
             // If not, this dot is trailing punctuation, not part of the domain
             if domain_segment(after_dot).is_err() {
                 // No valid segment after dot - treat current segment as TLD
+                // The previous segment (before current) is the domain segment - check for underscores
+                if let Some(prev) = prev_segment {
+                    if prev.contains('_') {
+                        return Err(nom::Err::Error(nom::error::Error::new(
+                            input,
+                            nom::error::ErrorKind::Verify,
+                        )));
+                    }
+                }
                 let consumed = start.len() - after_segment.len();
                 let domain_str = &start[..consumed];
                 return Ok((after_segment, (domain_str, segment)));
             }
+            prev_segment = Some(segment);
             remaining = after_dot;
         } else {
             // No more dots - this segment should be the TLD
+            // The previous segment is the domain segment - check for underscores
+            if let Some(prev) = prev_segment {
+                if prev.contains('_') {
+                    return Err(nom::Err::Error(nom::error::Error::new(
+                        input,
+                        nom::error::ErrorKind::Verify,
+                    )));
+                }
+            }
             let consumed = start.len() - after_segment.len();
             let domain_str = &start[..consumed];
             return Ok((after_segment, (domain_str, segment)));
@@ -571,6 +597,31 @@ fn userinfo(input: &str) -> IResult<&str, &str> {
     )))
 }
 
+/// Check if input looks like an IPv4 address (starts with digits followed by dots).
+/// This is used to prevent invalid IPs from being parsed as domains.
+fn looks_like_ipv4(input: &str) -> bool {
+    let bytes = input.as_bytes();
+    if bytes.is_empty() || !bytes[0].is_ascii_digit() {
+        return false;
+    }
+    // Check for pattern: digit(s).digit(s).digit(s).digit(s)
+    let mut dots = 0;
+    let mut i = 0;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if b.is_ascii_digit() {
+            i += 1;
+        } else if b == b'.' {
+            dots += 1;
+            i += 1;
+        } else {
+            break;
+        }
+    }
+    // If we have exactly 3 dots and only digits between them, it looks like an IP
+    dots == 3
+}
+
 /// Parse host (domain or IP).
 fn host(input: &str) -> IResult<&str, &str> {
     // Check for t.co first and reject it (handled by tco_url)
@@ -581,14 +632,19 @@ fn host(input: &str) -> IResult<&str, &str> {
         )));
     }
 
-    alt((
-        // Try IPv6 first
-        recognize(ip_literal),
-        // Then IPv4
-        recognize(ipv4_address),
-        // Then domain
-        |i| domain(i).map(|(r, (d, _))| (r, d)),
-    ))(input)
+    // Try IPv6 first
+    if let Ok(result) = recognize(ip_literal)(input) {
+        return Ok(result);
+    }
+
+    // Check if this looks like an IPv4 address
+    if looks_like_ipv4(input) {
+        // If it looks like an IP, it MUST be a valid IP - don't fall back to domain
+        return recognize(ipv4_address)(input);
+    }
+
+    // Otherwise, parse as domain
+    domain(input).map(|(r, (d, _))| (r, d))
 }
 
 /// Parse IPv4 address.
@@ -1117,5 +1173,29 @@ mod tests {
         let (remaining, (matched, _, _)) = result.unwrap();
         assert_eq!(matched, "example.com/path");
         assert_eq!(remaining, "");
+    }
+
+    #[test]
+    fn test_url_underscore_in_subdomain() {
+        // Valid: underscore in subdomain (not adjacent to TLD)
+        let result = parse_url("http://test_underscore.twitter.com");
+        assert!(result.is_ok());
+        let (remaining, (matched, _, _)) = result.unwrap();
+        assert_eq!(matched, "http://test_underscore.twitter.com");
+        assert_eq!(remaining, "");
+    }
+
+    #[test]
+    fn test_url_invalid_underscore_adjacent_to_tld() {
+        // Invalid: underscore in the segment immediately before TLD
+        let result = parse_url("http://domain-dash_2314352345_dfasd.foo-cow_4352.com");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_url_invalid_ip_octet() {
+        // Invalid: 256 is not a valid IP octet (must be 0-255)
+        let result = parse_url("http://256.1.2.3/");
+        assert!(result.is_err());
     }
 }
