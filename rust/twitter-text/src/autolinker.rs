@@ -7,6 +7,24 @@ use crate::entity::Entity;
 use crate::extractor::{ExternalValidator, Extract, Extractor};
 use std::borrow::Cow;
 
+/// Get the character at a given UTF-16 offset in a string.
+/// Panics if the offset is out of bounds or doesn't align with a character boundary.
+fn char_at_utf16_offset(text: &str, utf16_offset: i32) -> char {
+    let mut current_utf16 = 0i32;
+    for c in text.chars() {
+        if current_utf16 == utf16_offset {
+            return c;
+        }
+        current_utf16 += c.len_utf16() as i32;
+    }
+    panic!(
+        "UTF-16 offset {} not found in text of length {} (UTF-16 length {})",
+        utf16_offset,
+        text.len(),
+        current_utf16
+    );
+}
+
 type Attributes = Vec<(String, String)>;
 const HREF: &str = "href";
 const CLASS: &str = "class";
@@ -143,6 +161,9 @@ pub struct Autolinker<'a> {
     pub cashtag_url_base: &'a str,
     pub invisible_tag_attrs: &'a str,
     pub username_include_symbol: bool,
+    /// When true, adds `data-screen-name` attribute to username links (like Old JS twitter-text).
+    /// Default is false for conformance with the canonical test suite.
+    pub include_data_screen_name: bool,
     pub extractor: Extractor,
     pub link_attribute_modifier: Option<Box<dyn LinkAttributeModifier + 'a>>,
     pub link_text_modifier: Option<Box<dyn LinkTextModifier + 'a>>,
@@ -177,6 +198,7 @@ impl<'a> Autolinker<'a> {
             cashtag_url_base: DEFAULT_CASHTAG_URL_BASE,
             invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS,
             username_include_symbol: false,
+            include_data_screen_name: false,
             extractor,
             link_attribute_modifier: None,
             link_text_modifier: None,
@@ -251,11 +273,7 @@ impl<'a> Autolinker<'a> {
     }
 
     fn link_to_hashtag(&self, entity: &Entity, text: &str, buf: &mut String) {
-        let hash_char = text
-            .chars()
-            .skip(entity.get_start() as usize)
-            .take(1)
-            .collect::<String>();
+        let hash_char = char_at_utf16_offset(text, entity.get_start());
         let hashtag = entity.get_value();
         let mut attrs: Attributes = Vec::new();
         attrs.push((
@@ -272,7 +290,8 @@ impl<'a> Autolinker<'a> {
         } else {
             attrs.push((CLASS.to_string(), String::from(self.hashtag_class)));
         }
-        self.link_to_text_with_symbol(entity, hash_char.as_str(), hashtag, &mut attrs, buf);
+        let hash_str = hash_char.to_string();
+        self.link_to_text_with_symbol(entity, &hash_str, hashtag, &mut attrs, buf);
     }
 
     fn link_to_cashtag(&self, entity: &Entity, _text: &str, buf: &mut String) {
@@ -287,11 +306,7 @@ impl<'a> Autolinker<'a> {
 
     fn link_to_mention_and_list(&self, entity: &Entity, text: &str, buf: &mut String) {
         let mut mention = String::from(entity.get_value());
-        let at_char = text
-            .chars()
-            .skip(entity.get_start() as usize)
-            .take(1)
-            .collect::<String>();
+        let at_char = char_at_utf16_offset(text, entity.get_start());
         let mut attrs: Attributes = Vec::new();
 
         if entity.get_type() == entity::Type::MENTION && !entity.get_list_slug().is_empty() {
@@ -304,9 +319,13 @@ impl<'a> Autolinker<'a> {
                 HREF.to_string(),
                 self.username_url_base.to_owned() + &mention,
             ));
+            if self.include_data_screen_name {
+                attrs.push(("data-screen-name".to_string(), mention.clone()));
+            }
         }
 
-        self.link_to_text_with_symbol(entity, at_char.as_str(), mention.as_str(), &mut attrs, buf);
+        let at_str = at_char.to_string();
+        self.link_to_text_with_symbol(entity, &at_str, mention.as_str(), &mut attrs, buf);
     }
 
     fn link_to_url(&self, entity: &Entity, _text: &str, buf: &mut String) {
@@ -417,13 +436,20 @@ impl<'a> Autolinker<'a> {
 
     pub fn autolink_entities(&self, text: &str, entities: &Vec<Entity>) -> String {
         let mut buf = String::with_capacity(text.len() * 2);
-        let mut offset = 0usize;
+        // Track position in both UTF-16 code units (for entity indices) and bytes (for slicing)
+        let mut utf16_offset = 0i32;
+        let mut byte_offset = 0usize;
+
         for entity in entities {
-            buf += &text
-                .chars()
-                .skip(offset)
-                .take(entity.get_start() as usize - offset)
-                .collect::<String>();
+            // Find byte position corresponding to entity start (UTF-16 offset)
+            let entity_start_utf16 = entity.get_start();
+            while utf16_offset < entity_start_utf16 && byte_offset < text.len() {
+                let c = text[byte_offset..].chars().next().unwrap();
+                buf.push(c);
+                utf16_offset += c.len_utf16() as i32;
+                byte_offset += c.len_utf8();
+            }
+
             match entity.get_type() {
                 entity::Type::URL => self.link_to_url(entity, text, &mut buf),
                 entity::Type::HASHTAG => self.link_to_hashtag(entity, text, &mut buf),
@@ -435,9 +461,18 @@ impl<'a> Autolinker<'a> {
                     buf += entity.get_value();
                 }
             }
-            offset = entity.get_end() as usize;
+
+            // Skip past the entity in the source text
+            let entity_end_utf16 = entity.get_end();
+            while utf16_offset < entity_end_utf16 && byte_offset < text.len() {
+                let c = text[byte_offset..].chars().next().unwrap();
+                utf16_offset += c.len_utf16() as i32;
+                byte_offset += c.len_utf8();
+            }
         }
-        buf += &text.chars().skip(offset).collect::<String>();
+
+        // Append remaining text
+        buf += &text[byte_offset..];
         buf
     }
 
@@ -799,5 +834,128 @@ mod tests {
         assert!(result.contains("href=\"https://twitter.com/search?q=%23test\""));
         assert!(result.contains("href=\"https://twitter.com/user\""));
         assert!(result.contains("href=\"http://example.com\""));
+    }
+
+    #[test]
+    fn test_char_at_utf16_offset() {
+        // ASCII text - UTF-16 offset equals char index
+        assert_eq!(char_at_utf16_offset("hello", 0), 'h');
+        assert_eq!(char_at_utf16_offset("hello", 4), 'o');
+
+        // Emoji at start (🔥 is U+1F525, takes 2 UTF-16 code units)
+        let text = "🔥hello";
+        assert_eq!(char_at_utf16_offset(text, 0), '🔥');
+        assert_eq!(char_at_utf16_offset(text, 2), 'h'); // After emoji (2 UTF-16 units)
+        assert_eq!(char_at_utf16_offset(text, 3), 'e');
+
+        // Multiple emoji
+        let text = "🔥🔥🔥 @test";
+        assert_eq!(char_at_utf16_offset(text, 0), '🔥');
+        assert_eq!(char_at_utf16_offset(text, 2), '🔥');
+        assert_eq!(char_at_utf16_offset(text, 4), '🔥');
+        assert_eq!(char_at_utf16_offset(text, 6), ' ');
+        assert_eq!(char_at_utf16_offset(text, 7), '@');
+    }
+
+    #[test]
+    fn test_autolink_with_emoji_before_mention() {
+        let linker = Autolinker::new(false);
+
+        // 🔥 takes 2 UTF-16 code units, so @test starts at UTF-16 offset 2
+        let result = linker.autolink("🔥@test");
+        assert!(
+            result.contains("🔥@<a"),
+            "Emoji should be before the @ symbol: {}",
+            result
+        );
+        assert!(
+            result.contains("href=\"https://twitter.com/test\""),
+            "Should link to correct user: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_autolink_with_multiple_emoji_before_entities() {
+        let linker = Autolinker::new(false);
+
+        // Three 🔥 emoji = 6 UTF-16 code units, then space, then @
+        let result = linker.autolink("🔥🔥🔥 @elonmusk");
+        assert!(
+            result.contains("🔥🔥🔥 @<a"),
+            "All emoji should be preserved before mention: {}",
+            result
+        );
+        assert!(
+            result.contains("href=\"https://twitter.com/elonmusk\""),
+            "Should link to correct user: {}",
+            result
+        );
+        // Ensure the username is correct (not corrupted by offset issues)
+        assert!(
+            result.contains(">elonmusk</a>"),
+            "Username should be complete: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_autolink_with_emoji_before_hashtag() {
+        let linker = Autolinker::new(false);
+
+        let result = linker.autolink("🎉🚀✨ #excited");
+        assert!(
+            result.contains("🎉🚀✨ "),
+            "All emoji should be preserved: {}",
+            result
+        );
+        assert!(
+            result.contains("href=\"https://twitter.com/search?q=%23excited\""),
+            "Should link to correct hashtag: {}",
+            result
+        );
+        assert!(
+            result.contains(">excited</a>") || result.contains(">#excited</a>"),
+            "Hashtag text should be complete: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_autolink_complex_emoji_text() {
+        let linker = Autolinker::new(false);
+
+        // This is the exact test case from the benchmark that was failing
+        let text = "🔥🔥🔥 @elonmusk dropping 💣💣💣 news about #Tesla $TSLA 🚗⚡";
+        let result = linker.autolink(text);
+
+        // Check all entities are properly linked
+        assert!(
+            result.contains("href=\"https://twitter.com/elonmusk\""),
+            "Should link mention: {}",
+            result
+        );
+        assert!(
+            result.contains("href=\"https://twitter.com/search?q=%23Tesla\""),
+            "Should link hashtag: {}",
+            result
+        );
+        assert!(
+            result.contains("href=\"https://twitter.com/search?q=%24TSLA\""),
+            "Should link cashtag: {}",
+            result
+        );
+
+        // Verify text is not corrupted
+        assert!(
+            result.contains("🔥🔥🔥 @<a"),
+            "Start emoji preserved: {}",
+            result
+        );
+        assert!(
+            result.contains(">elonmusk</a> dropping 💣💣💣"),
+            "Middle text preserved: {}",
+            result
+        );
     }
 }

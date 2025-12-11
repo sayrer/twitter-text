@@ -23,6 +23,7 @@ pub struct Autolinker {
     cashtag_url_base: String,
     invisible_tag_attrs: String,
     username_include_symbol: bool,
+    include_data_screen_name: bool,
 }
 
 #[wasm_bindgen]
@@ -45,6 +46,7 @@ impl Autolinker {
             cashtag_url_base: DEFAULT_CASHTAG_URL_BASE.to_string(),
             invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
             username_include_symbol: false,
+            include_data_screen_name: false,
         }
     }
 
@@ -168,6 +170,16 @@ impl Autolinker {
         self.username_include_symbol = include;
     }
 
+    #[wasm_bindgen(getter, js_name = "includeDataScreenName")]
+    pub fn include_data_screen_name(&self) -> bool {
+        self.include_data_screen_name
+    }
+
+    #[wasm_bindgen(setter, js_name = "includeDataScreenName")]
+    pub fn set_include_data_screen_name(&mut self, include: bool) {
+        self.include_data_screen_name = include;
+    }
+
     pub fn autolink(&self, text: &str) -> String {
         self.to_rust_autolinker().autolink(text)
     }
@@ -214,6 +226,7 @@ impl Autolinker {
             cashtag_url_base: &self.cashtag_url_base,
             invisible_tag_attrs: &self.invisible_tag_attrs,
             username_include_symbol: self.username_include_symbol,
+            include_data_screen_name: self.include_data_screen_name,
             extractor,
             link_attribute_modifier: None,
             link_text_modifier: None,

@@ -166,17 +166,16 @@ function createAutolinker(options = {}) {
   if (!options.suppressNoFollow) {
     autolinker.noFollow = true;
   }
+  // Enable data-screen-name by default (like old JS) unless suppressed
+  if (!options.suppressDataScreenName) {
+    autolinker.includeDataScreenName = true;
+  }
 
   return autolinker;
 }
 
 function postProcessAutolink(html, options = {}) {
   let result = html;
-
-  // Handle suppressDataScreenName
-  if (options.suppressDataScreenName) {
-    result = result.replace(/ data-screen-name="[^"]*"/g, "");
-  }
 
   // Handle htmlEscapeNonEntities
   if (options.htmlEscapeNonEntities) {
