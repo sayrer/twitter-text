@@ -19,6 +19,24 @@ pub mod url;
 
 pub use entity::{NomEntity, NomEntityType};
 
+/// Get the last character of a string slice efficiently.
+/// For ASCII-only strings this is O(1), otherwise O(n) in the worst case.
+#[inline]
+fn last_char(s: &str) -> Option<char> {
+    let bytes = s.as_bytes();
+    if bytes.is_empty() {
+        return None;
+    }
+    let last_byte = bytes[bytes.len() - 1];
+    if last_byte < 128 {
+        // ASCII - O(1)
+        Some(last_byte as char)
+    } else {
+        // Non-ASCII - need to find char boundary
+        s.chars().last()
+    }
+}
+
 /// Parse a tweet and return all entities found.
 ///
 /// This is the main entry point for the nom parser. It scans through
@@ -35,6 +53,7 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
     let mut entities = Vec::with_capacity(32);
     let mut pos = 0;
     let bytes = input.as_bytes();
+    let mut prev_char: Option<char> = None;
 
     while pos < bytes.len() {
         let b = bytes[pos];
@@ -80,15 +99,19 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                         | b'^'
                         | b'%'
             ) {
+                prev_char = Some(b as char);
                 pos += 1;
                 continue;
             }
 
             let remaining = &input[pos..];
+            let current_char = b as char;
 
             // Try to match an entity at this position
-            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos) {
+            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos, prev_char) {
                 entities.push(entity);
+                // Update prev_char to last char of consumed entity
+                prev_char = last_char(&input[pos..pos + consumed]);
                 pos += consumed;
             } else {
                 // Handle special ASCII cases that failed entity parsing
@@ -96,14 +119,17 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                     // $ followed by URL-like content should be skipped
                     let after_dollar = &remaining[1..];
                     let skip = skip_invalid_cashtag_url(after_dollar);
+                    prev_char = last_char(&input[pos..pos + 1 + skip]);
                     pos += 1 + skip;
                 } else if b == b'@' {
                     // @ followed by URL-like content (email) should skip
                     let after_at = &remaining[1..];
                     let skip = skip_email_domain(after_at);
+                    prev_char = last_char(&input[pos..pos + 1 + skip]);
                     pos += 1 + skip;
                 } else {
                     // Regular ASCII char, just skip
+                    prev_char = Some(current_char);
                     pos += 1;
                 }
             }
@@ -114,8 +140,9 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
             let char_len = c.len_utf8();
 
             // Try to match an entity at this position
-            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos) {
+            if let Some((entity, consumed)) = try_parse_entity(input, remaining, pos, prev_char) {
                 entities.push(entity);
+                prev_char = last_char(&input[pos..pos + consumed]);
                 pos += consumed;
             } else if common::is_invalid_char(c) {
                 entities.push(NomEntity::new(
@@ -124,6 +151,7 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                     pos,
                     pos + char_len,
                 ));
+                prev_char = Some(c);
                 pos += char_len;
             } else if emoji::is_emoji_start(c) {
                 // Try to parse a potential emoji sequence
@@ -134,16 +162,20 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                         pos,
                         pos + consumed,
                     ));
+                    prev_char = last_char(matched);
                     pos += consumed;
                 } else {
+                    prev_char = Some(c);
                     pos += char_len;
                 }
             } else if c == '\u{ff20}' {
                 // Fullwidth @ - check for email domain
                 let after_at = &remaining[char_len..];
                 let skip = skip_email_domain(after_at);
+                prev_char = last_char(&input[pos..pos + char_len + skip]);
                 pos += char_len + skip;
             } else {
+                prev_char = Some(c);
                 pos += char_len;
             }
         }
@@ -188,10 +220,12 @@ fn skip_email_domain(input: &str) -> usize {
 /// * `full_input` - The complete tweet text (for checking preceding characters)
 /// * `input` - The remaining text starting at the current position
 /// * `offset` - The byte offset into full_input where input starts
+/// * `prev_char` - The character immediately before this position (if any)
 fn try_parse_entity<'a>(
     full_input: &'a str,
     input: &'a str,
     offset: usize,
+    prev_char: Option<char>,
 ) -> Option<(NomEntity<'a>, usize)> {
     // Try each entity type in priority order
     // URLs should come first to avoid hashtag/mention ambiguity in URLs
@@ -204,13 +238,6 @@ fn try_parse_entity<'a>(
         first_byte as char
     } else {
         input.chars().next()?
-    };
-
-    // Get the character before this position (if any)
-    let prev_char = if offset > 0 {
-        full_input[..offset].chars().last()
-    } else {
-        None
     };
 
     // Check based on first character to avoid unnecessary parsing attempts
@@ -391,18 +418,43 @@ fn try_parse_entity<'a>(
             // Delimiters include spaces and CJK/non-Latin characters
             if offset >= 3 {
                 let before = &full_input[..offset];
-                // Find the last delimiter before this position
-                // A delimiter is a space or a non-URL character (like CJK)
-                let last_delim = before
-                    .char_indices()
-                    .rev()
-                    .find(|(_, c)| common::is_space(*c) || is_url_delimiter(*c))
-                    .map(|(i, c)| i + c.len_utf8())
-                    .unwrap_or(0);
+                let before_bytes = before.as_bytes();
+
+                // Fast path: scan backwards for ASCII whitespace or non-ASCII
+                // Most tweets are ASCII, so this is usually very fast
+                let mut last_delim = 0;
+                for (i, &b) in before_bytes.iter().enumerate().rev() {
+                    if b == b' ' || b == b'\n' || b == b'\r' || b == b'\t' {
+                        last_delim = i + 1;
+                        break;
+                    }
+                    if b >= 128 {
+                        // Found non-ASCII - need to check for Unicode delimiters
+                        // Find the start of this UTF-8 char and scan from there
+                        let mut start = i;
+                        while start > 0 && (before_bytes[start] & 0xC0) == 0x80 {
+                            start -= 1;
+                        }
+                        let suffix = &before[start..];
+                        if let Some((j, c)) = suffix
+                            .char_indices()
+                            .rev()
+                            .find(|(_, c)| common::is_space(*c) || is_url_delimiter(*c))
+                        {
+                            last_delim = start + j + c.len_utf8();
+                        }
+                        break;
+                    }
+                }
+
                 let since_delim = &before[last_delim..];
                 // If there's "://" followed by anything (like "http://-foo"), skip this
-                if since_delim.contains("://") {
-                    return None;
+                // Use memchr to find ':' then check for "//" - faster than contains()
+                let since_bytes = since_delim.as_bytes();
+                if let Some(colon_pos) = memchr::memchr(b':', since_bytes) {
+                    if since_bytes.get(colon_pos + 1..colon_pos + 3) == Some(b"//") {
+                        return None;
+                    }
                 }
             }
 

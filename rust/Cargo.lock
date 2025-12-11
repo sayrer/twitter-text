@@ -683,6 +683,7 @@ dependencies = [
  "cxx",
  "emojis",
  "idna",
+ "memchr",
  "nom",
  "pest",
  "pest_derive",

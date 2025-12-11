@@ -225,7 +225,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%rust_deps": {
       "general": {
-        "bzlTransitiveDigest": "3PpQLDKsM5KOdDk4Msq2WkMMp7obNaKrF2CNopmaFkA=",
+        "bzlTransitiveDigest": "OVbd1apVT5IL5uC1So8gJJlBTFwSplLX6ixGIUBDGYc=",
         "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -2075,6 +2075,7 @@
             "twitter_text__libc-0.2.178",
             "twitter_text__log-0.4.28",
             "twitter_text__magnus-0.8.2",
+            "twitter_text__memchr-2.7.6",
             "twitter_text__nom-7.1.3",
             "twitter_text__pest-2.8.4",
             "twitter_text__pest_derive-2.8.4",

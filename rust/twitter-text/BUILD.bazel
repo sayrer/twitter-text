@@ -33,6 +33,7 @@ twitter_text_deps = [
     "//3rdparty/crates:cxx",   # Rust side of CXX
     "//3rdparty/crates:emojis",
     "//3rdparty/crates:idna",
+    "//3rdparty/crates:memchr",
     "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",
@@ -46,6 +47,7 @@ twitter_text_wasm_deps = [
     "//rust/parser:twitter_text_parser",
     "//3rdparty/crates:emojis",
     "//3rdparty/crates:idna",
+    "//3rdparty/crates:memchr",
     "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",

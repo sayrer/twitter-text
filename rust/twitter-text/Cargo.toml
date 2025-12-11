@@ -21,5 +21,6 @@ twitter_text_config = { path = "../config" , version = "0.2.0" }
 twitter_text_parser = { path = "../parser" , version = "0.2.0" }
 phf = { version = "0.11", features = ["macros", "unicase"] }
 emojis = "0.6"
+memchr = "2.7"
 nom = "7"
 unicode_categories = "0.1"

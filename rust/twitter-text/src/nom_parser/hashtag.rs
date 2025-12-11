@@ -16,6 +16,14 @@ use nom::IResult;
 /// Corresponds to hashtag_letter_or_mark in the Pest grammar.
 #[inline]
 fn is_hashtag_letter_or_mark(c: char) -> bool {
+    // Fast path for ASCII letters (most common case)
+    if c.is_ascii_alphabetic() {
+        return true;
+    }
+    // Non-ASCII or non-letter ASCII - use Unicode categories
+    if (c as u32) < 128 {
+        return false; // ASCII but not a letter
+    }
     use unicode_categories::UnicodeCategories;
     c.is_letter() || c.is_mark()
 }
