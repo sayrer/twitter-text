@@ -33,14 +33,14 @@ echo "=============================================="
 # Run old benchmark (no autolink support)
 OLD_RESULT=$("$OLD_BENCHMARK" "$EXTRACT_YML" "$VALIDATE_YML" "$PARSE_YML")
 OLD_EXTRACT=$(echo "$OLD_RESULT" | sed 's/.*"extract": \([0-9.]*\).*/\1/')
-OLD_VALIDATE=$(echo "$OLD_RESULT" | sed 's/.*"validate": \([0-9.]*\).*/\1/')
+OLD_VALIDATE=$(echo "$OLD_RESULT" | sed 's/.*"validate_tweet": \([0-9.]*\).*/\1/')
 OLD_PARSE=$(echo "$OLD_RESULT" | sed 's/.*"parse": \([0-9.]*\).*/\1/')
 
 # Run rust benchmark (includes autolink)
 RUST_RESULT=$("$RUST_BENCHMARK" "$AUTOLINK_YML" "$EXTRACT_YML" "$VALIDATE_YML" "$PARSE_YML")
 RUST_AUTOLINK=$(echo "$RUST_RESULT" | sed 's/.*"autolink": \([0-9.]*\).*/\1/')
 RUST_EXTRACT=$(echo "$RUST_RESULT" | sed 's/.*"extract": \([0-9.]*\).*/\1/')
-RUST_VALIDATE=$(echo "$RUST_RESULT" | sed 's/.*"validate": \([0-9.]*\).*/\1/')
+RUST_VALIDATE=$(echo "$RUST_RESULT" | sed 's/.*"validate_tweet": \([0-9.]*\).*/\1/')
 RUST_PARSE=$(echo "$RUST_RESULT" | sed 's/.*"parse": \([0-9.]*\).*/\1/')
 
 print_results() {

@@ -1,0 +1,66 @@
+# Benchmark corpus for extract operations - LONG TWEETS
+# All texts are near the 280 character weighted limit with multiple entities
+tests:
+  mentions:
+    - description: "Many mentions in long tweet"
+      text: "Amazing panel today with @elonmusk @satlogia @sama @kaboroge @ylecun @demaborogo @jeffdean @ilyasut discussing the future of AI and machine learning! Great insights from everyone. Can't wait for the next session! #AIConference #TechLeaders 🚀🔥💯"
+
+    - description: "Long thread with mentions"
+      text: "@user1 @user2 @user3 @user4 @user5 This is a really important thread about climate change and what we can do about it. Please read and share with your networks. We need everyone's help to spread awareness about these critical issues affecting our planet! 🌍💚"
+
+    - description: "Mentions with CJK text"
+      text: "素晴らしいイベントでした！@TwitterJP @LINE_official @Yahoo_JAPAN_PR @Nintendo さん、ありがとうございました。来年もよろしくお願いします。日本のテクノロジー業界の未来は明るいです！#テック #日本 #イノベーション 🇯🇵✨"
+
+    - description: "Arabic mentions in long text"
+      text: "شكراً جزيلاً @Twitter @GoogleArabic @MicrosoftArabia @MetaArabic على الدعم الرائع والمستمر للمجتمع العربي. نحن نقدر جهودكم في تطوير المحتوى العربي على الإنترنت. #تقنية #عربي #ابتكار 🌟"
+
+    - description: "Mixed mentions and URLs"
+      text: "Just published my new article on @Medium about @rustlang and @WebAssembly! Check it out at https://medium.com/@author/rust-wasm-2024 - learned so much from @official_rust community. Thanks @feraboris for the review! #RustLang #WASM #WebDev 🦀"
+
+  urls:
+    - description: "Multiple complex URLs"
+      text: "Resources for learning: https://docs.rust-lang.org/book/ch01-00-getting-started.html and https://developer.mozilla.org/en-US/docs/WebAssembly/Concepts plus https://github.com/nicohman/rust-wasm-template for templates. Happy coding! #Rust #WASM"
+
+    - description: "URLs with unicode paths"
+      text: "日本語のドキュメント: https://example.com/docs/日本語/はじめに と https://example.jp/ガイド/設定方法 を参照してください。詳細は https://help.example.com/faq/よくある質問 にあります。#ドキュメント #ヘルプ"
+
+    - description: "URLs with query params"
+      text: "Check these APIs: https://api.example.com/v2/users?limit=100&offset=0&sort=created_at and https://api.test.com/search?q=rust+wasm&page=1&per_page=50 for more data. Also https://cdn.example.com/assets/main.js?v=2.0.1 #API #WebDev"
+
+    - description: "Short URLs mixed with text"
+      text: "Today's reading list 📚: https://t.co/abc123 on AI ethics, https://t.co/def456 about climate tech, https://t.co/ghi789 for startup advice, and https://t.co/jkl012 on productivity. All must-reads! Share your favorites below! #Reading #Learning #Growth"
+
+    - description: "URLs in multilingual context"
+      text: "Useful links 有用的链接 유용한 링크: https://example.com/en/guide https://example.com/zh/指南 https://example.com/ko/가이드 - Available in English, 中文, 한국어! #Multilingual #Global #Documentation 🌍"
+
+  hashtags:
+    - description: "Many hashtags"
+      text: "What a day at the conference! #TechSummit2024 #ArtificialIntelligence #MachineLearning #DeepLearning #NeuralNetworks #ComputerVision #NLP #DataScience #BigData #CloudComputing #DevOps #Kubernetes So many great talks and networking opportunities! 🎉"
+
+    - description: "CJK hashtags in long text"
+      text: "今日の東京は最高の天気でした！#東京 #日本 #旅行 #観光 #グルメ #ラーメン #寿司 #桜 #富士山 #新幹線 素晴らしい一日を過ごしました。また来たいです！日本は本当に美しい国です。 #JapanTravel #Tokyo 🇯🇵🌸"
+
+    - description: "Korean hashtags"
+      text: "서울에서 멋진 하루를 보냈습니다! #서울 #한국 #여행 #맛집 #카페 #쇼핑 #강남 #홍대 #이태원 #명동 정말 즐거웠어요. 한국 음식은 최고입니다! 다음에 또 오고 싶어요. #KoreaTravel #Seoul 🇰🇷"
+
+    - description: "Mixed script hashtags"
+      text: "International tech meetup was amazing! #Technology #テクノロジー #技术 #기술 #التقنية Met developers from around the world discussing #AI #人工知能 #人工智能 #인공지능 Great conversations about the future! #Global #Diverse 🌍🤝"
+
+    - description: "Hashtags with emoji"
+      text: "Monday motivation 💪 #MondayMotivation #NeverGiveUp #KeepGoing #StayFocused #DreamBig #WorkHard #PlayHard #GoodVibes #PositiveEnergy #Inspiration #Success #Goals #Mindset Start your week strong! You've got this! 🚀✨🔥💯"
+
+  cashtags:
+    - description: "Multiple cashtags analysis"
+      text: "Market update: $AAPL up 2.3%, $GOOGL steady, $MSFT gaining momentum, $AMZN showing strength, $TSLA volatile as usual, $NVDA leading AI sector, $META recovering nicely. Overall $SPY and $QQQ looking bullish! #Stocks #Investing #MarketWatch 📈💰"
+
+    - description: "Cashtags with analysis"
+      text: "Portfolio rebalancing today: Added more $VTI and $VXUS for diversification. Trimmed $ARKK position. Holding $BRK.B long term. Watching $SOFI and $PLTR for entry points. Remember: $DCA is your friend in volatile markets! #Investing #FIRE #PersonalFinance 📊"
+
+    - description: "Crypto cashtags"
+      text: "Crypto market analysis 🔍: $BTC holding support at 42k, $ETH looking strong above 2.2k, $SOL momentum building, $AVAX and $MATIC showing accumulation patterns. $LINK breaking out! DeFi season coming? #Crypto #DeFi #Web3 #Blockchain 🚀📈"
+
+    - description: "Cashtags in news context"
+      text: "Breaking: $NVDA announces new AI chip partnership! Stock surges 5% in after-hours. This could impact $AMD $INTC $TSM in the semiconductor space. Analysts raising price targets. $SMH ETF at all-time highs! Full analysis thread below. #AIStocks #Semiconductors #TechNews"
+
+    - description: "International stocks"
+      text: "Global markets roundup: US $SPY $QQQ green, Europe $EWG $EWU mixed, Asia $FXI $EWJ recovering. Emerging markets $EEM $VWO showing strength. Currency moves: $DXY weakening supports $GLD $SLV. Stay diversified globally! #GlobalMarkets #Investing 🌍📈"

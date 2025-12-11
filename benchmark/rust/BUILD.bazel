@@ -53,3 +53,12 @@ sh_binary(
         "//benchmark/data:parse.yml",
     ],
 )
+
+rust_binary(
+    name = "longtext_benchmark",
+    srcs = ["longtext_benchmark.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+    ],
+    edition = "2021",
+)

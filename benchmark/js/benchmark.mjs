@@ -113,8 +113,8 @@ function benchmarkAutolink() {
       errors++;
       if (errors <= 3) {
         console.log(`  [MISMATCH] Autolink "${test.text.substring(0, 40)}..."`);
-        console.log(`    Old:  ${oldResult.substring(0, 80)}...`);
-        console.log(`    Rust: ${rustResult.substring(0, 80)}...`);
+        console.log(`    Old:  ${oldResult}`);
+        console.log(`    Rust: ${rustResult}`);
       }
     }
   }
