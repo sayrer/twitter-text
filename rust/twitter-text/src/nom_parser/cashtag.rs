@@ -10,42 +10,67 @@
 //! - Optionally: a dot or underscore followed by 1-2 more ASCII letters
 //! - Must not be followed by a digit or letter
 
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::satisfy,
-    combinator::{opt, recognize},
-    multi::many_m_n,
-    sequence::tuple,
-    IResult,
-};
+use nom::IResult;
 
-/// Match the $ prefix.
-fn cashtag_prefix(input: &str) -> IResult<&str, &str> {
-    tag("$")(input)
-}
-
-/// Match a single ASCII alphabetic character.
-fn ascii_alpha(input: &str) -> IResult<&str, char> {
-    satisfy(|c| c.is_ascii_alphabetic())(input)
-}
-
-/// Parse a cashtag, returning the matched string slice.
+/// Parse a cashtag using direct byte scanning.
 /// Pattern: $SYMBOL or $SYMBOL.XX or $SYMBOL_XX
 pub fn parse_cashtag(input: &str) -> IResult<&str, &str> {
-    // Use recognize to get the full matched string
-    let (remaining, matched) = recognize(tuple((
-        cashtag_prefix,
-        many_m_n(1, 6, ascii_alpha),
-        opt(tuple((
-            alt((tag("."), tag("_"))),
-            many_m_n(1, 2, ascii_alpha),
-        ))),
-    )))(input)?;
+    let bytes = input.as_bytes();
+
+    // Check for $ prefix
+    if bytes.first() != Some(&b'$') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    }
+
+    // Scan 1-6 ASCII letters
+    let mut pos = 1;
+    let mut symbol_len = 0;
+
+    while pos < bytes.len() && symbol_len < 6 {
+        let b = bytes[pos];
+        if b.is_ascii_alphabetic() {
+            symbol_len += 1;
+            pos += 1;
+        } else {
+            break;
+        }
+    }
+
+    if symbol_len == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Optional: dot or underscore followed by 1-2 letters
+    if pos < bytes.len() && (bytes[pos] == b'.' || bytes[pos] == b'_') {
+        let sep_pos = pos;
+        pos += 1;
+
+        let mut suffix_len = 0;
+        while pos < bytes.len() && suffix_len < 2 {
+            let b = bytes[pos];
+            if b.is_ascii_alphabetic() {
+                suffix_len += 1;
+                pos += 1;
+            } else {
+                break;
+            }
+        }
+
+        // If no suffix letters, revert to before separator
+        if suffix_len == 0 {
+            pos = sep_pos;
+        }
+    }
 
     // Verify not followed by digit or letter
-    if let Some(next_char) = remaining.chars().next() {
-        if next_char.is_ascii_alphanumeric() {
+    if let Some(&next_byte) = bytes.get(pos) {
+        if next_byte.is_ascii_alphanumeric() {
             return Err(nom::Err::Error(nom::error::Error::new(
                 input,
                 nom::error::ErrorKind::Verify,
@@ -53,7 +78,7 @@ pub fn parse_cashtag(input: &str) -> IResult<&str, &str> {
         }
     }
 
-    Ok((remaining, matched))
+    Ok((&input[pos..], &input[..pos]))
 }
 
 /// Check if the character before a potential cashtag is valid.

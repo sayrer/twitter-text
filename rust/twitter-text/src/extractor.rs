@@ -19,6 +19,28 @@ use twitter_text_parser::twitter_text::full_pest::Rule as FullPestRule;
 use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
 
+/// Checks if an emoji string is valid using the emojis crate.
+/// Handles variation selector FE0F (emoji presentation selector) by stripping it
+/// when not part of a ZWJ sequence, similar to twemoji-parser's removeVS16s.
+fn is_valid_emoji(s: &str) -> bool {
+    // First try direct lookup
+    if emojis::get(s).is_some() {
+        return true;
+    }
+
+    // If direct lookup failed and string contains FE0F but no ZWJ,
+    // try stripping FE0F and looking up again
+    const VS16: char = '\u{fe0f}';
+    const ZWJ: char = '\u{200d}';
+
+    if s.contains(VS16) && !s.contains(ZWJ) {
+        let stripped: String = s.chars().filter(|&c| c != VS16).collect();
+        return emojis::get(&stripped).is_some();
+    }
+
+    false
+}
+
 type RuleMatch = fn(Rule) -> bool;
 type Pair<'a> = pest::iterators::Pair<'a, Rule>;
 type FullPestPair<'a> = pest::iterators::Pair<'a, FullPestRule>;
@@ -126,8 +148,8 @@ pub trait Extract<'a> {
                     if r == Rule::invalid_char {
                         scanned.push(UnprocessedEntity::Pair(pair));
                     } else if r == Rule::emoji {
-                        // Validate emoji using external crate
-                        if emojis::get(pair.as_str()).is_some() {
+                        // Validate emoji using external crate (handles FE0F stripping)
+                        if is_valid_emoji(pair.as_str()) {
                             scanned.push(UnprocessedEntity::Pair(pair));
                         }
                         // If not a valid emoji, skip it (treat as regular text)
@@ -220,8 +242,8 @@ pub trait Extract<'a> {
             if rule == Rule::invalid_char {
                 scanned.push(UnprocessedEntity::NomEntity(entity));
             } else if rule == Rule::emoji {
-                // Validate emoji using external crate
-                if emojis::get(entity.value).is_some() {
+                // Validate emoji using external crate (handles FE0F stripping)
+                if is_valid_emoji(entity.value) {
                     scanned.push(UnprocessedEntity::NomEntity(entity));
                 }
             } else if r_match(rule) {
@@ -2731,6 +2753,33 @@ mod debug_tests {
     }
 
     #[test]
+    fn test_star_emoji_with_variation_selector() {
+        // Test that ⭐️ (U+2B50 + U+FE0F) is counted as a single emoji
+        // This matches Old JS twitter-text behavior where weighted_length = 72
+        let config = twitter_text_config::config_v3();
+        let text = "🔥🔥🔥 This is amazing! 💯💯💯 Best day ever! 🚀🚀🚀 To the moon! 🌙✨⭐️";
+
+        let pest =
+            crate::parse_with_external_validator(text, config, false, ExternalValidator::Pest);
+        let ext =
+            crate::parse_with_external_validator(text, config, false, ExternalValidator::External);
+        let nom = crate::parse_with_external_validator(text, config, false, ExternalValidator::Nom);
+
+        // Expected: 72 (matching Old JS behavior)
+        // - 12 emoji (🔥🔥🔥💯💯💯🚀🚀🚀🌙✨⭐️) each count as 1
+        // - Text and spaces weighted by character weight
+        assert_eq!(
+            pest.weighted_length, 72,
+            "Pest weighted_length should be 72"
+        );
+        assert_eq!(
+            ext.weighted_length, 72,
+            "External weighted_length should be 72"
+        );
+        assert_eq!(nom.weighted_length, 72, "Nom weighted_length should be 72");
+    }
+
+    #[test]
     fn test_pest_backend_extracts_punycode_urls() {
         let extractor = Extractor::with_external_validator(ExternalValidator::Pest);
 
@@ -2823,6 +2872,27 @@ mod debug_tests {
         assert!(
             emojis::get("a").is_none(),
             "Single letter should not be found as emoji"
+        );
+
+        // Test star emoji with and without variation selector
+        // The emojis crate doesn't find star+FE0F directly, but is_valid_emoji handles it
+        let star_with_vs = "\u{2b50}\u{fe0f}"; // ⭐️
+        let plain_star = "\u{2b50}"; // ⭐
+        assert!(
+            emojis::get(plain_star).is_some(),
+            "Plain star should be found"
+        );
+        assert!(
+            emojis::get(star_with_vs).is_none(),
+            "Star+FE0F not found directly by emojis crate"
+        );
+        assert!(
+            is_valid_emoji(star_with_vs),
+            "Star+FE0F should be valid via is_valid_emoji"
+        );
+        assert!(
+            is_valid_emoji(plain_star),
+            "Plain star should be valid via is_valid_emoji"
         );
     }
 }

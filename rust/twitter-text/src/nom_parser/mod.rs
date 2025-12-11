@@ -407,11 +407,36 @@ fn try_parse_entity<'a>(
             }
 
             // Check if there's a dot before the next space (early rejection)
-            if input
-                .chars()
-                .take_while(|c| !common::is_space(*c))
-                .any(|c| c == '.')
-            {
+            let has_dot = {
+                let bytes = input.as_bytes();
+                let mut found = false;
+                for &b in bytes {
+                    if b == b'.' {
+                        found = true;
+                        break;
+                    }
+                    // Check for space (common ASCII spaces)
+                    if b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' {
+                        break;
+                    }
+                    // Non-ASCII might be Unicode space, check char
+                    if b >= 128 {
+                        // Fall back to char check for non-ASCII
+                        for c in input.chars() {
+                            if c == '.' {
+                                found = true;
+                                break;
+                            }
+                            if common::is_space(c) {
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                found
+            };
+            if has_dot {
                 if let Ok((remaining, (matched, host_start, host_end))) =
                     url::parse_url_without_protocol(input)
                 {

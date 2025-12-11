@@ -12,70 +12,132 @@
 //! - Username followed by /
 //! - 1-25 characters (letter followed by alphanumeric, underscore, or hyphen)
 
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_while1, take_while_m_n},
-    character::complete::satisfy,
-    combinator::recognize,
-    sequence::tuple,
-    IResult,
-};
+use nom::IResult;
 
-/// Match the @ prefix (regular or fullwidth).
-fn at_prefix(input: &str) -> IResult<&str, &str> {
-    alt((tag("@"), tag("\u{ff20}")))(input)
+/// Check if a byte is a valid username character (alphanumeric or underscore).
+#[inline(always)]
+fn is_username_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_'
 }
 
-/// Check if a character is a valid username character (alphanumeric or underscore).
-#[inline]
-fn is_username_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_'
+/// Check if a byte is a valid list slug character (alphanumeric, underscore, or hyphen).
+#[inline(always)]
+fn is_list_slug_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_' || b == b'-'
 }
 
-/// Match the username text (1-20 valid characters).
-fn username_text(input: &str) -> IResult<&str, &str> {
-    take_while_m_n(1, 20, is_username_char)(input)
-}
-
-/// Parse a username/mention, returning the matched string slice.
+/// Parse a username/mention using direct byte scanning.
 /// Pattern: @username (1-20 chars)
 pub fn parse_username(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((at_prefix, username_text)))(input)
+    let bytes = input.as_bytes();
+
+    // Check for @ prefix (regular or fullwidth)
+    let prefix_len = if bytes.first() == Some(&b'@') {
+        1
+    } else if input.starts_with('\u{ff20}') {
+        '\u{ff20}'.len_utf8()
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    };
+
+    // Scan username chars (1-20)
+    let after_prefix = &bytes[prefix_len..];
+    let mut username_len = 0;
+
+    for &b in after_prefix.iter().take(20) {
+        if is_username_byte(b) {
+            username_len += 1;
+        } else {
+            break;
+        }
+    }
+
+    if username_len == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    let total_len = prefix_len + username_len;
+    Ok((&input[total_len..], &input[..total_len]))
 }
 
-/// Check if a character is a valid list slug character (alphanumeric, underscore, or hyphen).
-#[inline]
-fn is_list_slug_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_' || c == '-'
-}
-
-/// Match the list slug text (starts with letter, then 0-24 more chars, total 1-25).
-fn list_slug_text(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        satisfy(|c| c.is_ascii_alphabetic()),
-        take_while_m_n(0, 24, is_list_slug_char),
-    )))(input)
-}
-
-/// Parse the list slug portion (including the /).
-fn list_slug(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((tag("/"), list_slug_text)))(input)
-}
-
-/// Parse a list, returning the matched string slice and the position where the slug starts.
+/// Parse a list using direct byte scanning.
 /// Pattern: @username/list-name
 /// Returns (remaining, (full_match, slug_start_offset))
 pub fn parse_list(input: &str) -> IResult<&str, (&str, usize)> {
-    let (remaining, (prefix, username, slug)) =
-        tuple((at_prefix, username_text, list_slug))(input)?;
+    let bytes = input.as_bytes();
 
-    let full_len = prefix.len() + username.len() + slug.len();
-    let slug_start = prefix.len() + username.len() + 1; // +1 for the /
+    // Check for @ prefix
+    let prefix_len = if bytes.first() == Some(&b'@') {
+        1
+    } else if input.starts_with('\u{ff20}') {
+        '\u{ff20}'.len_utf8()
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    };
 
-    // Compute the full match slice
-    let full_match = &input[..full_len];
+    // Scan username chars (1-20)
+    let after_prefix = &bytes[prefix_len..];
+    let mut username_len = 0;
 
-    Ok((remaining, (full_match, slug_start)))
+    for &b in after_prefix.iter().take(20) {
+        if is_username_byte(b) {
+            username_len += 1;
+        } else {
+            break;
+        }
+    }
+
+    if username_len == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Check for /
+    let slash_pos = prefix_len + username_len;
+    if bytes.get(slash_pos) != Some(&b'/') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    // Slug must start with a letter
+    let slug_start_pos = slash_pos + 1;
+    let slug_first = bytes.get(slug_start_pos);
+    if !matches!(slug_first, Some(b) if b.is_ascii_alphabetic()) {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Scan slug chars (first letter + 0-24 more, total 1-25)
+    let after_slash = &bytes[slug_start_pos..];
+    let mut slug_len = 1; // Already counted the first letter
+
+    for &b in after_slash.iter().skip(1).take(24) {
+        if is_list_slug_byte(b) {
+            slug_len += 1;
+        } else {
+            break;
+        }
+    }
+
+    let total_len = slug_start_pos + slug_len;
+    let slug_start = prefix_len + username_len + 1; // Position after the /
+
+    Ok((&input[total_len..], (&input[..total_len], slug_start)))
 }
 
 /// Try to parse either a list or a username.
@@ -99,97 +161,104 @@ pub fn valid_mention_predecessor(c: char) -> bool {
 
 // Federated mention parsing (Mastodon-style @user@domain.tld)
 
-/// Check if a character is a valid federated username character (alphanumeric or underscore).
-#[inline]
-fn is_federated_username_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_'
+/// Check if a byte is a valid federated username/domain character (alphanumeric or underscore).
+#[inline(always)]
+fn is_federated_char_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_'
 }
 
-/// Check if a character is a federated separator (dot or hyphen).
-#[inline]
-fn is_federated_separator(c: char) -> bool {
-    c == '.' || c == '-'
+/// Check if a byte is a federated separator (dot or hyphen).
+#[inline(always)]
+fn is_federated_separator_byte(b: u8) -> bool {
+    b == b'.' || b == b'-'
 }
 
-/// Match a federated username: alphanumeric/underscore chars with dots/hyphens between segments.
-/// Pattern: segment (separator+ segment)*
-fn federated_username(input: &str) -> IResult<&str, &str> {
-    // Must start with at least one username char
-    let (remaining, first_segment) = take_while1(is_federated_username_char)(input)?;
+/// Scan a federated name segment (username or domain): alphanumeric/underscore chars with dots/hyphens between segments.
+/// Returns the number of bytes consumed.
+#[inline]
+fn scan_federated_segment(bytes: &[u8]) -> usize {
+    if bytes.is_empty() || !is_federated_char_byte(bytes[0]) {
+        return 0;
+    }
 
-    // Continue consuming (separator+ segment)* without allocating
-    let mut end_pos = first_segment.len();
-    let mut rest = remaining;
+    let mut end_pos = 1;
+    let mut i = 1;
 
-    loop {
-        // Try to match one or more separators
-        match take_while1::<_, _, nom::error::Error<&str>>(is_federated_separator)(rest) {
-            Ok((after_sep, sep)) => {
-                // Must be followed by a segment
-                match take_while1::<_, _, nom::error::Error<&str>>(is_federated_username_char)(
-                    after_sep,
-                ) {
-                    Ok((after_segment, segment)) => {
-                        end_pos += sep.len() + segment.len();
-                        rest = after_segment;
-                    }
-                    Err(_) => break,
-                }
+    while i < bytes.len() {
+        let b = bytes[i];
+
+        if is_federated_char_byte(b) {
+            end_pos = i + 1;
+            i += 1;
+        } else if is_federated_separator_byte(b) {
+            // Separator must be followed by at least one char
+            let mut sep_end = i + 1;
+            // Consume consecutive separators
+            while sep_end < bytes.len() && is_federated_separator_byte(bytes[sep_end]) {
+                sep_end += 1;
             }
-            Err(_) => break,
+            // Must be followed by a segment char
+            if sep_end < bytes.len() && is_federated_char_byte(bytes[sep_end]) {
+                end_pos = sep_end + 1;
+                i = sep_end + 1;
+            } else {
+                break;
+            }
+        } else {
+            break;
         }
     }
 
-    Ok((&input[end_pos..], &input[..end_pos]))
+    end_pos
 }
 
-/// Check if a character is a valid federated domain character (alphanumeric or underscore).
-#[inline]
-fn is_federated_domain_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_'
-}
-
-/// Match a federated domain: alphanumeric/underscore chars with dots/hyphens between segments.
-/// Pattern: segment (separator+ segment)*
-fn federated_domain(input: &str) -> IResult<&str, &str> {
-    // Must start with at least one domain char
-    let (remaining, first_segment) = take_while1(is_federated_domain_char)(input)?;
-
-    // Continue consuming (separator+ segment)* without allocating
-    let mut end_pos = first_segment.len();
-    let mut rest = remaining;
-
-    loop {
-        // Try to match one or more separators
-        match take_while1::<_, _, nom::error::Error<&str>>(is_federated_separator)(rest) {
-            Ok((after_sep, sep)) => {
-                // Must be followed by a segment
-                match take_while1::<_, _, nom::error::Error<&str>>(is_federated_domain_char)(
-                    after_sep,
-                ) {
-                    Ok((after_segment, segment)) => {
-                        end_pos += sep.len() + segment.len();
-                        rest = after_segment;
-                    }
-                    Err(_) => break,
-                }
-            }
-            Err(_) => break,
-        }
-    }
-
-    Ok((&input[end_pos..], &input[..end_pos]))
-}
-
-/// Parse a federated mention (@username@domain).
+/// Parse a federated mention (@username@domain) using direct byte scanning.
 /// Returns the full matched string including both @ symbols.
 pub fn parse_federated_mention(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        at_prefix,
-        federated_username,
-        tag("@"),
-        federated_domain,
-    )))(input)
+    let bytes = input.as_bytes();
+
+    // Check for @ prefix
+    let prefix_len = if bytes.first() == Some(&b'@') {
+        1
+    } else if input.starts_with('\u{ff20}') {
+        '\u{ff20}'.len_utf8()
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    };
+
+    // Scan username
+    let username_len = scan_federated_segment(&bytes[prefix_len..]);
+    if username_len == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Check for second @
+    let second_at_pos = prefix_len + username_len;
+    if bytes.get(second_at_pos) != Some(&b'@') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    // Scan domain
+    let domain_start = second_at_pos + 1;
+    let domain_len = scan_federated_segment(&bytes[domain_start..]);
+    if domain_len == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    let total_len = domain_start + domain_len;
+    Ok((&input[total_len..], &input[..total_len]))
 }
 
 /// Try to parse a federated mention, username, or list.

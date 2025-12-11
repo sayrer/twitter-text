@@ -10,14 +10,7 @@
 //!
 //! TLD validation is done externally via phf lookup.
 
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, tag_no_case, take_while, take_while1},
-    character::complete::{char, satisfy},
-    combinator::{opt, recognize},
-    sequence::{delimited, preceded, tuple},
-    IResult,
-};
+use nom::IResult;
 
 use super::common;
 
@@ -32,13 +25,55 @@ fn is_invalid_tld_suffix(c: char) -> bool {
         || c == '\u{ff20}'
 }
 
-/// Parse the http:// or https:// protocol prefix.
+/// Parse the http:// or https:// protocol prefix using direct byte scanning.
 fn protocol(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        tag_no_case("http"),
-        opt(tag_no_case("s")),
-        tag("://"),
-    )))(input)
+    let bytes = input.as_bytes();
+
+    // Check for "http" (case insensitive)
+    if bytes.len() < 7 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    }
+
+    let h = bytes[0];
+    let t = bytes[1];
+    let t2 = bytes[2];
+    let p = bytes[3];
+
+    if !((h == b'h' || h == b'H')
+        && (t == b't' || t == b'T')
+        && (t2 == b't' || t2 == b'T')
+        && (p == b'p' || p == b'P'))
+    {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    }
+
+    // Check for optional 's' and "://"
+    let (proto_len, remaining_start) = if bytes[4] == b's' || bytes[4] == b'S' {
+        // https://
+        if bytes.len() < 8 || bytes[5] != b':' || bytes[6] != b'/' || bytes[7] != b'/' {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Tag,
+            )));
+        }
+        (8, 8)
+    } else if bytes[4] == b':' && bytes.len() >= 7 && bytes[5] == b'/' && bytes[6] == b'/' {
+        // http://
+        (7, 7)
+    } else {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    };
+
+    Ok((&input[remaining_start..], &input[..proto_len]))
 }
 
 /// Check if a character is a Latin accent character.
@@ -88,13 +123,52 @@ fn is_uwp_domain_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || is_latin_accent(c)
 }
 
-/// Match a punycode domain segment (xn--...).
+/// Match a punycode domain segment (xn--...) using direct byte scanning.
 /// Punycode labels start with "xn--" (case insensitive) followed by alphanumerics and hyphens.
 fn punycode_segment(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        tag_no_case("xn--"),
-        take_while1(|c: char| c.is_ascii_alphanumeric() || c == '-'),
-    )))(input)
+    let bytes = input.as_bytes();
+
+    // Check for "xn--" prefix (case insensitive)
+    if bytes.len() < 5 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    }
+
+    let x = bytes[0];
+    let n = bytes[1];
+
+    if !((x == b'x' || x == b'X')
+        && (n == b'n' || n == b'N')
+        && bytes[2] == b'-'
+        && bytes[3] == b'-')
+    {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )));
+    }
+
+    // Must have at least one alphanumeric/hyphen after xn--
+    let mut end_pos = 4;
+    while end_pos < bytes.len() {
+        let b = bytes[end_pos];
+        if b.is_ascii_alphanumeric() || b == b'-' {
+            end_pos += 1;
+        } else {
+            break;
+        }
+    }
+
+    if end_pos == 4 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Check if a byte is an ASCII domain character (alphanumeric).
@@ -412,7 +486,8 @@ fn domain(input: &str) -> IResult<&str, (&str, &str)> {
         let (after_segment, segment) = domain_segment(remaining)?;
 
         // Check for a dot
-        if let Ok((after_dot, _)) = char::<&str, nom::error::Error<&str>>('.')(after_segment) {
+        if after_segment.as_bytes().first() == Some(&b'.') {
+            let after_dot = &after_segment[1..];
             // Peek ahead: is there a valid segment after the dot?
             // If not, this dot is trailing punctuation, not part of the domain
             if domain_segment(after_dot).is_err() {
@@ -450,12 +525,25 @@ fn domain(input: &str) -> IResult<&str, (&str, &str)> {
     }
 }
 
-/// Parse t.co domain specifically.
+/// Parse t.co domain specifically using direct byte scanning.
 fn tco_domain(input: &str) -> IResult<&str, &str> {
-    tag("t.co")(input)
+    let bytes = input.as_bytes();
+    if bytes.len() >= 4
+        && bytes[0] == b't'
+        && bytes[1] == b'.'
+        && bytes[2] == b'c'
+        && bytes[3] == b'o'
+    {
+        Ok((&input[4..], &input[..4]))
+    } else {
+        Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Tag,
+        )))
+    }
 }
 
-/// Parse a t.co URL.
+/// Parse a t.co URL using direct byte scanning.
 fn tco_url(input: &str) -> IResult<&str, (&str, usize, usize)> {
     let start = input;
 
@@ -466,21 +554,27 @@ fn tco_url(input: &str) -> IResult<&str, (&str, usize, usize)> {
     let host_end = start.len() - remaining.len();
 
     // Optional path: / followed by up to 40 alphanumeric chars
-    let remaining =
-        if let Ok((after_slash, _)) = char::<&str, nom::error::Error<&str>>('/')(remaining) {
-            let (after_path, _) = take_while(|c: char| c.is_ascii_alphanumeric())(after_slash)?;
-            // Check the path length (1-40 chars)
-            let path_len = after_slash.len() - after_path.len();
-            if path_len > 40 {
-                return Err(nom::Err::Error(nom::error::Error::new(
-                    input,
-                    nom::error::ErrorKind::Verify,
-                )));
+    let bytes = remaining.as_bytes();
+    let remaining = if !bytes.is_empty() && bytes[0] == b'/' {
+        let mut path_len = 0;
+        let after_slash = &bytes[1..];
+        for &b in after_slash.iter().take(41) {
+            if b.is_ascii_alphanumeric() {
+                path_len += 1;
+            } else {
+                break;
             }
-            after_path
-        } else {
-            remaining
-        };
+        }
+        if path_len > 40 {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Verify,
+            )));
+        }
+        &remaining[1 + path_len..]
+    } else {
+        remaining
+    };
 
     // Optional query and fragment
     let remaining = if let Ok((after_query, _)) = query(remaining) {
@@ -633,80 +727,136 @@ fn host(input: &str) -> IResult<&str, &str> {
     }
 
     // Try IPv6 first
-    if let Ok(result) = recognize(ip_literal)(input) {
+    if let Ok(result) = ip_literal(input) {
         return Ok(result);
     }
 
     // Check if this looks like an IPv4 address
     if looks_like_ipv4(input) {
         // If it looks like an IP, it MUST be a valid IP - don't fall back to domain
-        return recognize(ipv4_address)(input);
+        return ipv4_address(input);
     }
 
     // Otherwise, parse as domain
     domain(input).map(|(r, (d, _))| (r, d))
 }
 
-/// Parse IPv4 address.
+/// Parse IPv4 address using direct byte scanning.
 fn ipv4_address(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        dec_octet,
-        char('.'),
-        dec_octet,
-        char('.'),
-        dec_octet,
-        char('.'),
-        dec_octet,
-    )))(input)
+    let bytes = input.as_bytes();
+    let mut pos = 0;
+
+    for octet_num in 0..4 {
+        // Parse decimal octet (0-255)
+        if pos >= bytes.len() || !bytes[pos].is_ascii_digit() {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Digit,
+            )));
+        }
+
+        let octet_start = pos;
+        while pos < bytes.len() && bytes[pos].is_ascii_digit() {
+            pos += 1;
+        }
+
+        let octet_len = pos - octet_start;
+        if octet_len == 0 || octet_len > 3 {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Digit,
+            )));
+        }
+
+        // Validate octet value (0-255)
+        let octet_str = &input[octet_start..pos];
+        let octet_val: u16 = octet_str.parse().unwrap_or(256);
+        if octet_val > 255 {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Verify,
+            )));
+        }
+
+        // Check for dot separator (except after last octet)
+        if octet_num < 3 {
+            if pos >= bytes.len() || bytes[pos] != b'.' {
+                return Err(nom::Err::Error(nom::error::Error::new(
+                    input,
+                    nom::error::ErrorKind::Char,
+                )));
+            }
+            pos += 1;
+        }
+    }
+
+    Ok((&input[pos..], &input[..pos]))
 }
 
-/// Parse a decimal octet (0-255).
-fn dec_octet(input: &str) -> IResult<&str, &str> {
-    alt((
-        // 250-255
-        recognize(tuple((tag("25"), satisfy(|c| ('0'..='5').contains(&c))))),
-        // 200-249
-        recognize(tuple((
-            char('2'),
-            satisfy(|c| ('0'..='4').contains(&c)),
-            satisfy(|c| c.is_ascii_digit()),
-        ))),
-        // 100-199
-        recognize(tuple((
-            char('1'),
-            satisfy(|c| c.is_ascii_digit()),
-            satisfy(|c| c.is_ascii_digit()),
-        ))),
-        // 10-99
-        recognize(tuple((
-            satisfy(|c| ('1'..='9').contains(&c)),
-            satisfy(|c| c.is_ascii_digit()),
-        ))),
-        // 0-9
-        recognize(satisfy(|c| c.is_ascii_digit())),
-    ))(input)
-}
-
-/// Parse IPv6 literal [address].
+/// Parse IPv6 literal [address] using direct byte scanning.
 fn ip_literal(input: &str) -> IResult<&str, &str> {
-    recognize(delimited(char('['), ipv6_address, char(']')))(input)
+    let bytes = input.as_bytes();
+
+    if bytes.is_empty() || bytes[0] != b'[' {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    // Find closing bracket, matching hex digits, colons, and dots
+    let mut pos = 1;
+    while pos < bytes.len() {
+        let b = bytes[pos];
+        if b == b']' {
+            if pos == 1 {
+                // Empty brackets
+                return Err(nom::Err::Error(nom::error::Error::new(
+                    input,
+                    nom::error::ErrorKind::Satisfy,
+                )));
+            }
+            return Ok((&input[pos + 1..], &input[..pos + 1]));
+        } else if b.is_ascii_hexdigit() || b == b':' || b == b'.' {
+            pos += 1;
+        } else {
+            break;
+        }
+    }
+
+    Err(nom::Err::Error(nom::error::Error::new(
+        input,
+        nom::error::ErrorKind::Char,
+    )))
 }
 
-/// Parse IPv6 address (simplified - matches hex groups separated by colons).
-fn ipv6_address(input: &str) -> IResult<&str, &str> {
-    // Simplified: just match hex digits and colons, with possible :: compression
-    recognize(take_while1(|c: char| {
-        c.is_ascii_hexdigit() || c == ':' || c == '.'
-    }))(input)
-}
-
-/// Parse port number.
+/// Parse port number using direct byte scanning.
 fn port(input: &str) -> IResult<&str, &str> {
-    recognize(tuple((
-        char(':'),
-        satisfy(|c| ('1'..='9').contains(&c)),
-        take_while(|c: char| c.is_ascii_digit()),
-    )))(input)
+    let bytes = input.as_bytes();
+
+    // Must start with ':'
+    if bytes.is_empty() || bytes[0] != b':' {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    // Must have at least one non-zero digit
+    if bytes.len() < 2 || !matches!(bytes[1], b'1'..=b'9') {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    // Consume remaining digits
+    let mut pos = 2;
+    while pos < bytes.len() && bytes[pos].is_ascii_digit() {
+        pos += 1;
+    }
+
+    Ok((&input[pos..], &input[..pos]))
 }
 
 /// Check if a character is valid at the end of a URL path.
@@ -885,7 +1035,14 @@ fn fixup_unbalanced_parens(input: &str, end_pos: usize) -> usize {
 /// Where: query_char = _{ query_end_char | query_punctuation_char+ ~ &query_end_char }
 fn query(input: &str) -> IResult<&str, &str> {
     // Must start with ?
-    let (after_q, _) = char::<&str, nom::error::Error<&str>>('?')(input)?;
+    let bytes = input.as_bytes();
+    if bytes.is_empty() || bytes[0] != b'?' {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+    let after_q = &input[1..];
 
     // Check if followed by # (valid: ?#fragment)
     if after_q.starts_with('#') {
@@ -935,14 +1092,57 @@ fn is_query_punctuation(c: char) -> bool {
     "!?*'();:$%[].~|@,".contains(c)
 }
 
-/// Parse fragment.
+/// Check if a byte is valid in a fragment.
+#[inline(always)]
+fn is_fragment_byte(b: u8) -> bool {
+    b.is_ascii_alphanumeric()
+        || matches!(
+            b,
+            b'-' | b'_'
+                | b'&'
+                | b'='
+                | b'/'
+                | b'+'
+                | b'#'
+                | b'!'
+                | b'?'
+                | b'*'
+                | b'\''
+                | b'('
+                | b')'
+                | b';'
+                | b':'
+                | b'$'
+                | b'%'
+                | b'['
+                | b']'
+                | b'.'
+                | b'~'
+                | b'|'
+                | b'@'
+                | b','
+        )
+}
+
+/// Parse fragment using direct byte scanning.
 fn fragment(input: &str) -> IResult<&str, &str> {
-    recognize(preceded(
-        char('#'),
-        take_while(|c: char| {
-            c.is_ascii_alphanumeric() || "-_&=/+#".contains(c) || is_query_punctuation(c)
-        }),
-    ))(input)
+    let bytes = input.as_bytes();
+
+    // Must start with #
+    if bytes.is_empty() || bytes[0] != b'#' {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Char,
+        )));
+    }
+
+    // Consume valid fragment characters
+    let mut pos = 1;
+    while pos < bytes.len() && is_fragment_byte(bytes[pos]) {
+        pos += 1;
+    }
+
+    Ok((&input[pos..], &input[..pos]))
 }
 
 /// Check if a character can be part of a Unicode TLD.
@@ -955,9 +1155,26 @@ fn is_unicode_tld_char(c: char) -> bool {
         && !common::is_invalid_char(c)
 }
 
-/// Parse a Unicode TLD segment (for TLDs like みんな).
+/// Parse a Unicode TLD segment (for TLDs like みんな) using direct char iteration.
 fn unicode_tld_segment(input: &str) -> IResult<&str, &str> {
-    take_while1(is_unicode_tld_char)(input)
+    let mut end_pos = 0;
+
+    for c in input.chars() {
+        if is_unicode_tld_char(c) {
+            end_pos += c.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    if end_pos == 0 {
+        return Err(nom::Err::Error(nom::error::Error::new(
+            input,
+            nom::error::ErrorKind::Satisfy,
+        )));
+    }
+
+    Ok((&input[end_pos..], &input[..end_pos]))
 }
 
 /// Parse a URL without protocol.
@@ -965,10 +1182,35 @@ fn uwp_domain_and_tld(input: &str) -> IResult<&str, (&str, &str)> {
     let start = input;
 
     // Check for a dot before space/EOF (early rejection)
-    let has_dot = input
-        .chars()
-        .take_while(|c| !common::is_space(*c))
-        .any(|c| c == '.');
+    let has_dot = {
+        let bytes = input.as_bytes();
+        let mut found = false;
+        for &b in bytes {
+            if b == b'.' {
+                found = true;
+                break;
+            }
+            // Check for space (common ASCII spaces)
+            if b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' {
+                break;
+            }
+            // Non-ASCII might be Unicode space, check char
+            if b >= 128 {
+                // Fall back to char check for non-ASCII
+                for c in input.chars() {
+                    if c == '.' {
+                        found = true;
+                        break;
+                    }
+                    if common::is_space(c) {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        found
+    };
     if !has_dot {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
@@ -986,10 +1228,8 @@ fn uwp_domain_and_tld(input: &str) -> IResult<&str, (&str, &str)> {
         match segment_result {
             Ok((after_segment, _)) => {
                 // Check for a dot
-                if let Ok((after_dot, _)) =
-                    char::<&str, nom::error::Error<&str>>('.')(after_segment)
-                {
-                    remaining = after_dot;
+                if after_segment.as_bytes().first() == Some(&b'.') {
+                    remaining = &after_segment[1..];
                 } else {
                     // No more dots - this segment is the TLD
                     // Check for invalid TLD suffix (alphanumeric or @)
