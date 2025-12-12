@@ -1,7 +1,7 @@
 use crate::configuration::TwitterTextConfiguration;
 use crate::parser::TwitterTextParseResult;
 use pyo3::prelude::*;
-use twitter_text::entity::{Entity as RustEntity, Type as EntityType};
+use twitter_text::entity::Entity as RustEntity;
 use twitter_text::extractor::{
     Extract, ExtractResult as RustExtractResult, Extractor as RustExtractor,
     MentionResult as RustMentionResult, ValidatingExtractor as RustValidatingExtractor,

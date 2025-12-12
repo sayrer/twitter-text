@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use pyo3::types::PyFunction;
 use std::sync::Arc;
 use twitter_text::autolinker::{
     AddAttributeModifier as RustAddAttributeModifier, Autolinker as RustAutolinker,
@@ -28,6 +27,7 @@ pub struct Autolinker {
     cashtag_url_base: String,
     invisible_tag_attrs: String,
     username_include_symbol: bool,
+    include_data_screen_name: bool,
     add_attribute_modifier: Option<AddAttributeModifier>,
     replace_class_modifier: Option<ReplaceClassModifier>,
     link_text_modifier: Option<LinkTextModifier>,
@@ -53,6 +53,7 @@ impl Autolinker {
             cashtag_url_base: DEFAULT_CASHTAG_URL_BASE.to_string(),
             invisible_tag_attrs: DEFAULT_INVISIBLE_TAG_ATTRS.to_string(),
             username_include_symbol: false,
+            include_data_screen_name: false,
             add_attribute_modifier: None,
             replace_class_modifier: None,
             link_text_modifier: None,
@@ -179,6 +180,14 @@ impl Autolinker {
         self.username_include_symbol = include;
     }
 
+    fn get_include_data_screen_name(&self) -> bool {
+        self.include_data_screen_name
+    }
+
+    fn set_include_data_screen_name(&mut self, include: bool) {
+        self.include_data_screen_name = include;
+    }
+
     fn set_add_attribute_modifier(&mut self, modifier: AddAttributeModifier) {
         self.add_attribute_modifier = Some(modifier);
     }
@@ -278,6 +287,7 @@ impl Autolinker {
             cashtag_url_base: &self.cashtag_url_base,
             invisible_tag_attrs: &self.invisible_tag_attrs,
             username_include_symbol: self.username_include_symbol,
+            include_data_screen_name: self.include_data_screen_name,
             extractor,
             link_attribute_modifier,
             link_text_modifier,

@@ -32,6 +32,14 @@ bazel_dep(name = "rules_java", version = "8.14.0")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
+# Fix a bug in rules_swift with hermetic toolchains
+single_version_override(
+    module_name = "rules_swift",
+    version = "3.3.0",
+    patches = ["//patches:rules_swift.patch"],
+    patch_strip = 1, # Adjust strip value if needed
+)
+
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "yams", version = "6.2.0")
 bazel_dep(name = "aspect_rules_js", version = "2.3.7")
