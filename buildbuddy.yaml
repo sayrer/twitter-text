@@ -1,12 +1,14 @@
 actions:
-  - name: "Test all targets"
-    triggers:
-      push:
-        branches:
-          - "main"
-      pull_request:
-        branches:
-          - "*"
-    container_image: "ubuntu-22.04"
-    steps:
-      - run: "bazel test --config=linux //..."
+    - name: "Test all targets"
+      triggers:
+          push:
+              branches:
+                  - "main"
+          pull_request:
+              branches:
+                  - "*"
+      container_image: "ubuntu-22.04"
+      env:
+          BUILDBUDDY_API_KEY: "${{ secrets.BUILDBUDDY_API_KEY }}"
+      steps:
+          - run: "bazel test --config=linux --remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY} //..."
