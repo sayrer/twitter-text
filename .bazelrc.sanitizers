@@ -1,0 +1,17 @@
+# Optional sanitizer configuration
+#
+# The sanitizer tests in //rust/cpp-sanitizer-bindings work without any special
+# configuration - just run:
+#   bazel test //rust/cpp-sanitizer-bindings:all
+#
+# This file provides optional configuration for customizing sanitizer behavior:
+
+# Optional: Enhanced sanitizer options for debugging
+test:asan --test_env=ASAN_OPTIONS=detect_leaks=1:abort_on_error=1:verbosity=1
+
+# Optional: Additional sanitizer flags for all targets (not needed for cpp_sanitizers)
+# Uncomment these to enable sanitizers on ALL test targets:
+# build:asan --copt=-fsanitize=address
+# build:asan --copt=-fno-omit-frame-pointer
+# build:asan --copt=-g
+# build:asan --linkopt=-fsanitize=address

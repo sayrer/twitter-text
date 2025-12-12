@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 use twitter_text::hit_highlighter::HitHighlighter;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -21,22 +21,22 @@ pub struct Tests {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Manifest {
-    pub tests: Tests
+    pub tests: Tests,
 }
 
 const MANIFEST_YML: &str = include_str!("hit_highlighting.yml");
 
 #[test]
 fn hit_highlighting() {
-    let manifest: Manifest = serde_yaml::from_str(MANIFEST_YML).expect("Error parsing yaml");
+    let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
 
-    for assertion in  manifest.tests.plain_text {
+    for assertion in manifest.tests.plain_text {
         let highlighter = HitHighlighter::new();
         let text = highlighter.highlight(&assertion.text, assertion.hits);
         assert_eq!(text, assertion.expected, "{}", assertion.description);
     }
 
-    for assertion in  manifest.tests.with_links {
+    for assertion in manifest.tests.with_links {
         let highlighter = HitHighlighter::new();
         let text = highlighter.highlight(&assertion.text, assertion.hits);
         assert_eq!(text, assertion.expected, "{}", assertion.description);

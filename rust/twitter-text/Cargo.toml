@@ -8,10 +8,19 @@ license = "Apache-2.0"
 repository = "https://github.com/sayrer/twitter-text"
 edition = "2018"
 
+[features]
+ffi = []
+
 [dependencies]
-cxx = "0.3.4"
-unicode-normalization = "0.1.12"
-idna = "0.1.5"
-pest = "2.1.0"
+cxx = "1.0.189"
+unicode-normalization = "0.1.25"
+idna = "1.1.0"
+pest = "2.8.4"
+pest_derive = "2.8.4"
 twitter_text_config = { path = "../config" , version = "0.2.0" }
 twitter_text_parser = { path = "../parser" , version = "0.2.0" }
+phf = { version = "0.11", features = ["macros", "unicase"] }
+emojis = "0.6"
+memchr = "2.7"
+nom = "7"
+unicode_categories = "0.1"

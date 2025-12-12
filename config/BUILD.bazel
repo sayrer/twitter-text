@@ -1,0 +1,7 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "v1.json",
+    "v2.json",
+    "v3.json",
+])

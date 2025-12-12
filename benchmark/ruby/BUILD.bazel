@@ -1,0 +1,18 @@
+load("@rules_ruby//ruby:defs.bzl", "rb_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+# Shell wrapper to run the Ruby benchmark
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        "benchmark.rb",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+        "//rust/ruby-bindings:twittertext",
+        "//rb:twitter_text_old",
+    ],
+)

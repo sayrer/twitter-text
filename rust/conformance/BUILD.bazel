@@ -1,30 +1,35 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_test")
+load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@tld_gen_deps//:requirements.bzl", "requirement")
 
-TEST_DEPS = [
-    "//rust/twitter-text:twitter_text",
-    "//rust/config:twitter_text_config",
-    "//rust/parser:twitter_text_parser",
-    "//rust_bindings/cargo:pest",
-    "//rust_bindings/cargo:serde",
-    "//rust_bindings/cargo:serde_yaml",
-]
-
-PROC_MACRO_DEPS = [
-    "//rust_bindings/cargo:serde_derive",
-]
+exports_files([
+    "tests/tld_gen_requirements.txt",
+    "tests/unicode11-emoji-test.txt",
+    "tests/unicode16-emoji-test.txt",
+])
 
 rust_test(
     name = "autolink_test",
     srcs = [
         "tests/autolink.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
         "tests/autolink.yml",
     ],
+    edition = "2018",
 )
 
 rust_test(
@@ -32,11 +37,22 @@ rust_test(
     srcs = [
         "tests/emoji.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
-        "tests/unicode11-emoji-test.txt",
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
     ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
+        "tests/unicode11-emoji-test.txt",
+        "tests/unicode16-emoji-test.txt",
+    ],
+    edition = "2018",
 )
 
 rust_test(
@@ -44,11 +60,21 @@ rust_test(
     srcs = [
         "tests/extract.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
         "tests/extract.yml",
     ],
+    edition = "2018",
 )
 
 rust_test(
@@ -56,11 +82,21 @@ rust_test(
     srcs = [
         "tests/hit_highlighting.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
         "tests/hit_highlighting.yml",
     ],
+    edition = "2018",
 )
 
 rust_test(
@@ -68,11 +104,21 @@ rust_test(
     srcs = [
         "tests/tlds.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
         "tests/tlds.yml",
     ],
+    edition = "2018",
 )
 
 rust_test(
@@ -80,14 +126,58 @@ rust_test(
     srcs = [
         "tests/validate.rs",
     ],
-    deps = TEST_DEPS,
-    proc_macro_deps = PROC_MACRO_DEPS,
-    data = [
+    deps = [
+       	"//rust/twitter-text:twitter_text_rlib",
+    	"//rust/config:twitter_text_config",
+    	"//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:pest",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
         "tests/validate.yml",
     ],
+    edition = "2018",
 )
 
 filegroup(
     name = "yaml",
-    srcs = glob(["tests/*.yml"])
+    srcs = glob(["tests/*.yml"], allow_empty = True)
+)
+
+# Hermetic TLD generator
+py_binary(
+    name = "tld_gen",
+    srcs = ["tests/tld_gen.py"],
+    main = "tests/tld_gen.py",
+    python_version = "PY3",
+    deps = [
+        requirement("PyYAML"),
+        requirement("patricia-trie"),
+    ],
+)
+
+genrule(
+    name = "generate_tld_grammar",
+    srcs = ["tests/tld_lib.yml"],
+    outs = ["generated_tld.pest"],
+    cmd = "$(location :tld_gen) --input $(location tests/tld_lib.yml) --output $@",
+    tools = [":tld_gen"],
+    visibility = ["//visibility:public"],
+)
+
+# Insert generated TLD grammar into the parser file
+genrule(
+    name = "update_parser_with_tlds",
+    srcs = [
+        "//rust/parser:src/twitter_text.pest",
+        ":generated_tld.pest",
+    ],
+    outs = ["twitter_text_with_tlds.pest"],
+    cmd = "$(location tests/insert_tld_grammar.sh) $(location //rust/parser:src/twitter_text.pest) $(location :generated_tld.pest) $@",
+    tools = ["tests/insert_tld_grammar.sh"],
+    visibility = ["//visibility:public"],
 )

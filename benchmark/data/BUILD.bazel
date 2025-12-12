@@ -1,0 +1,15 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "benchmark_data",
+    srcs = glob(["*.yml"]),
+)
+
+js_library(
+    name = "benchmark_data_js",
+    srcs = glob(["*.yml"]),
+)
+
+exports_files(glob(["*.yml"]))

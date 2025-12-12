@@ -1,0 +1,52 @@
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_shared_library(
+    name = "twittertext_cdylib",
+    srcs = glob(["src/**/*.rs"]) + ["build.rs"],
+    crate_root = "src/lib.rs",
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:magnus",
+    ],
+    edition = "2021",
+    rustc_env = {
+        "RUBY_VERSION": "3.4.1",
+    },
+    rustc_flags = select({
+        "@platforms//os:macos": [
+            "-C", "link-arg=-undefined",
+            "-C", "link-arg=dynamic_lookup",
+        ],
+        "//conditions:default": [],
+    }),
+)
+
+# Copy the shared library to the right name for Ruby to import (macOS only)
+genrule(
+    name = "twittertext_bundle",
+    srcs = [":twittertext_cdylib"],
+    outs = ["twittertext.bundle"],
+    cmd = "cp $(location :twittertext_cdylib) $@",
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
+# For Linux, create .so file
+genrule(
+    name = "twittertext_so",
+    srcs = [":twittertext_cdylib"],
+    outs = ["twittertext.so"],
+    cmd = "cp $(location :twittertext_cdylib) $@",
+)
+
+# Make the bundle/so file available as a target
+filegroup(
+    name = "twittertext",
+    srcs = select({
+        "@platforms//os:macos": [":twittertext_bundle"],
+        "//conditions:default": [":twittertext_so"],
+    }),
+)

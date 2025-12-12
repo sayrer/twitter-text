@@ -1,0 +1,64 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_binary(
+    name = "benchmark_bin",
+    srcs = ["main.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "@twitter_text__serde-1.0.228//:serde",
+        "@twitter_text__serde_yaml_ng-0.10.0//:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "@twitter_text__serde_derive-1.0.228//:serde_derive",
+    ],
+    edition = "2021",
+)
+
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)
+
+# Wrapper scripts for profiling individual backends
+sh_binary(
+    name = "benchmark_external",
+    srcs = ["run_benchmark_external.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)
+
+sh_binary(
+    name = "benchmark_pest",
+    srcs = ["run_benchmark_pest.sh"],
+    data = [
+        ":benchmark_bin",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)
+
+rust_binary(
+    name = "longtext_benchmark",
+    srcs = ["longtext_benchmark.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+    ],
+    edition = "2021",
+)

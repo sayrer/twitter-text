@@ -1,0 +1,118 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+filegroup(
+    name = "twitter_text_h",
+    srcs = ["twitter.h"],
+)
+
+filegroup(
+    name = "twitter_text_cpp",
+    srcs = ["twitter.cpp"],
+)
+
+filegroup(
+    name = "config_test_data",
+    srcs = ["test_data/test_config.json"]
+)
+
+cc_library(
+    name = "twitter_text",
+    hdrs = [
+        "twitter.h",
+        "twitter_text_c.h"
+    ],
+    srcs = [
+        "twitter.cpp"
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_wrapper",
+        "//rust/ffi-bindings:twitter_text_ffi_cdylib",
+        "//3rdparty/crates:cxx_cc",
+    ],
+    copts = ["-v"],
+)
+
+cc_test(
+    name = "config_test",
+    srcs = [
+        "config_test.cpp"
+    ],
+    data = [":config_test_data"],
+    copts = ["-Iexternal/gtest/include", "-v"],
+    deps = [
+        "//3rdparty/crates:cxx_cc",
+        "//rust/twitter-text:twitter_text_wrapper",
+        ":twitter_text",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "autolink_test",
+    srcs = [
+        "test_helpers.h",
+        "autolink_test.cpp",
+        "//rust/ffi-bindings:modifier_headers"
+    ],
+    copts = ["-Iexternal/gtest/include", "-Irust/ffi-bindings/include"],
+    deps = [
+        ":twitter_text",
+        "@googletest//:gtest_main",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp"
+    ],
+    data = [
+        "//rust/conformance:yaml"
+    ],
+)
+
+cc_test(
+    name = "extractor_test",
+    srcs = [
+        "test_helpers.h",
+        "extractor_test.cpp"
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":twitter_text",
+        "@googletest//:gtest_main",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp"
+    ],
+    data = [
+        "//rust/conformance:yaml"
+    ],
+)
+
+cc_test(
+    name = "hithighlighter_test",
+    srcs = [
+        "hithighlighter_test.cpp"
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":twitter_text",
+        "@googletest//:gtest_main",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp"
+    ],
+    data = [
+        "//rust/conformance:yaml"
+    ],
+)
+
+cc_test(
+    name = "validator_test",
+    srcs = [
+        "test_helpers.h",
+        "validator_test.cpp",
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        ":twitter_text",
+        "@googletest//:gtest_main",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp"
+    ],
+    data = [
+        "//rust/conformance:yaml"
+    ],
+)

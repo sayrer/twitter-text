@@ -1,0 +1,13 @@
+genrule(
+    name = "check_zstd",
+    outs = ["zstd_info.txt"],
+    cmd = """
+        echo "=== libzstd files ===" > $@
+        find /usr -name 'libzstd*' 2>/dev/null >> $@ || true
+        find /lib -name 'libzstd*' 2>/dev/null >> $@ || true
+        echo "=== ldconfig cache ===" >> $@
+        ldconfig -p 2>/dev/null | grep zstd >> $@ || true
+        echo "=== LD_LIBRARY_PATH ===" >> $@
+        echo "$${LD_LIBRARY_PATH:-unset}" >> $@
+    """,
+)

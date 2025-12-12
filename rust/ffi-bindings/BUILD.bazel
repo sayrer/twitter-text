@@ -1,0 +1,111 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_static_library")
+load("@rules_swift//swift:swift_interop_hint.bzl", "swift_interop_hint")
+
+# Shared Rust library for FFI bindings (used by Java, Swift, etc.)
+rust_library(
+    name = "twitter_text_ffi",
+    srcs = [
+        "src/lib.rs",
+        "src/configuration.rs",
+        "src/extractor.rs",
+        "src/autolink.rs",
+        "src/hit_highlighter.rs",
+        "src/validator.rs",
+    ],
+    crate_name = "twitter_text_ffi",
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
+        "//3rdparty/crates:libc",
+    ],
+    edition = "2021",
+)
+
+# Static library version for linking with native code
+rust_static_library(
+    name = "twitter_text_ffi_static",
+    srcs = [
+        "src/lib.rs",
+        "src/configuration.rs",
+        "src/extractor.rs",
+        "src/autolink.rs",
+        "src/hit_highlighter.rs",
+        "src/validator.rs",
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
+        "//3rdparty/crates:libc",
+    ],
+    edition = "2021",
+)
+
+# Export individual header files for use in other packages
+exports_files(
+    glob(["include/*.h"]) + glob(["src/*.rs"]),
+)
+
+# Shared library for C/C++ to link against
+rust_shared_library(
+    name = "twitter_text_ffi_cdylib",
+    srcs = [
+        "src/lib.rs",
+        "src/configuration.rs",
+        "src/extractor.rs",
+        "src/autolink.rs",
+        "src/hit_highlighter.rs",
+        "src/validator.rs",
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
+        "//3rdparty/crates:libc",
+    ],
+    edition = "2021",
+)
+
+# Collect all C header files
+filegroup(
+    name = "headers",
+    srcs = glob(["include/*.h"]),
+)
+
+# Specific filegroup for modifier headers (used by C++ bindings)
+filegroup(
+    name = "modifier_headers",
+    srcs = ["include/twitter_text_modifiers.h"],
+)
+
+# C library interface for Swift to import
+cc_library(
+    name = "twitter_text_c_headers",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    aspect_hints = [":twitter_text_swift_interop"],
+    deps = [":twitter_text_ffi_cdylib"],
+)
+
+# Swift interop hint to make C headers importable in Swift
+swift_interop_hint(
+    name = "twitter_text_swift_interop",
+    module_name = "CTwitterText",
+)
+
+# C library interface using static library (for ObjC tests that need static linking)
+cc_library(
+    name = "twitter_text_c_static",
+    hdrs = glob(["include/*.h"]),
+    includes = ["include"],
+    deps = [":twitter_text_ffi_static"],
+)

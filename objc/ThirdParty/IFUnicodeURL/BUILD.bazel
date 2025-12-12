@@ -1,0 +1,35 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "objc_library")
+
+# IDNSDK C library
+cc_library(
+    name = "IDNSDK",
+    srcs = glob(["IFUnicodeURL/IDNSDK/*.c"]),
+    hdrs = glob([
+        "IFUnicodeURL/IDNSDK/*.h",
+        "IFUnicodeURL/IDNSDK/staticdata/*.h",
+    ]),
+    includes = ["IFUnicodeURL/IDNSDK"],
+    copts = [
+        "-Wno-implicit-function-declaration",
+        "-Wno-int-conversion",
+    ],
+)
+
+# IFUnicodeURL Objective-C library
+objc_library(
+    name = "IFUnicodeURL",
+    srcs = ["IFUnicodeURL/NSURL+IFUnicodeURL.m"],
+    hdrs = [
+        "IFUnicodeURL/IFUnicodeURL.h",
+        "IFUnicodeURL/NSURL+IFUnicodeURL.h",
+    ],
+    includes = ["IFUnicodeURL"],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [":IDNSDK"],
+)

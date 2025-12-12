@@ -1,0 +1,77 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "objc_library")
+load("@rules_swift//swift:swift.bzl", "swift_library")
+load("@rules_apple//apple:macos.bzl", "macos_command_line_application")
+
+# Swift helper for YAML parsing (exposes Yams to Obj-C)
+swift_library(
+    name = "YAMLHelper",
+    srcs = ["YAMLHelper.swift"],
+    generates_header = True,
+    module_name = "YAMLHelper",
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = ["@yams//:Yams"],
+)
+
+# Old Obj-C benchmark binary
+objc_library(
+    name = "old_benchmark_lib",
+    srcs = ["OldBenchmark.m"],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":YAMLHelper",
+        "//objc/lib:TwitterText",
+    ],
+)
+
+macos_command_line_application(
+    name = "old_benchmark",
+    minimum_os_version = "13.0",
+    tags = ["macos_only"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [":old_benchmark_lib"],
+)
+
+# Rust FFI benchmark binary
+objc_library(
+    name = "rust_benchmark_lib",
+    srcs = ["RustBenchmark.m"],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        ":YAMLHelper",
+        "//rust/swift-bindings/objc:TwitterText",
+    ],
+)
+
+macos_command_line_application(
+    name = "rust_benchmark",
+    minimum_os_version = "13.0",
+    tags = ["macos_only"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [":rust_benchmark_lib"],
+)
+
+# Shell wrapper to run both benchmarks
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":old_benchmark",
+        ":rust_benchmark",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+    tags = ["macos_only"],
+    target_compatible_with = ["@platforms//os:macos"],
+)

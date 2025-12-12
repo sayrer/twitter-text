@@ -1,0 +1,41 @@
+package(default_visibility = ["//visibility:public"])
+
+# Example application
+java_library(
+    name = "example_lib",
+    srcs = glob(["src/main/java/com/sayrer/twitter_text/examples/*.java"]),
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+    ],
+    javacopts = [
+        "--enable-preview",
+        "--release",
+        "23",
+    ],
+)
+
+# Executable that runs the Example class
+java_binary(
+    name = "example_java",
+    main_class = "com.sayrer.twitter_text.examples.Example",
+    runtime_deps = [
+        ":example_lib",
+    ],
+    jvm_flags = [
+        "--enable-preview",
+        "--enable-native-access=ALL-UNNAMED",
+    ],
+    data = [
+        "//rust/java-bindings:twitter_text_java_ffm",
+    ],
+)
+
+# Shell wrapper that copies the dylib to the current directory before running
+sh_binary(
+    name = "example",
+    srcs = ["run_example.sh"],
+    data = [
+        ":example_java",
+        "//rust/java-bindings:twitter_text_java_ffm",
+    ],
+)

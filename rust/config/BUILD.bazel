@@ -1,23 +1,24 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library")
 
 rust_library(
     name = "twitter_text_config",
     srcs = [
         "src/lib.rs",
     ],
-    data = [
+    compile_data = [
         "src/v1.json",
         "src/v2.json",
         "src/v3.json",
     ],
     deps = [
-        "//rust_bindings/cargo:lazy_static",
-        "//rust_bindings/cargo:serde",
-        "//rust_bindings/cargo:serde_json",
+        "//3rdparty/crates:lazy_static",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
     ],
+    edition = "2018",
     proc_macro_deps = [
-        "//rust_bindings/cargo:serde_derive",
+        "//3rdparty/crates:serde_derive",
     ],
 )

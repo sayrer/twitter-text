@@ -1,0 +1,5 @@
+module CTwitterText {
+    header "include/twitter_text.h"
+    link "twitter_text_ffi_cdylib"
+    export *
+}

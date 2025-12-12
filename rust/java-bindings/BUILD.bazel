@@ -1,0 +1,150 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_rust//rust:defs.bzl", "rust_shared_library")
+
+# Rust C-ABI shared library for Java FFM
+# Sources come from shared //rust/ffi-bindings
+rust_shared_library(
+    name = "twitter_text_java_ffm",
+    srcs = [
+        "//rust/ffi-bindings:src/lib.rs",
+        "//rust/ffi-bindings:src/configuration.rs",
+        "//rust/ffi-bindings:src/extractor.rs",
+        "//rust/ffi-bindings:src/autolink.rs",
+        "//rust/ffi-bindings:src/hit_highlighter.rs",
+        "//rust/ffi-bindings:src/validator.rs",
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "//rust/parser:twitter_text_parser",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
+        "//3rdparty/crates:libc",
+    ],
+    edition = "2021",
+)
+
+# Select the appropriate jextract binary based on platform
+JEXTRACT_BIN = select({
+    "@platforms//os:macos": "@jextract_macos_arm64_repo//:jextract_bin",
+    "@platforms//os:linux": select({
+        "@platforms//cpu:x86_64": "@jextract_linux_x86_64_repo//:jextract_bin",
+        "@platforms//cpu:arm64": "@jextract_linux_arm64_repo//:jextract_bin",
+    }),
+})
+
+# Generate Java bindings from shared FFI headers
+genrule(
+    name = "generate_java_bindings",
+    srcs = [
+        "//rust/ffi-bindings:include/configuration.h",
+        "//rust/ffi-bindings:include/extractor.h",
+        "//rust/ffi-bindings:include/autolink.h",
+        "//rust/ffi-bindings:include/hit_highlighter.h",
+        "//rust/ffi-bindings:include/validator.h",
+        "//rust/ffi-bindings:include/twitter_text_c.h",
+        "//rust/ffi-bindings:include/twitter_text_modifiers.h",
+    ],
+    outs = ["twitter_text_bindings.srcjar"],
+    cmd = """
+        set -e
+        TMPDIR=$$(mktemp -d)
+        OUTJAR=$$(pwd)/$(execpath twitter_text_bindings.srcjar)
+        trap "rm -rf $$TMPDIR" EXIT
+
+        # Generate bindings for each header separately
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name configuration_h \\
+            $(location //rust/ffi-bindings:include/configuration.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name extractor_h \\
+            -I rust/ffi-bindings/include \\
+            $(location //rust/ffi-bindings:include/extractor.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name autolink_h \\
+            -I rust/ffi-bindings/include \\
+            $(location //rust/ffi-bindings:include/autolink.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name hit_highlighter_h \\
+            $(location //rust/ffi-bindings:include/hit_highlighter.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name validator_h \\
+            $(location //rust/ffi-bindings:include/validator.h)
+        $(location :jextract_tool) \\
+            --output $$TMPDIR \\
+            --target-package com.sayrer.twitter_text \\
+            --library twitter_text_java_ffm \\
+            --header-class-name twitter_text_c_h \\
+            -I rust/ffi-bindings/include \\
+            $(location //rust/ffi-bindings:include/twitter_text_c.h)
+
+        # Create a srcjar with all generated files
+        cd $$TMPDIR && find . -name "*.java" -print | zip -q -@ $$OUTJAR
+    """,
+    toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
+    tools = [":jextract_tool"],
+)
+
+# Platform-specific config_setting for Linux x86_64
+config_setting(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+# Platform-specific config_setting for Linux arm64
+config_setting(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+# Platform-specific config_setting for macOS arm64
+config_setting(
+    name = "macos_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+# Alias for the platform-specific jextract binary
+alias(
+    name = "jextract_tool",
+    actual = select({
+        ":macos_arm64": "@jextract_macos_arm64_repo//:jextract_bin",
+        ":linux_x86_64": "@jextract_linux_x86_64_repo//:jextract_bin",
+        ":linux_arm64": "@jextract_linux_arm64_repo//:jextract_bin",
+    }),
+)
+
+# Java library from the generated sources
+java_library(
+    name = "generated_java_sources",
+    srcs = [":twitter_text_bindings.srcjar"],
+    javacopts = [
+        "--enable-preview",
+        "--release",
+        "23",
+    ],
+)

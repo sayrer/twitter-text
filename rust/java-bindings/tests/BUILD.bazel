@@ -1,0 +1,153 @@
+package(default_visibility = ["//visibility:public"])
+
+# Common JVM flags for Java FFM tests
+_JVM_FLAGS = [
+    "--enable-preview",
+    "--enable-native-access=ALL-UNNAMED",
+]
+
+# On macOS, DYLD_LIBRARY_PATH doesn't work due to SIP, so we use sh_test
+# wrappers that create a symlink in CWD for dlopen() to find.
+
+# ValidatorTest
+java_binary(
+    name = "ValidatorTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/ValidatorTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.ValidatorTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+sh_test(
+    name = "ValidatorTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :ValidatorTestBinary)"],
+    data = [":ValidatorTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+# AutolinkTest
+java_binary(
+    name = "AutolinkTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/AutolinkTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.AutolinkTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+sh_test(
+    name = "AutolinkTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :AutolinkTestBinary)"],
+    data = [":AutolinkTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+# TwitterTextParserTest
+java_binary(
+    name = "TwitterTextParserTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/TwitterTextParserTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.TwitterTextParserTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+sh_test(
+    name = "TwitterTextParserTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :TwitterTextParserTestBinary)"],
+    data = [":TwitterTextParserTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+# TwitterTextConfigurationTest
+java_binary(
+    name = "TwitterTextConfigurationTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/TwitterTextConfigurationTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.TwitterTextConfigurationTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+sh_test(
+    name = "TwitterTextConfigurationTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :TwitterTextConfigurationTestBinary)"],
+    data = [":TwitterTextConfigurationTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+# ExtractorTest
+java_binary(
+    name = "ExtractorTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/ExtractorTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.ExtractorTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+sh_test(
+    name = "ExtractorTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :ExtractorTestBinary)"],
+    data = [":ExtractorTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)
+
+# ConformanceTest
+java_binary(
+    name = "ConformanceTestBinary",
+    srcs = ["src/test/java/com/sayrer/twitter_text/ConformanceTest.java"],
+    main_class = "com.google.testing.junit.runner.BazelTestRunner",
+    testonly = True,
+    deps = [
+        "//rust/java-bindings/java:twitter_text_wrappers",
+        "@maven//:junit_junit",
+        "@maven//:com_fasterxml_jackson_dataformat_jackson_dataformat_yaml",
+        "@maven//:com_fasterxml_jackson_core_jackson_databind",
+        "@maven//:com_fasterxml_jackson_core_jackson_core",
+        "@bazel_tools//tools/jdk:TestRunner",
+    ],
+    jvm_flags = _JVM_FLAGS + ["-Dbazel.test_suite=com.sayrer.twitter_text.ConformanceTest"],
+    data = ["//rust/java-bindings:twitter_text_java_ffm"],
+    resources = [
+        "//conformance:autolink.yml",
+        "//conformance:extract.yml",
+        "//conformance:hit_highlighting.yml",
+        "//conformance:tlds.yml",
+        "//conformance:validate.yml",
+    ],
+    resource_strip_prefix = "conformance",
+)
+
+sh_test(
+    name = "ConformanceTest",
+    srcs = ["run_java_test.sh"],
+    args = ["$(location :ConformanceTestBinary)"],
+    data = [":ConformanceTestBinary", "//rust/java-bindings:twitter_text_java_ffm"],
+)

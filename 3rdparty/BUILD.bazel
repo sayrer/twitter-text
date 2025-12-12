@@ -1,0 +1,98 @@
+load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_vendor")
+
+crates_vendor(
+    name = "crates_vendor",
+    annotations = {
+        "rb-sys": [crate.annotation(
+            gen_build_script = True,
+        )],
+        "pyo3-build-config": [crate.annotation(
+            build_script_env = {
+                "PYO3_NO_PYTHON": "1",
+            },
+        )],
+    },
+    cargo_lockfile = "Cargo.lock",
+    generate_binaries = True,
+    generate_build_scripts = True,
+    mode = "remote",
+    packages = {
+        "clap": crate.spec(
+            version = "4.5.53",
+        ),
+        "proc-macro-error": crate.spec(
+            version = "1.0.4",
+        ),
+        "log": crate.spec(
+            version = "0.4.28",
+            features = ["std"],
+        ),
+        "cxx": crate.spec(
+            version = "1.0.189",
+        ),
+        "pest": crate.spec(
+            version = "2.8.4",
+        ),
+        "pest_derive": crate.spec(
+            version = "2.8.4",
+        ),
+        "unicode-normalization": crate.spec(
+            version = "0.1.25",
+        ),
+        "idna": crate.spec(
+            version = "1.1.0",
+        ),
+        "lazy_static": crate.spec(
+            version = "1.5.0",
+        ),
+        "serde": crate.spec(
+            version = "1.0.228",
+        ),
+        "serde_derive": crate.spec(
+            version = "1.0.228",
+        ),
+        "serde_json": crate.spec(
+            version = "1.0.145",
+        ),
+        "serde_yaml_ng": crate.spec(
+            version = "0.10.0",
+        ),
+        "phf": crate.spec(
+            version = "0.11",
+            features = ["macros", "unicase"],
+        ),
+        "emojis": crate.spec(
+            version = "0.6",
+        ),
+        "memchr": crate.spec(
+            version = "2.7",
+        ),
+        "nom": crate.spec(
+            version = "7",
+        ),
+        "unicode_categories": crate.spec(
+            version = "0.1",
+        ),
+        "magnus": crate.spec(
+            version = "0.8.2",
+        ),
+        "pyo3": crate.spec(
+            version = "0.20",
+            features = ["extension-module", "abi3-py312"],
+        ),
+        "pyo3-macros": crate.spec(
+            version = "0.20",
+        ),
+        "libc": crate.spec(
+            version = "0.2.178",
+        ),
+        "wasm-bindgen": crate.spec(
+            version = "=0.2.100",
+        ),
+        "js-sys": crate.spec(
+            version = "=0.3.77",
+        ),
+    },
+    repository_name = "twitter_text",
+    tags = ["manual"],
+)

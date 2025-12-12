@@ -1,0 +1,48 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "objc_library")
+load("@rules_apple//apple:macos.bzl", "macos_unit_test")
+load("@rules_apple//apple:resources.bzl", "apple_resource_bundle")
+
+# Resource bundle for test data
+apple_resource_bundle(
+    name = "TwitterTextTestResources",
+    resources = [
+        "//objc/tests:json-conformance",
+    ],
+    tags = ["macos_only"],
+)
+
+# Test library
+objc_library(
+    name = "TwitterTextTestsLib",
+    testonly = True,
+    srcs = [
+        "TwitterTextEmojiTests.m",
+        "TwitterTextTests.m",
+    ],
+    hdrs = [
+        "TwitterTextEmojiTests.h",
+        "TwitterTextTests.h",
+    ],
+    copts = [
+        "-fmodules",
+        "-fobjc-arc",
+    ],
+    data = [
+        ":TwitterTextTestResources",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        "//rust/swift-bindings/objc:TwitterText",
+    ],
+)
+
+# macOS unit tests
+macos_unit_test(
+    name = "TwitterTextObjCTests",
+    minimum_os_version = "14.0",
+    tags = ["macos_only"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [":TwitterTextTestsLib"],
+)

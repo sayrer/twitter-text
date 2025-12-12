@@ -1,0 +1,43 @@
+# Linux: Skip macOS-only targets (rules_apple doesn't handle target_compatible_with properly)
+build:linux --build_tag_filters=-macos_only
+test:linux --test_tag_filters=-macos_only
+
+# Set Ruby build environment for rules_ruby
+# These environment variables are used by ruby-build during Ruby compilation
+build --action_env=RUBY_CONFIGURE_OPTS="--disable-install-doc"
+
+# macOS-specific settings for Homebrew
+build:macos --action_env=CPPFLAGS="-I/opt/homebrew/include"
+build:macos --action_env=LDFLAGS="-L/opt/homebrew/lib"
+build:macos --action_env=RUBY=/opt/homebrew/opt/ruby@3.2/bin/ruby
+
+# JDK
+build --java_runtime_version=remote
+build --java_language_version=23
+build --tool_java_runtime_version=remote
+
+build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
+build:linux --bes_backend=grpcs://remote.buildbuddy.io
+build:linux --remote_cache=grpcs://remote.buildbuddy.io
+build:linux --remote_upload_local_results
+build:linux --remote_timeout=10m
+build:linux --remote_executor=grpcs://remote.buildbuddy.io
+
+build:linux --remote_cache_compression
+build:linux --extra_execution_platforms=//tools:linux_remote
+
+# Force Ruby-related actions to run locally (hermetic Ruby doesn't support RBE)
+build:linux --strategy_regexp=.*ruby.*=local
+build:linux --strategy_regexp=.*Ruby.*=local
+build:linux --strategy_regexp=.*GemInstall.*=local
+build:linux --strategy_regexp=.*bundle.*=local
+
+# Force Swift-related actions to run locally (CYaml module issues with RBE)
+build:linux --strategy_regexp=.*Swift.*=local
+build:linux --strategy_regexp=.*swift.*=local
+build:linux --strategy_regexp=.*yams.*=local
+build:linux --strategy_regexp=.*Yams.*=local
+test:linux --strategy_regexp=.*Swift.*=local
+test:linux --strategy_regexp=.*swift.*=local
+
+try-import %workspace%/.auth.bazelrc

@@ -1,90 +1,136 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library", "rust_static_library", "rust_test")
+load("//3rdparty/cxxbridge:rust_cxx_bridge.bzl", "rust_cxx_bridge")
+
 filegroup(
-    name = "twitter_text_main",
-    srcs = ["src/lib.rs"],
+    name = "twitter_text_ffi",
+    srcs = ["src/ffi.rs"],
 )
 
-load("@io_bazel_rules_rust//rust:rust.bzl", "rust_library", "rust_test")
-
 twitter_text_srcs = [
+    "src/lib.rs",
     "src/autolinker.rs",
     "src/entity.rs",
     "src/extractor.rs",
     "src/hit_highlighter.rs",
+    "src/nom_parser/mod.rs",
+    "src/nom_parser/common.rs",
+    "src/nom_parser/emoji.rs",
+    "src/nom_parser/entity.rs",
+    "src/nom_parser/hashtag.rs",
+    "src/nom_parser/cashtag.rs",
+    "src/nom_parser/mention.rs",
+    "src/nom_parser/url.rs",
+    "src/tlds.rs",
     "src/validator.rs",
-    "src/lib.rs",
+    "src/ffi.rs",
 ]
 
 twitter_text_deps = [
     "//rust/config:twitter_text_config",
     "//rust/parser:twitter_text_parser",
-    "//rust_bindings/cargo:cxx",
-    "//rust_bindings/cargo:idna",
-    "//rust_bindings/cargo:pest",
-    "//rust_bindings/cargo:unicode_normalization",
+    "//3rdparty/crates:cxx",   # Rust side of CXX
+    "//3rdparty/crates:emojis",
+    "//3rdparty/crates:idna",
+    "//3rdparty/crates:memchr",
+    "//3rdparty/crates:nom",
+    "//3rdparty/crates:pest",
+    "//3rdparty/crates:phf",
+    "//3rdparty/crates:unicode_categories",
+    "//3rdparty/crates:unicode-normalization",
 ]
 
-twitter_text_data = [
-    ":cxxbridge",
-    ":twitter_text_h",
+# Core deps without cxx (for WASM)
+twitter_text_wasm_deps = [
+    "//rust/config:twitter_text_config",
+    "//rust/parser:twitter_text_parser",
+    "//3rdparty/crates:emojis",
+    "//3rdparty/crates:idna",
+    "//3rdparty/crates:memchr",
+    "//3rdparty/crates:nom",
+    "//3rdparty/crates:pest",
+    "//3rdparty/crates:phf",
+    "//3rdparty/crates:unicode_categories",
+    "//3rdparty/crates:unicode-normalization",
 ]
 
+# Sources without ffi.rs (for WASM)
+twitter_text_wasm_srcs = [
+    "src/lib.rs",
+    "src/autolinker.rs",
+    "src/entity.rs",
+    "src/extractor.rs",
+    "src/hit_highlighter.rs",
+    "src/nom_parser/mod.rs",
+    "src/nom_parser/common.rs",
+    "src/nom_parser/emoji.rs",
+    "src/nom_parser/entity.rs",
+    "src/nom_parser/hashtag.rs",
+    "src/nom_parser/cashtag.rs",
+    "src/nom_parser/mention.rs",
+    "src/nom_parser/url.rs",
+    "src/tlds.rs",
+    "src/validator.rs",
+]
+
+# 1) Core Rust crate, no cxx in the public API
 rust_library(
+    name = "twitter_text_rlib",
+    crate_name = "twitter_text",
+    crate_root = "src/lib.rs",
+    srcs = twitter_text_srcs,
+    deps = twitter_text_deps,
+    edition = "2021",
+)
+
+# WASM-compatible library (no cxx dependency)
+rust_library(
+    name = "twitter_text_wasm_rlib",
+    crate_name = "twitter_text",
+    crate_root = "src/lib.rs",
+    srcs = twitter_text_wasm_srcs,
+    deps = twitter_text_wasm_deps,
+    edition = "2021",
+    rustc_flags = ["-C", "target-feature=+simd128"],
+)
+
+# 2) Static library with FFI, built from the same sources but with ffi feature
+rust_static_library(
     name = "twitter_text",
+    crate_root = "src/lib.rs",
     srcs = twitter_text_srcs,
     deps = twitter_text_deps,
-    data = twitter_text_data,
-)
-
-rust_library(
-    name = "twitter_text_static",
-    srcs = twitter_text_srcs,
-    deps = twitter_text_deps,
-    data = twitter_text_data,
-    crate_type = "staticlib",
-)
-
-rust_test(
-    name = "twitter_text_test",
-    crate = ":twitter_text",
+    crate_features = ["ffi"],
+    edition = "2021",
 )
 
 genrule(
     name = "cxxbridge",
     outs = ["cxx.h"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header > $(location cxx.h)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header > $(location cxx.h)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
 genrule(
     name = "twitter_text_h",
     srcs = [
-        "//rust/twitter-text:twitter_text_main",
+        "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.h"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) --header $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.h)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) --header $(location //rust/twitter-text:twitter_text_ffi) > $(location twitter-text.h)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
 genrule(
     name = "twitter_text_cpp",
     srcs = [
         ":twitter_text",
-        "//rust/twitter-text:twitter_text_main",
+        "//rust/twitter-text:twitter_text_ffi",
     ],
     outs = ["twitter-text.cpp"],
-    cmd = "$(location //rust_bindings/cargo:cargo_bin_cxxbridge) $(location //rust/twitter-text:twitter_text_main) > $(location twitter-text.cpp)",
-    tools = ["//rust_bindings/cargo:cargo_bin_cxxbridge"],
-)
-
-rust_library(
-    name = "cxx_wrapper",
-    srcs = ["cxx_wrapper.rs"],
-    deps = [
-        "//rust_bindings/cargo:cxx",
-    ],
-    crate_type = "staticlib",
+    cmd = "$(location @cxxbridge-cmd//:cxxbridge-cmd) $(location //rust/twitter-text:twitter_text_ffi)> $(location twitter-text.cpp)",
+    tools = ["@cxxbridge-cmd//:cxxbridge-cmd"],
 )
 
 cc_library(
@@ -95,9 +141,17 @@ cc_library(
     ],
     srcs = [
         ":twitter_text_cpp",
-        ":cxx_wrapper",
-        ":twitter_text_static",
-        "//rust_bindings/cargo:cxx_cc_library",
     ],
-    linkstatic = True,
+    deps = [
+        ":twitter_text",
+        "//3rdparty/crates:cxx_cc"
+    ],
+    copts = [
+        "-Iexternal/3rdparty/crates/cxx/include",
+    ],
+)
+
+rust_test(
+    name = "twitter_text_test",
+    crate = ":twitter_text_rlib",
 )

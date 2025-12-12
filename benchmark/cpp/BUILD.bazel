@@ -1,0 +1,22 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "cpp_benchmark",
+    srcs = ["benchmark.cpp"],
+    deps = [
+        "//rust/cpp-bindings:twitter_text",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp",
+    ],
+)
+
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":cpp_benchmark",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)

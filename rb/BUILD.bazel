@@ -1,0 +1,12 @@
+package(default_visibility = ["//visibility:public"])
+
+# Old Ruby twitter-text implementation
+filegroup(
+    name = "twitter_text_old",
+    srcs = glob(["lib/**/*.rb"]) + [
+        "lib/assets/tld_lib.yml",
+        "config/v1.json",
+        "config/v2.json",
+        "config/v3.json",
+    ],
+)

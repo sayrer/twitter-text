@@ -1,0 +1,119 @@
+package(default_visibility = ["//visibility:public"])
+
+# NOTE: Swift bindings use a hermetic Swift toolchain downloaded by Bazel
+# On macOS: Will use system Swift (pre-installed with Xcode)
+# On Linux: Will use hermetic Swift 6.0.3 toolchain
+#
+# To build and test using Swift Package Manager instead:
+#   cd rust/swift-bindings
+#   swift build
+#   swift test
+
+load("@rules_swift//swift:swift_library.bzl", "swift_library")
+load("@rules_swift//swift:swift_binary.bzl", "swift_binary")
+load("@rules_swift//swift:swift_test.bzl", "swift_test")
+
+swift_library(
+    name = "TwitterText",
+    srcs = glob(["Sources/TwitterText/*.swift"]),
+    copts = select({
+        "@platforms//os:macos": ["-target", "arm64-apple-macosx26.0"],
+        "//conditions:default": [],
+    }),
+    module_name = "TwitterText",
+    deps = [
+        "//rust/ffi-bindings:twitter_text_c_headers",
+    ],
+)
+
+# Test sources shared between swift_binary (Linux) and swift_test (macOS)
+_TEST_SRCS = [
+    "Tests/TwitterTextTests/AutolinkTests.swift",
+    "Tests/TwitterTextTests/EmojiTests.swift",
+    "Tests/TwitterTextTests/ExtractTests.swift",
+    "Tests/TwitterTextTests/HitHighlightTests.swift",
+    "Tests/TwitterTextTests/TestHelpers.swift",
+    "Tests/TwitterTextTests/TestRunner.swift",
+    "Tests/TwitterTextTests/TldTests.swift",
+    "Tests/TwitterTextTests/ValidateTests.swift",
+]
+
+_TEST_DATA = [
+    "//conformance:autolink.yml",
+    "//conformance:extract.yml",
+    "//conformance:hit_highlighting.yml",
+    "//conformance:tlds.yml",
+    "//conformance:validate.yml",
+    "//rust/conformance:tests/unicode11-emoji-test.txt",
+]
+
+_TEST_DEPS = [
+    ":TwitterText",
+    "@yams//:Yams",
+]
+
+# Linux: Use swift_binary with custom test runner (swift_test requires apple_support)
+swift_binary(
+    name = "SwiftTestRunner",
+    srcs = _TEST_SRCS,
+    data = _TEST_DATA + ["@swift_linux_x86_64//:runtime_libs"],
+    # Set LD_LIBRARY_PATH to find Swift runtime libs in runfiles
+    env = {
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+    },
+    linkopts = [
+        "-lswiftCore",
+        "-lswiftSwiftOnoneSupport",
+        "-lFoundation",
+        "-lFoundationEssentials",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = _TEST_DEPS,
+)
+
+# macOS: Use swift_test with real XCTest framework
+swift_test(
+    name = "SwiftTestsMac",
+    srcs = _TEST_SRCS,
+    data = _TEST_DATA,
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = _TEST_DEPS,
+)
+
+# Linux: sh_test wrapper so "bazel test //..." includes Swift tests
+sh_test(
+    name = "SwiftTestsLinux",
+    srcs = ["run_tests.sh"],
+    args = ["$(location :SwiftTestRunner)"],
+    data = [
+        ":SwiftTestRunner",
+        "@swift_linux_x86_64//:runtime_libs",
+    ],
+    env = {
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+    },
+    tags = ["no-remote"],  # Swift hermetic toolchain doesn't support RBE
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+# Export Swift package files for use with Swift Package Manager
+exports_files([
+    "Package.swift",
+    "README.md",
+])
+
+filegroup(
+    name = "swift_sources",
+    srcs = glob([
+        "Sources/**/*.swift",
+        "Sources/**/*.modulemap",
+        "Sources/**/*.h",
+    ]),
+)
+
+filegroup(
+    name = "swift_tests",
+    srcs = glob([
+        "Tests/**/*.swift",
+    ]),
+)

@@ -1,0 +1,28 @@
+load("@rules_swift//swift:swift_binary.bzl", "swift_binary")
+
+swift_binary(
+    name = "swift_benchmark",
+    srcs = ["main.swift"],
+    copts = select({
+        "@platforms//os:macos": ["-target", "arm64-apple-macosx26.1"],
+        "//conditions:default": [],
+    }),
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [
+        "//rust/swift-bindings:TwitterText",
+        "@yams//:Yams",
+    ],
+)
+
+sh_binary(
+    name = "benchmark",
+    srcs = ["run_benchmark.sh"],
+    data = [
+        ":swift_benchmark",
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+    target_compatible_with = ["@platforms//os:macos"],
+)
