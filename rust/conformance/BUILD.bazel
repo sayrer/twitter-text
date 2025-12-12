@@ -153,6 +153,7 @@ py_binary(
     name = "tld_gen",
     srcs = ["tests/tld_gen.py"],
     main = "tests/tld_gen.py",
+    python_version = "PY3",
     deps = [
         requirement("PyYAML"),
         requirement("patricia-trie"),

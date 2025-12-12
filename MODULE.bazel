@@ -32,12 +32,13 @@ bazel_dep(name = "rules_java", version = "8.14.0")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
+
 # Fix a bug in rules_swift with hermetic toolchains
 single_version_override(
     module_name = "rules_swift",
-    version = "3.3.0",
+    patch_strip = 1,  # Adjust strip value if needed
     patches = ["//patches:rules_swift.patch"],
-    patch_strip = 1, # Adjust strip value if needed
+    version = "3.3.0",
 )
 
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -196,12 +197,45 @@ register_toolchains("//tools/swift:hermetic_swift_linux_x86_64_toolchain")
 # Hermetic LLVM wrapper
 ###############################################################################
 
-bazel_dep(name = "toolchains_llvm", version = "1.5.0")
+# Chromium sysroot for Linux x86_64 (includes libzstd and other system libs)
+http_archive(
+    name = "linux_sysroot",
+    build_file_content = """
+filegroup(
+    name = "sysroot",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "e656b9c486a0e5a0aab372bcc8d7c4fc892dddd8e62ec2fbc5222155280a960e",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/98e34ae4d2db673096fa8020e301defee6b877dd/debian_bullseye_amd64_sysroot.tar.xz"],
+)
+
+bazel_dep(name = "toolchains_llvm", version = "1.6.0")
 
 # Configure and register the toolchain.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
+    cxx_builtin_include_directories = {
+        "": [
+            # BuildBuddy remote execution paths
+            "/usr/include",
+            "/usr/local/include",
+        ],
+    },
     llvm_version = "17.0.6",
+    sha256 = {"": "884ee67d647d77e58740c1e645649e29ae9e8a6fe87c1376be0f3a30f3cc9ab3"},
+    strip_prefix = {
+        "": "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04",
+    },
+    # Use empty key for remote execution compatibility
+    urls = {
+        "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"],
+    },
+)
+llvm.sysroot(
+    label = "@linux_sysroot//:sysroot",
+    targets = ["linux-x86_64"],
 )
 use_repo(llvm, "llvm_toolchain")
 use_repo(llvm, "llvm_toolchain_llvm")

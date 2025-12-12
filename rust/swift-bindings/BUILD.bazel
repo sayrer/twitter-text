@@ -54,7 +54,7 @@ _TEST_DEPS = [
 
 # Linux: Use swift_binary with custom test runner (swift_test requires apple_support)
 swift_binary(
-    name = "TwitterTextTests",
+    name = "SwiftTestRunner",
     srcs = _TEST_SRCS,
     data = _TEST_DATA + ["@swift_linux_x86_64//:runtime_libs"],
     # Set LD_LIBRARY_PATH to find Swift runtime libs in runfiles
@@ -73,7 +73,7 @@ swift_binary(
 
 # macOS: Use swift_test with real XCTest framework
 swift_test(
-    name = "TwitterTextTestsMac",
+    name = "SwiftTestsMac",
     srcs = _TEST_SRCS,
     data = _TEST_DATA,
     target_compatible_with = ["@platforms//os:macos"],
@@ -82,16 +82,17 @@ swift_test(
 
 # Linux: sh_test wrapper so "bazel test //..." includes Swift tests
 sh_test(
-    name = "TwitterTextTestsLinux",
+    name = "SwiftTestsLinux",
     srcs = ["run_tests.sh"],
-    args = ["$(location :TwitterTextTests)"],
+    args = ["$(location :SwiftTestRunner)"],
     data = [
-        ":TwitterTextTests",
+        ":SwiftTestRunner",
         "@swift_linux_x86_64//:runtime_libs",
     ],
     env = {
         "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
     },
+    tags = ["no-remote"],  # Swift hermetic toolchain doesn't support RBE
     target_compatible_with = ["@platforms//os:linux"],
 )
 

@@ -30,5 +30,6 @@ objc_library(
         "-fmodules",
         "-fobjc-arc",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [":IDNSDK"],
 )

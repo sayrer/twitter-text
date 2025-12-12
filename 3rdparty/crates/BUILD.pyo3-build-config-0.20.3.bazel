@@ -39,6 +39,8 @@ rust_library(
         ],
     ),
     crate_features = [
+        "abi3",
+        "abi3-py312",
         "default",
         "extension-module",
         "resolve-config",
@@ -115,6 +117,9 @@ cargo_build_script(
         include = ["**/*.rs"],
         allow_empty = True,
     ),
+    build_script_env = {
+        "PYO3_NO_PYTHON": "1",
+    },
     compile_data = glob(
         include = ["**"],
         allow_empty = True,
@@ -129,6 +134,8 @@ cargo_build_script(
         ],
     ),
     crate_features = [
+        "abi3",
+        "abi3-py312",
         "default",
         "extension-module",
         "resolve-config",

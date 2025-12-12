@@ -12,7 +12,7 @@ name = "twitter_text"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module"] }
+pyo3 = { version = "0.20", features = ["extension-module", "abi3-py312"] }
 twitter_text = { path = "../twitter-text", version = "0.2.0", default-features = false }
 twitter_text_config = { path = "../config", version = "0.2.0" }
 twitter_text_parser = { path = "../parser", version = "0.2.0" }

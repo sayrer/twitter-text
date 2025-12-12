@@ -20,9 +20,9 @@ rb_test(
     data = [
         "@bundle//bin:rspec",
         "@bundle//:bundle",
-        "//rust/ruby-bindings:check_ruby_version",
         "//rust/ruby-bindings:twittertext",
         "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
+    tags = ["no-remote"],  # Ruby hermetic toolchain doesn't support RBE
 )
