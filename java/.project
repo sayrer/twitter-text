@@ -18,12 +18,12 @@
 		<link>
 			<name>.._config</name>
 			<type>2</type>
-			<location>/Users/sayrer/github/sayrer/twitter-text/config</location>
+			<location>//Users/sayrer/github/sayrer/twitter-text/config/</location>
 		</link>
 		<link>
 			<name>.._conformance</name>
 			<type>2</type>
-			<location>/Users/sayrer/github/sayrer/twitter-text/conformance</location>
+			<location>//Users/sayrer/github/sayrer/twitter-text/conformance/</location>
 		</link>
 	</linkedResources>
 	<filteredResources>

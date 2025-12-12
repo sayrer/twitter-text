@@ -92,6 +92,7 @@ rust_library(
     srcs = twitter_text_wasm_srcs,
     deps = twitter_text_wasm_deps,
     edition = "2021",
+    rustc_flags = ["-C", "target-feature=+simd128"],
 )
 
 # 2) Static library with FFI, built from the same sources but with ffi feature

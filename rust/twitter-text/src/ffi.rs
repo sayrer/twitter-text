@@ -877,6 +877,7 @@ pub fn new_with_config<'a>(config: &'a ffi::AutolinkerConfig) -> Autolinker<'a> 
         cashtag_url_base: &config.cashtag_url_base,
         invisible_tag_attrs: &config.invisible_tag_attrs,
         username_include_symbol: config.username_include_symbol,
+        include_data_screen_name: false,
         extractor,
         link_attribute_modifier: None,
         link_text_modifier: None,

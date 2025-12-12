@@ -10,6 +10,7 @@ rust_shared_library(
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/lib.rs",
     edition = "2021",
+    rustc_flags = ["-C", "target-feature=+simd128"],
     deps = [
         "//rust/twitter-text:twitter_text_wasm_rlib",
         "//rust/config:twitter_text_config",
