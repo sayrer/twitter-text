@@ -75,6 +75,15 @@ func XCTAssertNotNil<T>(_ value: T?, _ message: String = "", file: String = #fil
     }
 }
 
+func XCTAssertNil<T>(_ value: T?, _ message: String = "", file: String = #file, line: Int = #line) {
+    if value != nil {
+        print("  FAILED: \(message)")
+        totalFailed += 1
+    } else {
+        totalPassed += 1
+    }
+}
+
 func XCTAssertGreaterThan<T: Comparable>(_ lhs: T, _ rhs: T, _ message: String = "", file: String = #file, line: Int = #line) {
     if !(lhs > rhs) {
         print("  FAILED: \(message) - \(lhs) is not greater than \(rhs)")

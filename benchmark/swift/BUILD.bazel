@@ -7,6 +7,7 @@ swift_binary(
         "@platforms//os:macos": ["-target", "arm64-apple-macosx26.1"],
         "//conditions:default": [],
     }),
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [
         "//rust/swift-bindings:TwitterText",
         "@yams//:Yams",
@@ -23,4 +24,5 @@ sh_binary(
         "//benchmark/data:validate.yml",
         "//benchmark/data:parse.yml",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
 )

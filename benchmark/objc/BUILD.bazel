@@ -10,6 +10,7 @@ swift_library(
     srcs = ["YAMLHelper.swift"],
     generates_header = True,
     module_name = "YAMLHelper",
+    target_compatible_with = ["@platforms//os:macos"],
     deps = ["@yams//:Yams"],
 )
 
@@ -21,6 +22,7 @@ objc_library(
         "-fmodules",
         "-fobjc-arc",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [
         ":YAMLHelper",
         "//objc/lib:TwitterText",
@@ -30,6 +32,7 @@ objc_library(
 macos_command_line_application(
     name = "old_benchmark",
     minimum_os_version = "13.0",
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [":old_benchmark_lib"],
 )
 
@@ -41,6 +44,7 @@ objc_library(
         "-fmodules",
         "-fobjc-arc",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [
         ":YAMLHelper",
         "//rust/swift-bindings/objc:TwitterText",
@@ -50,6 +54,7 @@ objc_library(
 macos_command_line_application(
     name = "rust_benchmark",
     minimum_os_version = "13.0",
+    target_compatible_with = ["@platforms//os:macos"],
     deps = [":rust_benchmark_lib"],
 )
 
@@ -65,4 +70,5 @@ sh_binary(
         "//benchmark/data:validate.yml",
         "//benchmark/data:parse.yml",
     ],
+    target_compatible_with = ["@platforms//os:macos"],
 )
