@@ -29,7 +29,7 @@ apple_cc_configure = use_extension(
 use_repo(apple_cc_configure, "local_config_apple_cc", "local_config_apple_cc_toolchains")
 
 bazel_dep(name = "rules_java", version = "8.14.0")
-bazel_dep(name = "rules_jvm_external", version = "6.6")
+bazel_dep(name = "rules_jvm_external", version = "6.9")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_swift", version = "3.3.0")
 
