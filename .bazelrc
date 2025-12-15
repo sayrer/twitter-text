@@ -30,6 +30,8 @@ build:linux --remote_executor=grpcs://remote.buildbuddy.io
 
 build:linux --remote_cache_compression
 build:linux --extra_execution_platforms=//tools:linux_remote
+build:linux --host_platform=//tools:linux_remote
+
 
 # Force Ruby-related actions to run locally (hermetic Ruby doesn't support RBE)
 build:linux --strategy_regexp=.*ruby.*=local
