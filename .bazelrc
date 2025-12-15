@@ -37,12 +37,13 @@ build:linux --spawn_strategy=docker --strategy=Javac=docker --genrule_strategy=d
 build:linux --experimental_docker_verbose
 build:linux --experimental_enable_docker_sandbox
 build:linux --strategy=CopyFile=sandboxed,standalone
+build:linux --jobs=50
 
-# Force Ruby-related actions to run locally (hermetic Ruby doesn't support RBE)
-build:linux --strategy_regexp=.*ruby.*=local
-build:linux --strategy_regexp=.*Ruby.*=local
-build:linux --strategy_regexp=.*GemInstall.*=local
-build:linux --strategy_regexp=.*bundle.*=local
+## Force Ruby-related actions to run locally (hermetic Ruby doesn't support RBE)
+#build:linux --strategy_regexp=.*ruby.*=local
+#build:linux --strategy_regexp=.*Ruby.*=local
+#build:linux --strategy_regexp=.*GemInstall.*=local
+#build:linux --strategy_regexp=.*bundle.*=local
 
 # Force Swift-related actions to run locally (CYaml module issues with RBE)
 build:linux --strategy_regexp=.*Swift.*=local
