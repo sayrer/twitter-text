@@ -8,7 +8,5 @@ actions:
               branches:
                   - "*"
       container_image: "docker://eclipse-temurin:23-jdk-jammy"
-      env:
-          BUILDBUDDY_API_KEY: "${{ secrets.BUILDBUDDY_API_KEY }}"
       steps:
-          - run: "bazel test --config=linux --remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY} //..."
+          - run: "bazel test --config=linux //..."
