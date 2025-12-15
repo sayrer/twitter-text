@@ -1,7 +1,7 @@
 # Build image for BuildBuddy remote execution
 # Includes libzstd and other dependencies needed by the hermetic LLVM toolchain
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     libclang-dev \
     libyaml-dev \
+    ruby-full \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python 3 with development headers
@@ -29,25 +30,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Ruby 3.2.3 from source (Ubuntu 22.04's default is 3.0)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev \
-    libreadline-dev \
-    libffi-dev \
-    autoconf \
-    bison \
-    libyaml-dev \
-    libffi-dev \
-    libssl-dev \
-    libreadline-dev \
-    libgdbm-dev \
-    libncurses5-dev \
-    libgmp-dev \
-    libdb-dev \
-    uuid-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz | tar xz -C /tmp \
-    && cd /tmp/ruby-3.2.3 \
-    && ./configure --prefix=/usr/local --disable-install-doc \
-    && make -j$(nproc) \
-    && make install \
-    && rm -rf /tmp/ruby-3.2.3
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    libffi-dev \
+#    libssl-dev \
+#    autoconf \
+#    bison \
+#    libyaml-dev \
+#    libgdbm-dev \
+#    libncurses5-dev \
+#    libgmp-dev \
+#    libdb-dev \
+#    uuid-dev \
+#    && rm -rf /var/lib/apt/lists/* \
+#    && curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz | tar xz -C /tmp \
+#    && cd /tmp/ruby-3.2.3 \
+#    && ./configure --prefix=/usr/local --disable-install-doc \
+#    && make -j$(nproc) \
+#    && make install \
+#    && rm -rf /tmp/ruby-3.2.3
