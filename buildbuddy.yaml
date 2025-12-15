@@ -7,6 +7,6 @@ actions:
           pull_request:
               branches:
                   - "*"
-      container_image: "docker://eclipse-temurin:23-jdk-jammy"
+      container_image: "ubuntu-22.04"
       steps:
           - run: "bazel test --config=linux //..."
