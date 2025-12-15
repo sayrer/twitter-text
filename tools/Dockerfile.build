@@ -1,7 +1,7 @@
 # Build image for BuildBuddy remote execution
 # Includes libzstd and other dependencies needed by the hermetic LLVM toolchain
 
-FROM ubuntu:24.04
+FROM ubuntu:25.10
 
 # Install base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g \
     zlib1g-dev \
     libtinfo6 \
-    libxml2 \
+    libxml2-dev \
     zip \
     unzip \
     libclang-dev \
