@@ -8,5 +8,6 @@ actions:
               branches:
                   - "*"
       container_image: "ubuntu-22.04"
+      disk: "30GB"
       steps:
           - run: "bazel test --config=linux //..."
