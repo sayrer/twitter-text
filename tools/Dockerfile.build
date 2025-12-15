@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     libclang-dev \
     libyaml-dev \
+    openssl \
+    libssl-dev \
     ruby-full \
     && rm -rf /var/lib/apt/lists/*
 
