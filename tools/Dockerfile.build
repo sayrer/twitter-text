@@ -35,6 +35,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     autoconf \
     bison \
+    libyaml-dev \
+    libffi-dev \
+    libssl-dev \
+    libreadline-dev \
+    libgdbm-dev \
+    libncurses5-dev \
+    libgmp-dev \
+    libdb-dev \
+    uuid-dev \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz | tar xz -C /tmp \
     && cd /tmp/ruby-3.2.3 \
