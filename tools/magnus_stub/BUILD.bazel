@@ -1,0 +1,4 @@
+# Stub for magnus crate
+package(default_visibility = ["//visibility:public"])
+
+filegroup(name = "magnus", srcs = [])

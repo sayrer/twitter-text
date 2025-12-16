@@ -1,0 +1,4 @@
+# Stub for rb-sys-build crate
+package(default_visibility = ["//visibility:public"])
+
+filegroup(name = "rb_sys_build", srcs = [])
