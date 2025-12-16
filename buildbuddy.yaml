@@ -12,7 +12,7 @@ actions:
           - run: |
                 sed -i 's/^register_toolchains("@llvm_toolchain/# register_toolchains("@llvm_toolchain/' MODULE.bazel
                 bazel test --config=ci-linux //rust/twitter-text/... \
-                //rust/ffi-bindings/...\
+                //rust/ffi-bindings/... \
                 //rust/python-bindings/... \
                 //rust/cpp-bindings/... \
                 //rust/java-bindings/...
