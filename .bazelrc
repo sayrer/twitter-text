@@ -29,6 +29,7 @@ build:ci-linux --extra_execution_platforms=//tools:linux_remote
 build:ci-linux --host_platform=//tools:linux_remote
 build:ci-linux --jobs=50
 build:ci-linux --remote_executor=grpcs://remote.buildbuddy.io
+build:ci-linux --remote_default_exec_properties=container-image=docker://ghcr.io/sayrer/twitter-text-build:latest
 
 
 # Linux config: for local development (uses hermetic LLVM)
