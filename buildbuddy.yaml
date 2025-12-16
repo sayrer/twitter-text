@@ -7,6 +7,6 @@ actions:
           pull_request:
               branches:
                   - "*"
-      container_image: "ghcr.io/sayrer/twitter-text-build:latest"
+      container_image: "ruby:3.4.1"
       steps:
           - run: "bazel test --config=linux //..."
