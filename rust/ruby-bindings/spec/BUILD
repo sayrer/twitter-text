@@ -24,5 +24,5 @@ rb_test(
         "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
-    # Ruby 3.4.1 is available in the RBE container image
+    tags = ["manual"],  # Ruby tests run locally only
 )
