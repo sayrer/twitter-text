@@ -16,12 +16,28 @@ build --java_runtime_version=remote
 build --java_language_version=23
 build --tool_java_runtime_version=remote
 
+# CI-Linux config: for BuildBuddy CI (uses host toolchain)
+build:ci-linux --build_tag_filters=-macos_only
+test:ci-linux --test_tag_filters=-macos_only
+build:ci-linux --bes_results_url=https://app.buildbuddy.io/invocation/
+build:ci-linux --bes_backend=grpcs://remote.buildbuddy.io
+build:ci-linux --remote_cache=grpcs://remote.buildbuddy.io
+build:ci-linux --remote_upload_local_results
+build:ci-linux --remote_timeout=10m
+build:ci-linux --remote_cache_compression
+build:ci-linux --extra_execution_platforms=//tools:linux_remote
+build:ci-linux --host_platform=//tools:linux_remote
+build:ci-linux --jobs=50
+# Use host CC toolchain instead of hermetic LLVM (avoids libxml2 dependency)
+build:ci-linux --extra_toolchains=@local_config_cc//:all
+
+# Linux config: for local development (uses hermetic LLVM)
 build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
 build:linux --bes_backend=grpcs://remote.buildbuddy.io
 build:linux --remote_cache=grpcs://remote.buildbuddy.io
 build:linux --remote_upload_local_results
 build:linux --remote_timeout=10m
-build:linux --remote_executor=grpcs://remote.buildbuddy.io
+#build:linux --remote_executor=grpcs://remote.buildbuddy.io
 
 #build:linux --bes_results_url=https://sayrer-ml.tailc4a62e.ts.net:8080/invocation/
 #build:linux --bes_backend=grpcs://sayrer-ml.tailc4a62e.ts.net:1986

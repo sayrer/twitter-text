@@ -9,4 +9,4 @@ actions:
                   - "*"
       container_image: "ubuntu-24.04"
       steps:
-          - run: "bazel test --config=linux //... -- -//rust/ruby-bindings/..."
+          - run: "bazel test --config=ci-linux //... -- -//rust/ruby-bindings/..."
