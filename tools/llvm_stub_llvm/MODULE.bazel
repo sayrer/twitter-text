@@ -1,2 +1,0 @@
-# Stub module for llvm_toolchain_llvm override
-module(name = "llvm_toolchain_llvm")

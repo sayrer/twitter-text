@@ -1,5 +1,0 @@
-# Stub for rb-sys-env crate
-package(default_visibility = ["//visibility:public"])
-
-filegroup(name = "rb_sys_env", srcs = [])
-filegroup(name = "build_script_build", srcs = [])

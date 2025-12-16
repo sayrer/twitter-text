@@ -28,16 +28,7 @@ build:ci-linux --remote_cache_compression
 build:ci-linux --extra_execution_platforms=//tools:linux_remote
 build:ci-linux --host_platform=//tools:linux_remote
 build:ci-linux --jobs=50
-# Use legacy CC toolchain resolution (avoids hermetic LLVM with libxml2 dependency)
-build:ci-linux --incompatible_enable_cc_toolchain_resolution=false
-# Use stub LLVM toolchain to avoid downloading the full 1.5GB LLVM toolchain
-build:ci-linux --override_repository=llvm_toolchain=tools/llvm_stub
-build:ci-linux --override_repository=llvm_toolchain_llvm=tools/llvm_stub_llvm
-# Stub Ruby-related crates to avoid needing Ruby
-build:ci-linux --override_repository=+rust_deps+twitter_text__rb-sys-0.9.117=tools/rb_sys_stub
-build:ci-linux --override_repository=+rust_deps+twitter_text__rb-sys-env-0.2.2=tools/rb_sys_env_stub
-build:ci-linux --override_repository=+rust_deps+twitter_text__rb-sys-build-0.9.117=tools/rb_sys_build_stub
-build:ci-linux --override_repository=+rust_deps+twitter_text__magnus-0.8.2=tools/magnus_stub
+
 
 # Linux config: for local development (uses hermetic LLVM)
 build:linux --bes_results_url=https://app.buildbuddy.io/invocation/

@@ -1,2 +1,0 @@
-# Stub module for rb-sys override
-module(name = "twitter_text__rb-sys-0.9.117")
