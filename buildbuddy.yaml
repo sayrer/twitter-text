@@ -15,4 +15,5 @@ actions:
                 //rust/ffi-bindings/... \
                 //rust/python-bindings/... \
                 //rust/cpp-bindings/... \
-                //rust/java-bindings/...
+                //rust/java-bindings/... \
+                //rust/wasm-bindings/...
