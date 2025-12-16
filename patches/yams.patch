@@ -1,0 +1,27 @@
+diff --git a/BUILD b/BUILD
+index 1234567..abcdefg 100644
+--- a/BUILD
++++ b/BUILD
+@@ -1,4 +1,5 @@
+ load("@build_bazel_rules_swift//swift:swift.bzl", "swift_library")
++load("@build_bazel_rules_swift//swift:swift_interop_hint.bzl", "swift_interop_hint")
+ 
+ cc_library(
+     name = "CYaml",
+@@ -10,8 +11,14 @@ cc_library(
+     copts = ["-fPIC"],
+     includes = ["Sources/CYaml/include"],
+     linkstatic = True,
+-    tags = ["swift_module"],
+-    visibility = ["//Tests:__subpackages__"],
++    aspect_hints = [":CYaml_swift_interop"],
++    visibility = ["//visibility:public"],
++)
++
++swift_interop_hint(
++    name = "CYaml_swift_interop",
++    module_name = "CYaml",
++    visibility = ["//visibility:public"],
+ )
+ 
+ swift_library(
