@@ -24,5 +24,5 @@ rb_test(
         "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
-    tags = ["no-remote"],  # Ruby hermetic toolchain doesn't support RBE
+    tags = ["no-remote", "manual"],  # Ruby hermetic toolchain doesn't support RBE
 )
