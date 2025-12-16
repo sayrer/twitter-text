@@ -7,7 +7,7 @@ actions:
           pull_request:
               branches:
                   - "*"
-      container_image: "gcr.io/terraform-prod-5633e672/twitter-text-build:latest"
+      container_image: "ghcr.io/sayrer/twitter-text-build:latest"
       resource_requests:
           disk: "40GB"
       steps:
