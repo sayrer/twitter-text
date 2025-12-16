@@ -11,11 +11,11 @@ actions:
       resource_request:
           disk: "30GB"
       steps:
-          # might need sed back
           - run: |
                 bazel test --config=ci-linux //rust/twitter-text/... \
                 //rust/ffi-bindings/... \
                 //rust/python-bindings/... \
                 //rust/cpp-bindings/... \
+                //rust/cpp-sanitizer-bindings/... \
                 //rust/java-bindings/... \
                 //rust/wasm-bindings/...
