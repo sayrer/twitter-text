@@ -9,7 +9,7 @@ actions:
                   - "*"
       container_image: "ubuntu-24.04"
       resource_request:
-          disk: "40GB"
+          disk: "30GB"
       steps:
           - run: |
                 sed -i 's/^register_toolchains("@llvm_toolchain/# register_toolchains("@llvm_toolchain/' MODULE.bazel
