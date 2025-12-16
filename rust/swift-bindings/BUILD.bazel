@@ -56,10 +56,13 @@ _TEST_DEPS = [
 swift_binary(
     name = "SwiftTestRunner",
     srcs = _TEST_SRCS,
-    data = _TEST_DATA + ["@swift_linux_x86_64//:runtime_libs"],
-    # Set LD_LIBRARY_PATH to find Swift runtime libs in runfiles
+    data = _TEST_DATA + [
+        "@swift_linux_x86_64//:runtime_libs",
+        "//rust/ffi-bindings:twitter_text_ffi_cdylib",
+    ],
+    # Set LD_LIBRARY_PATH to find Swift runtime libs and Rust FFI lib in runfiles
     env = {
-        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux:../rust/ffi-bindings",
     },
     linkopts = [
         "-lswiftCore",
@@ -88,9 +91,10 @@ sh_test(
     data = [
         ":SwiftTestRunner",
         "@swift_linux_x86_64//:runtime_libs",
+        "//rust/ffi-bindings:twitter_text_ffi_cdylib",
     ],
     env = {
-        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux",
+        "LD_LIBRARY_PATH": "../+_repo_rules+swift_linux_x86_64/usr/lib/swift/linux:../rust/ffi-bindings",
     },
     tags = ["no-remote"],  # Swift hermetic toolchain doesn't support RBE
     target_compatible_with = ["@platforms//os:linux"],

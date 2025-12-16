@@ -3,7 +3,7 @@
 
 FROM ubuntu:25.10
 
-# Install base dependencies
+# Install base dependencies (excluding ruby-full, we'll build 3.4.1 from source)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
@@ -23,7 +23,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libyaml-dev \
     openssl \
     libssl-dev \
-    ruby-full \
+    autoconf \
+    bison \
+    libgdbm-dev \
+    libncurses5-dev \
+    libgmp-dev \
+    libdb-dev \
+    uuid-dev \
+    libreadline-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python 3 with development headers
@@ -32,22 +39,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Ruby 3.2.3 from source (Ubuntu 22.04's default is 3.0)
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-#    libffi-dev \
-#    libssl-dev \
-#    autoconf \
-#    bison \
-#    libyaml-dev \
-#    libgdbm-dev \
-#    libncurses5-dev \
-#    libgmp-dev \
-#    libdb-dev \
-#    uuid-dev \
-#    && rm -rf /var/lib/apt/lists/* \
-#    && curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.2/ruby-3.2.3.tar.gz | tar xz -C /tmp \
-#    && cd /tmp/ruby-3.2.3 \
-#    && ./configure --prefix=/usr/local --disable-install-doc \
-#    && make -j$(nproc) \
-#    && make install \
-#    && rm -rf /tmp/ruby-3.2.3
+# Install Ruby 3.4.1 from source to match rules_ruby toolchain version
+RUN curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz | tar xz -C /tmp \
+    && cd /tmp/ruby-3.4.1 \
+    && ./configure --prefix=/usr/local --disable-install-doc \
+    && make -j$(nproc) \
+    && make install \
+    && rm -rf /tmp/ruby-3.4.1

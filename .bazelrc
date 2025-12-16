@@ -16,12 +16,12 @@ build --java_runtime_version=remote
 build --java_language_version=23
 build --tool_java_runtime_version=remote
 
-build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
-build:linux --bes_backend=grpcs://remote.buildbuddy.io
-build:linux --remote_cache=grpcs://remote.buildbuddy.io
-build:linux --remote_upload_local_results
-build:linux --remote_timeout=10m
-build:linux --remote_executor=grpcs://remote.buildbuddy.io
+#build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
+#build:linux --bes_backend=grpcs://remote.buildbuddy.io
+#build:linux --remote_cache=grpcs://remote.buildbuddy.io
+#build:linux --remote_upload_local_results
+#build:linux --remote_timeout=10m
+#build:linux --remote_executor=grpcs://remote.buildbuddy.io
 
 #build:linux --bes_results_url=https://sayrer-ml.tailc4a62e.ts.net:8080/invocation/
 #build:linux --bes_backend=grpcs://sayrer-ml.tailc4a62e.ts.net:1986
@@ -33,10 +33,10 @@ build:linux --extra_execution_platforms=//tools:linux_remote
 build:linux --host_platform=//tools:linux_remote
 build:linux --experimental_disk_cache_gc_max_size=10G
 
-build:linux --spawn_strategy=docker --strategy=Javac=docker --genrule_strategy=docker
-build:linux --experimental_docker_verbose
-build:linux --experimental_enable_docker_sandbox
-build:linux --strategy=CopyFile=sandboxed,standalone
+#build:linux --spawn_strategy=docker --strategy=Javac=docker --genrule_strategy=docker
+#build:linux --experimental_docker_verbose
+#build:linux --experimental_enable_docker_sandbox
+#build:linux --strategy=CopyFile=sandboxed,standalone
 build:linux --jobs=50
 
 ## Force Ruby-related actions to run locally (hermetic Ruby doesn't support RBE)
