@@ -3,6 +3,10 @@ module(
     version = "0.3.0",
 )
 
+# Check that Ruby 3.4.1+ is on PATH (required for rules_ruby with version="system")
+ruby_version_check = use_repo_rule("//tools:ruby_version_check.bzl", "ruby_version_check")
+ruby_version_check(name = "ruby_version_check")
+
 #local_path_override(
 #    module_name = "rules_swift",
 #    path = "../rules_swift",  # adjust path as needed

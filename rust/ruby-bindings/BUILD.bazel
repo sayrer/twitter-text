@@ -6,6 +6,7 @@ rust_shared_library(
     name = "twittertext_cdylib",
     srcs = glob(["src/**/*.rs"]) + ["build.rs"],
     crate_root = "src/lib.rs",
+    compile_data = ["@ruby_version_check//:check"],  # Verify Ruby 3.4.1+ is installed
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",

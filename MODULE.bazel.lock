@@ -2690,7 +2690,7 @@
         "bzlTransitiveDigest": "E8CDKpy1kspLVab7d0Uyvll8doVznOl8Bc8L2Np3xw8=",
         "usagesDigest": "7QTThtUDcroHuIP7YGR6scF2yVSY8foQKPPk6MJNNDw=",
         "recordedFileInputs": {
-          "@@+_repo_rules+cxxbridge-cmd//Cargo.toml": "e1ea8d7de8a76a9f8534902c3feee69bf09981dfab9a7b1ca18e5380631bc4d1",
+          "@@+_repo_rules2+cxxbridge-cmd//Cargo.toml": "e1ea8d7de8a76a9f8534902c3feee69bf09981dfab9a7b1ca18e5380631bc4d1",
           "@@//3rdparty/cxxbridge/Cargo.lock": "0c5fe3dc580d275436fac1cdd2e1b80a5bed8cf36814697a6538aaed427227c0"
         },
         "recordedDirentsInputs": {},
@@ -3056,7 +3056,7 @@
           [
             "",
             "cxxbridge-cmd",
-            "+_repo_rules+cxxbridge-cmd"
+            "+_repo_rules2+cxxbridge-cmd"
           ],
           [
             "bazel_features+",

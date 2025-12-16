@@ -11,4 +11,4 @@ actions:
       resource_requests:
           disk: "40GB"
       steps:
-          - run: "bazel test --config=linux //... -- -//rust/ruby-bindings/..."
+          - run: "bazel test --config=linux //..."
