@@ -18,7 +18,7 @@ build --tool_java_runtime_version=remote
 
 # CI-Linux config: for BuildBuddy CI (uses host toolchain)
 build:ci-linux --build_tag_filters=-macos_only
-test:ci-linux --test_tag_filters=-macos_only
+test:ci-linux  --test_tag_filters=-macos_only
 build:ci-linux --bes_results_url=https://app.buildbuddy.io/invocation/
 build:ci-linux --bes_backend=grpcs://remote.buildbuddy.io
 build:ci-linux --remote_cache=grpcs://remote.buildbuddy.io
@@ -67,5 +67,8 @@ build:linux --strategy_regexp=.*yams.*=local
 build:linux --strategy_regexp=.*Yams.*=local
 test:linux --strategy_regexp=.*Swift.*=local
 test:linux --strategy_regexp=.*swift.*=local
+
+# Hermetic execution uses hermetic LLVM
+# build:hermetic --extra_toolchains=@llvm_toolchain//:all
 
 try-import %workspace%/.auth.bazelrc
