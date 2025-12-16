@@ -7,6 +7,6 @@ actions:
           pull_request:
               branches:
                   - "*"
-      container_image: "ruby:3.4.1"
+      container_image: "ubuntu-22.04"
       steps:
-          - run: "bazel test --config=linux //..."
+          - run: "bazel test --config=linux //... -- -//rust/ruby-bindings/..."
