@@ -28,6 +28,8 @@ build:ci-linux --remote_cache_compression
 build:ci-linux --extra_execution_platforms=//tools:linux_remote
 build:ci-linux --host_platform=//tools:linux_remote
 build:ci-linux --jobs=50
+# Use legacy CC toolchain resolution (avoids hermetic LLVM with libxml2 dependency)
+build:ci-linux --incompatible_enable_cc_toolchain_resolution=false
 
 # Linux config: for local development (uses hermetic LLVM)
 build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
