@@ -11,7 +11,7 @@ To run the tests, [install Rust](https://www.rust-lang.org/tools/install), and t
 
 ### Ruby Bindings
 
-The Ruby bindings require **Ruby 3.2.3 or higher**. If you're on macOS with the system Ruby (2.6.x), you'll need to install a newer version:
+The Ruby bindings require **Ruby 3.4.1 or higher**. If you're on macOS with the system Ruby (2.6.x), you'll need to install a newer version:
 
 **Option 1: Homebrew (simplest)**
 ```bash
