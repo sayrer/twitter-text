@@ -28,6 +28,21 @@ def _version_at_least(version, minimum):
     return True
 
 def _ruby_version_check_impl(rctx):
+    # Skip check in CI environments (BuildBuddy, GitHub Actions, etc.)
+    # The Docker image should have the correct Ruby version
+    ci_env_vars = ["CI", "BUILDBUDDY_API_KEY", "GITHUB_ACTIONS"]
+    for var in ci_env_vars:
+        if rctx.os.environ.get(var):
+            rctx.file("BUILD.bazel", """
+# Ruby version check skipped in CI environment
+filegroup(
+    name = "check",
+    srcs = [],
+    visibility = ["//visibility:public"],
+)
+""")
+            return
+
     result = rctx.execute(["ruby", "--version"])
     if result.return_code != 0:
         fail("Ruby not found on PATH. Please install Ruby 3.4.1 or later")
