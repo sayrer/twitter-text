@@ -8,6 +8,6 @@ platform(
     exec_properties = {
         "OSFamily": "Linux",
         "dockerNetwork": "off",
-        "container-image": "docker://gcr.io/terraform-prod-5633e672/twitter-text-build:latest",
+        "container-image": "docker://ghcr.io/sayrer/twitter-text-build:latest",
     },
 )

@@ -68,7 +68,7 @@ build:linux --strategy_regexp=.*yams.*=local
 build:linux --strategy_regexp=.*Yams.*=local
 test:linux --strategy_regexp=.*Swift.*=local
 test:linux --strategy_regexp=.*swift.*=local
-baz
+
 # Hermetic execution uses hermetic LLVM
 # build:hermetic --extra_toolchains=@llvm_toolchain//:all
 
