@@ -28,6 +28,7 @@ build:ci-linux --remote_cache_compression
 build:ci-linux --extra_execution_platforms=//tools:linux_remote
 build:ci-linux --host_platform=//tools:linux_remote
 build:ci-linux --jobs=50
+build:cilinux --remote_executor=grpcs://remote.buildbuddy.io
 
 
 # Linux config: for local development (uses hermetic LLVM)
