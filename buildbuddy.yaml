@@ -8,8 +8,8 @@ actions:
               branches:
                   - "*"
       container_image: "ubuntu-24.04"
-      resource_request:
-          disk: "30GB"
+      resource_requests:
+          disk: "50GB"
       steps:
           - run: |
                 bazel test --config=ci-linux //rust/twitter-text/... \
