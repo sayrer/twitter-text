@@ -33,6 +33,8 @@ build:ci-linux --incompatible_enable_cc_toolchain_resolution=false
 # Use stub LLVM toolchain to avoid downloading the full 1.5GB LLVM toolchain
 build:ci-linux --override_repository=llvm_toolchain=tools/llvm_stub
 build:ci-linux --override_repository=llvm_toolchain_llvm=tools/llvm_stub_llvm
+# Stub rb-sys crate to avoid needing Ruby
+build:ci-linux --override_repository=twitter_text__rb-sys-0.9.117=tools/rb_sys_stub
 
 # Linux config: for local development (uses hermetic LLVM)
 build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
