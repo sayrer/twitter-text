@@ -24,5 +24,5 @@ rb_test(
         "//rust/cpp-bindings:config_test_data",
         "//rust/conformance:yaml",
     ],
-    tags = ["no-remote", "manual"],  # Ruby hermetic toolchain doesn't support RBE
+    # Ruby 3.4.1 is available in the RBE container image
 )

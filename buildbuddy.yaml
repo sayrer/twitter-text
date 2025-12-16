@@ -19,4 +19,5 @@ actions:
                 //rust/cpp-sanitizer-bindings/... \
                 //rust/java-bindings/... \
                 //rust/swift-bindings/... \
-                //rust/wasm-bindings/...
+                //rust/wasm-bindings/... \
+                //rust/ruby-bindings/...
