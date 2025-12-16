@@ -13,7 +13,7 @@ swift_toolchain(
         "swift.use_module_wrap",
     ],
     os = "linux",
-    root = "external/+_repo_rules+swift_linux_x86_64/usr",
+    root = "external/+_repo_rules2+swift_linux_x86_64/usr",
     toolchain_files = "@swift_linux_x86_64//:usr",
     version_file = "@swift_linux_x86_64//:version_file",
 )
