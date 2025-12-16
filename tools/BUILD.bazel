@@ -8,6 +8,6 @@ platform(
     exec_properties = {
         "OSFamily": "Linux",
         "dockerNetwork": "off",
-        "container-image": "docker://ghcr.io/sayrer/twitter-text-build:latest",
+        "container-image": "docker://ghcr.io/sayrer/twitter-text-build@sha256:5af27112f67cf17164eb8f762328df9777faf026bf80aa3c8002282eb0aa95a9",
     },
 )

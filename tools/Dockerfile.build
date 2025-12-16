@@ -1,7 +1,7 @@
 # Build image for BuildBuddy remote execution
 # Includes libzstd and other dependencies needed by the hermetic LLVM toolchain
 
-FROM ubuntu:25.10
+FROM ubuntu:24.04
 
 # Install base dependencies (excluding ruby-full, we'll build 3.4.1 from source)
 RUN apt-get update && apt-get install -y --no-install-recommends \
