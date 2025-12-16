@@ -11,6 +11,7 @@ actions:
       resource_request:
           disk: "30GB"
       steps:
+          # might need sed back
           - run: |
                 bazel test --config=ci-linux //rust/twitter-text/... \
                 //rust/ffi-bindings/... \
