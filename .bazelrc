@@ -31,7 +31,7 @@ build:ci-linux --jobs=50
 # Use legacy CC toolchain resolution (avoids hermetic LLVM with libxml2 dependency)
 build:ci-linux --incompatible_enable_cc_toolchain_resolution=false
 # Use stub LLVM toolchain to avoid downloading the full 1.5GB LLVM toolchain
-build:ci-linux --override_repository=llvm_toolchain=%workspace%/tools/llvm_stub
+build:ci-linux --override_repository=llvm_toolchain=tools/llvm_stub
 
 # Linux config: for local development (uses hermetic LLVM)
 build:linux --bes_results_url=https://app.buildbuddy.io/invocation/
