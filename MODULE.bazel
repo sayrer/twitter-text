@@ -249,7 +249,7 @@ use_repo(llvm, "llvm_toolchain_llvm")
 register_toolchains("@local_config_apple_cc_toolchains//:all")
 
 # LLVM last (hermetic)
-# register_toolchains("@llvm_toolchain//:all")
+register_toolchains("@llvm_toolchain//:all")
 
 ###############################################################################
 # Rust toolchains from rules_rust (0.67.0)
