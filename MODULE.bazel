@@ -227,14 +227,14 @@ llvm.toolchain(
             "/usr/local/include",
         ],
     },
-    llvm_version = "18.1.8",
-    sha256 = {"": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36"},
+    llvm_version = "17.0.6",
+    sha256 = {"": "884ee67d647d77e58740c1e645649e29ae9e8a6fe87c1376be0f3a30f3cc9ab3"},
     strip_prefix = {
-        "": "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04",
+        "": "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04",
     },
     # Use empty key for remote execution compatibility
     urls = {
-        "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz"],
+        "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"],
     },
 )
 llvm.sysroot(
