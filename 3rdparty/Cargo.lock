@@ -280,36 +280,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "direct-cargo-bazel-deps"
-version = "0.0.1"
-dependencies = [
- "clap",
- "cxx",
- "emojis",
- "idna",
- "js-sys",
- "lazy_static",
- "libc",
- "log",
- "magnus",
- "memchr",
- "nom",
- "pest",
- "pest_derive",
- "phf",
- "proc-macro-error",
- "pyo3",
- "pyo3-macros",
- "serde",
- "serde_derive",
- "serde_json",
- "serde_yaml_ng",
- "unicode-normalization",
- "unicode_categories",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -325,15 +295,6 @@ name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
-
-[[package]]
-name = "emojis"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99e1f1df1f181f2539bac8bf027d31ca5ffbf9e559e3f2d09413b9107b5c02f4"
-dependencies = [
- "phf",
-]
 
 [[package]]
 name = "equivalent"
@@ -1182,6 +1143,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
+name = "twitter_text_bindings_cargo"
+version = "0.2.0"
+dependencies = [
+ "clap",
+ "cxx",
+ "idna",
+ "js-sys",
+ "lazy_static",
+ "log",
+ "magnus",
+ "pest",
+ "pest_derive",
+ "phf",
+ "proc-macro-error",
+ "pyo3",
+ "pyo3-macros",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_yaml_ng",
+ "unicode-normalization",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1219,12 +1205,6 @@ name = "unicode-width"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
-
-[[package]]
-name = "unicode_categories"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "unindent"

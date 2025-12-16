@@ -9,4 +9,4 @@ actions:
                   - "*"
       container_image: "ubuntu-24.04"
       steps:
-          - run: "bazel test --config=ci-linux //... -- -//rust/ruby-bindings/... -//3rdparty/crates:magnus -//3rdparty/crates:magnus-0.8.2"
+          - run: "bazel test --config=ci-linux //..."
