@@ -8,7 +8,5 @@ actions:
               branches:
                   - "*"
       container_image: "ghcr.io/sayrer/twitter-text-build:latest"
-      resource_requests:
-          disk: "40GB"
       steps:
           - run: "bazel test --config=linux //..."
