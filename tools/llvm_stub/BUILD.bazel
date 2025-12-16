@@ -1,0 +1,28 @@
+# Stub LLVM toolchain for CI (avoids downloading the full LLVM toolchain)
+# Used with --override_repository=llvm_toolchain=/path/to/llvm_stub
+
+package(default_visibility = ["//visibility:public"])
+
+# Empty toolchain targets that satisfy the registration
+toolchain(
+    name = "cc-toolchain-x86_64-linux",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+        # Add a constraint that will never match, so this toolchain is never selected
+        ":never_match",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    toolchain = "@bazel_tools//tools/cpp:cc_toolchain",
+)
+
+constraint_setting(name = "stub_setting")
+
+constraint_value(
+    name = "never_match",
+    constraint_setting = ":stub_setting",
+)

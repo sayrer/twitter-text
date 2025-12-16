@@ -1,0 +1,2 @@
+# Stub module for LLVM toolchain override
+module(name = "llvm_toolchain")
