@@ -184,6 +184,195 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
     entities
 }
 
+/// Parse a tweet and return only mention entities (usernames and lists).
+/// This is optimized for the case where only mentions are needed.
+/// Uses memchr to skip directly to @ characters, avoiding all URL/hashtag parsing.
+pub fn parse_mentions_only(input: &str) -> Vec<NomEntity<'_>> {
+    let mut entities = Vec::with_capacity(8);
+    let bytes = input.as_bytes();
+    let mut pos = 0;
+
+    while pos < bytes.len() {
+        // Use memchr to find the next @ character (SIMD-accelerated)
+        let remaining_bytes = &bytes[pos..];
+
+        // Find ASCII @ first
+        let at_pos = memchr::memchr(b'@', remaining_bytes);
+
+        // Also need to find fullwidth @ (U+FF20 = 0xEF 0xBC 0xA0 in UTF-8)
+        // We look for 0xEF which starts the sequence
+        let fullwidth_pos = find_fullwidth_at(remaining_bytes);
+
+        // Take the earlier of the two
+        let next_at = match (at_pos, fullwidth_pos) {
+            (Some(a), Some(f)) => Some(a.min(f)),
+            (Some(a), None) => Some(a),
+            (None, Some(f)) => Some(f),
+            (None, None) => None,
+        };
+
+        let at_offset = match next_at {
+            Some(offset) => offset,
+            None => break, // No more @ in the text
+        };
+
+        pos += at_offset;
+
+        // Check predecessor - mentions shouldn't be preceded by certain characters
+        // Exception: RT@ pattern
+        if pos > 0 {
+            let prev_byte = bytes[pos - 1];
+            // Check for invalid ASCII prefix characters
+            let is_invalid_prefix = prev_byte.is_ascii_alphanumeric()
+                || prev_byte == b'_'
+                || prev_byte == b'@'
+                || prev_byte == b'!'
+                || prev_byte == b'#'
+                || prev_byte == b'$'
+                || prev_byte == b'%'
+                || prev_byte == b'&'
+                || prev_byte == b'*'
+                || prev_byte == b'='
+                || prev_byte == b'/';
+
+            if is_invalid_prefix {
+                // Check for RT exception
+                if !is_rt_prefix_before(input, pos) {
+                    pos += 1;
+                    continue;
+                }
+            }
+
+            // Also check for fullwidth @ (U+FF20) as predecessor
+            // UTF-8: 0xEF 0xBC 0xA0
+            if pos >= 3
+                && bytes[pos - 3] == 0xEF
+                && bytes[pos - 2] == 0xBC
+                && bytes[pos - 1] == 0xA0
+            {
+                pos += 1;
+                continue;
+            }
+        }
+
+        let remaining = &input[pos..];
+
+        // Try to parse a mention (username or list)
+        if let Ok((after, (matched, mention_type))) = mention::parse_any_mention(remaining) {
+            // Check for invalid suffix (@ or latin_accent or :// or -)
+            let has_invalid_suffix = if let Some(next_char) = after.chars().next() {
+                next_char == '@'
+                    || next_char == '\u{ff20}'
+                    || next_char == '-'
+                    || url::is_latin_accent(next_char)
+                    || after.starts_with("://")
+            } else {
+                false
+            };
+
+            if !has_invalid_suffix {
+                let consumed = matched.len();
+                let entity_type = match mention_type {
+                    mention::MentionType::Federated => NomEntityType::FederatedMention,
+                    mention::MentionType::List(slug_start) => {
+                        entities.push(NomEntity::new_list(
+                            matched,
+                            pos,
+                            pos + consumed,
+                            pos + slug_start,
+                        ));
+                        pos += consumed;
+                        continue;
+                    }
+                    mention::MentionType::Username => NomEntityType::Username,
+                };
+                entities.push(NomEntity::new(entity_type, matched, pos, pos + consumed));
+                pos += consumed;
+                continue;
+            }
+        }
+
+        // Failed to parse - skip this @ and continue
+        pos += 1;
+    }
+
+    entities
+}
+
+/// Parse a tweet and return only cashtag entities.
+/// This is optimized for the case where only cashtags are needed.
+/// Uses memchr to skip directly to $ characters, avoiding all URL/mention/hashtag parsing.
+pub fn parse_cashtags_only(input: &str) -> Vec<NomEntity<'_>> {
+    let mut entities = Vec::with_capacity(4);
+    let bytes = input.as_bytes();
+    let mut pos = 0;
+
+    while pos < bytes.len() {
+        // Use memchr to find the next $ character (SIMD-accelerated)
+        let remaining_bytes = &bytes[pos..];
+
+        let dollar_offset = match memchr::memchr(b'$', remaining_bytes) {
+            Some(offset) => offset,
+            None => break, // No more $ in the text
+        };
+
+        pos += dollar_offset;
+
+        // Check predecessor - cashtags must be preceded by whitespace or start of input
+        if pos > 0 {
+            let prev_byte = bytes[pos - 1];
+            // Fast check for common ASCII whitespace
+            let is_space =
+                prev_byte == b' ' || prev_byte == b'\t' || prev_byte == b'\n' || prev_byte == b'\r';
+            if !is_space {
+                // For non-ASCII, need to check if it's Unicode whitespace
+                // But cashtags are very restrictive - only ASCII whitespace really matters
+                pos += 1;
+                continue;
+            }
+        }
+
+        let remaining = &input[pos..];
+
+        // Try to parse a cashtag
+        if let Ok((_, matched)) = cashtag::parse_cashtag(remaining) {
+            let consumed = matched.len();
+            entities.push(NomEntity::new(
+                NomEntityType::Cashtag,
+                matched,
+                pos,
+                pos + consumed,
+            ));
+            pos += consumed;
+            continue;
+        }
+
+        // Failed to parse - skip this $ and continue
+        pos += 1;
+    }
+
+    entities
+}
+
+/// Find fullwidth @ (U+FF20) in a byte slice.
+/// U+FF20 is encoded as 0xEF 0xBC 0xA0 in UTF-8.
+#[inline]
+fn find_fullwidth_at(bytes: &[u8]) -> Option<usize> {
+    let mut i = 0;
+    while i + 2 < bytes.len() {
+        if let Some(offset) = memchr::memchr(0xEF, &bytes[i..]) {
+            let pos = i + offset;
+            if pos + 2 < bytes.len() && bytes[pos + 1] == 0xBC && bytes[pos + 2] == 0xA0 {
+                return Some(pos);
+            }
+            i = pos + 1;
+        } else {
+            break;
+        }
+    }
+    None
+}
+
 /// When we see a $ that doesn't start a valid cashtag, check if what follows
 /// looks like a URL and return how many bytes to skip (not including the $).
 /// This prevents extracting partial URLs from things like "$twitter.com" or "$http://t.co".

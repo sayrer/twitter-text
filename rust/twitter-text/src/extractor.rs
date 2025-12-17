@@ -597,6 +597,22 @@ impl Extractor {
 
     /// Extract a vector of Cashtags as [String] objects.
     pub fn extract_cashtags(&self, s: &str) -> Vec<String> {
+        // Use optimized path for Nom backend - skip Entity creation entirely
+        if self.external_validator == ExternalValidator::Nom {
+            // Early exit if no dollar sign present
+            if !s.contains('$') {
+                return Vec::new();
+            }
+            let nom_entities = nom_parser::parse_cashtags_only(s);
+            return nom_entities
+                .into_iter()
+                .map(|e| {
+                    // Strip the $ prefix
+                    String::from(&e.value[1..])
+                })
+                .collect();
+        }
+
         self.extract_cashtags_with_indices(s)
             .iter()
             .map(|entity| String::from(entity.get_value()))
@@ -606,6 +622,24 @@ impl Extractor {
     /// Extract all usernames from the text. The same
     /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
     pub fn extract_mentioned_screennames(&self, s: &str) -> Vec<String> {
+        // Use optimized path for Nom backend - skip Entity creation entirely
+        if self.external_validator == ExternalValidator::Nom {
+            // Early exit if no at sign present
+            if !s.contains('@') && !s.contains('＠') {
+                return Vec::new();
+            }
+            let nom_entities = nom_parser::parse_mentions_only(s);
+            return nom_entities
+                .into_iter()
+                .filter(|e| e.entity_type == NomEntityType::Username)
+                .map(|e| {
+                    // Strip the @ prefix
+                    let value = &e.value[calculate_offset(e.value)..];
+                    String::from(value)
+                })
+                .collect();
+        }
+
         self.extract_mentioned_screennames_with_indices(s)
             .iter()
             .map(|entity| String::from(entity.get_value()))
@@ -704,6 +738,72 @@ impl<'a> Extract<'a> for Extractor {
 
     fn empty_result(&self) -> Vec<Entity<'a>> {
         Vec::new()
+    }
+
+    /// Optimized mention extraction using specialized parser.
+    /// Only available when using Nom backend.
+    fn extract_mentioned_screennames_with_indices(&self, s: &'a str) -> Vec<Entity<'a>> {
+        // Early exit if no at sign present
+        if !s.contains('@') && !s.contains('＠') {
+            return Vec::new();
+        }
+
+        // Use optimized parser for Nom backend
+        if self.external_validator == ExternalValidator::Nom {
+            let nom_entities = nom_parser::parse_mentions_only(s);
+            let mut entities = Vec::with_capacity(nom_entities.len());
+            let mut iter = s.char_indices().peekable();
+            let mut start_index: i32 = 0;
+
+            for entity in nom_entities {
+                // Only include usernames, not lists or federated mentions
+                if entity.entity_type != NomEntityType::Username {
+                    continue;
+                }
+                // Calculate UTF-16 indices
+                start_index += self.scan(iter.by_ref(), entity.start);
+                let end_index = start_index + self.scan(iter.by_ref(), entity.end);
+                // Strip the @ prefix from the value
+                let value = &entity.value[calculate_offset(entity.value)..];
+                entities.push(Entity::new(Type::MENTION, value, start_index, end_index));
+                start_index = end_index;
+            }
+            return entities;
+        }
+
+        // Fall back to generic extraction for other backends
+        self.extract(s, |r| r == Rule::username)
+    }
+
+    /// Optimized cashtag extraction using specialized parser.
+    /// Only available when using Nom backend.
+    fn extract_cashtags_with_indices(&self, s: &'a str) -> Vec<Entity<'a>> {
+        // Early exit if no dollar sign present
+        if !s.contains('$') {
+            return Vec::new();
+        }
+
+        // Use optimized parser for Nom backend
+        if self.external_validator == ExternalValidator::Nom {
+            let nom_entities = nom_parser::parse_cashtags_only(s);
+            let mut entities = Vec::with_capacity(nom_entities.len());
+            let mut iter = s.char_indices().peekable();
+            let mut start_index: i32 = 0;
+
+            for entity in nom_entities {
+                // Calculate UTF-16 indices
+                start_index += self.scan(iter.by_ref(), entity.start);
+                let end_index = start_index + self.scan(iter.by_ref(), entity.end);
+                // Strip the $ prefix from the value
+                let value = &entity.value[1..];
+                entities.push(Entity::new(Type::CASHTAG, value, start_index, end_index));
+                start_index = end_index;
+            }
+            return entities;
+        }
+
+        // Fall back to generic extraction for other backends
+        self.extract(s, |r| r == Rule::cashtag)
     }
 }
 

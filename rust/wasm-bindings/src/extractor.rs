@@ -210,6 +210,20 @@ impl Extractor {
             .map(|e| JsValue::from(Entity::from(e)))
             .collect()
     }
+
+    /// Batch extraction of URLs from multiple texts.
+    /// This reduces WASM-JS boundary crossings by processing multiple texts in one call.
+    #[wasm_bindgen(js_name = "extractUrlsBatch")]
+    pub fn extract_urls_batch(&self, texts: Vec<String>) -> Array {
+        texts
+            .iter()
+            .map(|text| {
+                let urls = self.inner.extract_urls(text);
+                let arr: Array = urls.into_iter().map(JsValue::from).collect();
+                JsValue::from(arr)
+            })
+            .collect()
+    }
 }
 
 impl Default for Extractor {

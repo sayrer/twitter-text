@@ -52,3 +52,12 @@ js_binary(
         "//:node_modules/yaml",
     ],
 )
+
+js_binary(
+    name = "extract_batch_test",
+    entry_point = "extract_batch_test.mjs",
+    data = [
+        "//rust/wasm-bindings:twitter_text_wasm_nodejs_lib",
+        "//js/pkg:twitter_text_old",
+    ],
+)
