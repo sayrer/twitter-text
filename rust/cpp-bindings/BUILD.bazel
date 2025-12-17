@@ -31,7 +31,7 @@ cc_library(
         "//rust/ffi-bindings:twitter_text_ffi_cdylib",
         "//3rdparty/crates:cxx_cc",
     ],
-    copts = ["-v"],
+
 )
 
 cc_test(
@@ -40,7 +40,7 @@ cc_test(
         "config_test.cpp"
     ],
     data = [":config_test_data"],
-    copts = ["-Iexternal/gtest/include", "-v"],
+    copts = ["-Iexternal/gtest/include"],
     deps = [
         "//3rdparty/crates:cxx_cc",
         "//rust/twitter-text:twitter_text_wrapper",
