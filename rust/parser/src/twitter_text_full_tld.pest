@@ -3,7 +3,7 @@
 // http://www.apache.org/licenses/LICENSE-2.0
 
 //
-// A tweet is composed of a sequence of text and entities
+// A tweet is composed of a sequence of text and entities.
 //
 tweet = { SOI ~ (entity | invalid_char | text)+ ~ EOI }
 
