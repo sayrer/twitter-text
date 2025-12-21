@@ -172,15 +172,12 @@ pub struct Autolinker<'a> {
 impl<'a> Autolinker<'a> {
     /// An [Autolinker] with default properties.
     pub fn new(no_follow: bool) -> Autolinker<'a> {
-        Self::with_external_validator(no_follow, ParserBackend::default())
+        Self::with_parser_backend(no_follow, ParserBackend::default())
     }
 
     /// An [Autolinker] with a specific TLD matching strategy.
-    pub fn with_external_validator(
-        no_follow: bool,
-        external_validator: ParserBackend,
-    ) -> Autolinker<'a> {
-        let mut extractor = Extractor::with_external_validator(external_validator);
+    pub fn with_parser_backend(no_follow: bool, parser_backend: ParserBackend) -> Autolinker<'a> {
+        let mut extractor = Extractor::with_parser_backend(parser_backend);
         extractor.set_extract_url_without_protocol(false);
         Autolinker {
             no_follow,

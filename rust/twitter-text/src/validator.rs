@@ -4,7 +4,7 @@
 
 use crate::extractor::{Extract, Extractor};
 use crate::nom_parser::url::{parse_url, parse_url_without_protocol};
-use crate::parse_with_external_validator;
+use crate::parse_with_parser_backend;
 use crate::ParserBackend;
 use twitter_text_config;
 
@@ -19,7 +19,7 @@ pub struct Validator {
     short_url_length_https: i32,
     config: twitter_text_config::Configuration,
     extractor: Extractor,
-    external_validator: ParserBackend,
+    parser_backend: ParserBackend,
 }
 
 impl Validator {
@@ -33,22 +33,22 @@ impl Validator {
             short_url_length_https: 23,
             config,
             extractor: Extractor::new(),
-            external_validator: ParserBackend::default(),
+            parser_backend: ParserBackend::default(),
         }
     }
 
-    pub fn with_external_validator(external_validator: ParserBackend) -> Validator {
+    pub fn with_parser_backend(parser_backend: ParserBackend) -> Validator {
         Validator {
             short_url_length: 23,
             short_url_length_https: 23,
             config: twitter_text_config::config_v1().clone(),
             extractor: Extractor::new(),
-            external_validator,
+            parser_backend,
         }
     }
 
     pub fn is_valid_tweet(&self, s: &str) -> bool {
-        parse_with_external_validator(s, &self.config, false, self.external_validator).is_valid
+        parse_with_parser_backend(s, &self.config, false, self.parser_backend).is_valid
     }
 
     pub fn is_valid_username(&self, s: &str) -> bool {
@@ -86,7 +86,7 @@ impl Validator {
     }
 
     pub fn is_valid_url(&self, s: &str) -> bool {
-        match self.external_validator {
+        match self.parser_backend {
             ParserBackend::Nom => {
                 // Use Nom parser
                 match parse_url(s) {
@@ -102,7 +102,7 @@ impl Validator {
     }
 
     pub fn is_valid_url_without_protocol(&self, s: &str) -> bool {
-        match self.external_validator {
+        match self.parser_backend {
             ParserBackend::Nom => {
                 // Use Nom parser
                 match parse_url_without_protocol(s) {

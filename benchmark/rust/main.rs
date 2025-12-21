@@ -75,8 +75,8 @@ struct AutolinkData {
     tests: Vec<TestCase>,
 }
 
-fn benchmark_autolink(data: &AutolinkData, validator: ParserBackend) -> f64 {
-    let autolinker = Autolinker::with_external_validator(false, validator);
+fn benchmark_autolink(data: &AutolinkData, backend: ParserBackend) -> f64 {
+    let autolinker = Autolinker::with_parser_backend(false, backend);
     let tests = &data.tests;
 
     // Warmup
@@ -97,8 +97,8 @@ fn benchmark_autolink(data: &AutolinkData, validator: ParserBackend) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_extract(data: &ExtractData, validator: ParserBackend) -> f64 {
-    let extractor = Extractor::with_external_validator(validator);
+fn benchmark_extract(data: &ExtractData, backend: ParserBackend) -> f64 {
+    let extractor = Extractor::with_parser_backend(backend);
 
     // Collect all texts
     let mut all_texts: Vec<&str> = Vec::new();
@@ -147,10 +147,10 @@ fn benchmark_extract(data: &ExtractData, validator: ParserBackend) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_tweet(data: &ValidateData, external_validator: ParserBackend) -> f64 {
+fn benchmark_validate_tweet(data: &ValidateData, backend: ParserBackend) -> f64 {
     use twitter_text::validator::Validator;
 
-    let validator = Validator::with_external_validator(external_validator);
+    let validator = Validator::with_parser_backend(backend);
     let tweets = data
         .tests
         .tweets
@@ -176,10 +176,10 @@ fn benchmark_validate_tweet(data: &ValidateData, external_validator: ParserBacke
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_all(data: &ValidateData, external_validator: ParserBackend) -> f64 {
+fn benchmark_validate_all(data: &ValidateData, backend: ParserBackend) -> f64 {
     use twitter_text::validator::Validator;
 
-    let validator = Validator::with_external_validator(external_validator);
+    let validator = Validator::with_parser_backend(backend);
     let tweets = data
         .tests
         .tweets
@@ -241,14 +241,13 @@ fn benchmark_validate_all(data: &ValidateData, external_validator: ParserBackend
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_parse(data: &ParseData, validator: ParserBackend) -> f64 {
+fn benchmark_parse(data: &ParseData, backend: ParserBackend) -> f64 {
     let config = Configuration::default();
 
     // Warmup
     for _ in 0..WARMUP_ITERATIONS {
         for test in &data.tests {
-            let _ =
-                twitter_text::parse_with_external_validator(&test.text, &config, true, validator);
+            let _ = twitter_text::parse_with_parser_backend(&test.text, &config, true, backend);
         }
     }
 
@@ -256,8 +255,7 @@ fn benchmark_parse(data: &ParseData, validator: ParserBackend) -> f64 {
     let start = Instant::now();
     for _ in 0..ITERATIONS {
         for test in &data.tests {
-            let _ =
-                twitter_text::parse_with_external_validator(&test.text, &config, true, validator);
+            let _ = twitter_text::parse_with_parser_backend(&test.text, &config, true, backend);
         }
     }
     let elapsed = start.elapsed().as_secs_f64();

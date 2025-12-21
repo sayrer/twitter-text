@@ -125,7 +125,7 @@ fn main() {
     println!();
 
     // Create extractor
-    let extractor = Extractor::with_external_validator(backend);
+    let extractor = Extractor::with_parser_backend(backend);
 
     // Benchmark
     println!("Benchmarking extract operations...");

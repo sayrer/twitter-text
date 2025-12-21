@@ -93,16 +93,16 @@ fn test_validator() {
 fn validate_weighting(
     assertions: &[WeightedTweetAssertion],
     config: &twitter_text_config::Configuration,
-    external_validator: ParserBackend,
+    parser_backend: ParserBackend,
 ) {
     for assertion in assertions {
         let expected = &assertion.expected;
         let message = &assertion.description;
-        let result = twitter_text::parse_with_external_validator(
+        let result = twitter_text::parse_with_parser_backend(
             assertion.text.as_str(),
             config,
             true,
-            external_validator,
+            parser_backend,
         );
         assert_eq!(
             expected.weighted_length, result.weighted_length,
@@ -140,26 +140,26 @@ fn validate_weighting(
 
 #[test]
 fn test_weighting() {
-    for external_validator in all_parser_backends() {
+    for parser_backend in all_parser_backends() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         let v2 = twitter_text_config::config_v2();
         let v3 = twitter_text_config::config_v3();
         validate_weighting(
             &manifest.tests.weighted_tweets_counter_test,
             v2,
-            external_validator,
+            parser_backend,
         );
         validate_weighting(
             &manifest
                 .tests
                 .weighted_tweets_with_discounted_emoji_counter_test,
             v3,
-            external_validator,
+            parser_backend,
         );
         validate_weighting(
             &manifest.tests.unicode_directional_marker_counter_test,
             v3,
-            external_validator,
+            parser_backend,
         );
     }
 }

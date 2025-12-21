@@ -79,33 +79,34 @@ impl TwitterTextParseResults {
 /// length will give all URLs the weight supplied in [Configuration](twitter_text_configuration::Configuration),
 /// regardless of their length.
 ///
-/// This function uses the default external validator (External/phf). Use [parse_with_external_validator] to
-/// specify a different validation strategy.
+/// This function uses the default parser backend (Nom). Use [parse_with_parser_backend] to
+/// specify a different parsing strategy.
 ///
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
 /// NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
 pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
-    parse_with_external_validator(text, config, extract_urls, ParserBackend::default())
+    parse_with_parser_backend(text, config, extract_urls, ParserBackend::default())
 }
 
-/// Produce a [TwitterTextParseResults] struct from a [str] using the specified external validator.
+/// Produce a [TwitterTextParseResults] struct from a [str] using the specified parser backend.
 ///
 /// If extract_urls is true, the weighted length will give all URLs the weight supplied in
 /// [Configuration](twitter_text_configuration::Configuration), regardless of their length.
 ///
-/// The `external_validator` parameter controls how TLDs are validated:
+/// The `parser_backend` parameter controls how TLDs are validated:
 /// - [ParserBackend::Pest]: Trust the Pest grammar's TLD matching (original behavior)
-/// - [ParserBackend::External]: Use phf lookup for O(1) TLD validation (default, faster)
+/// - [ParserBackend::External]: Use phf lookup for O(1) TLD validation
+/// - [ParserBackend::Nom]: Nom parser with external TLD/emoji validation (default, fastest)
 ///
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
-/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input_and_external_validator] will be more efficient.
-pub fn parse_with_external_validator(
+/// NFC-normalized, [ValidatingExtractor::new_with_nfc_input_and_parser_backend] will be more efficient.
+pub fn parse_with_parser_backend(
     text: &str,
     config: &Configuration,
     extract_urls: bool,
-    external_validator: ParserBackend,
+    parser_backend: ParserBackend,
 ) -> TwitterTextParseResults {
-    let mut extractor = ValidatingExtractor::with_external_validator(config, external_validator);
+    let mut extractor = ValidatingExtractor::with_parser_backend(config, parser_backend);
     let input = extractor.prep_input(text);
     if extract_urls {
         extractor

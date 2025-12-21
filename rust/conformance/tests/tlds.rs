@@ -35,8 +35,8 @@ pub struct Manifest {
 
 const MANIFEST_YML: &str = include_str!("tlds.yml");
 
-fn tld_check(assertions: &[Assertion], external_validator: ParserBackend) {
-    let extractor = Extractor::with_external_validator(external_validator);
+fn tld_check(assertions: &[Assertion], parser_backend: ParserBackend) {
+    let extractor = Extractor::with_parser_backend(parser_backend);
     for assertion in assertions {
         let url_text = extractor.extract_urls(&assertion.text);
         assert!(
@@ -57,9 +57,9 @@ fn tld_check(assertions: &[Assertion], external_validator: ParserBackend) {
 
 #[test]
 fn tlds() {
-    for external_validator in all_parser_backends() {
+    for parser_backend in all_parser_backends() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
-        tld_check(&manifest.tests.country, external_validator);
-        tld_check(&manifest.tests.generic, external_validator);
+        tld_check(&manifest.tests.country, parser_backend);
+        tld_check(&manifest.tests.generic, parser_backend);
     }
 }
