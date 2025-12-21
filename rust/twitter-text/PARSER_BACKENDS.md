@@ -86,7 +86,7 @@ This is more complex than TLD matching since it's stateful (consuming a variable
 Rather than a single enum, a compositional approach allows testing each optimization independently:
 
 ```rust
-pub enum ExternalValidator {
+pub enum ParserBackend {
     /// Pure Pest parsing (original behavior)
     Pest,
     /// Pest for structure, external validation via phf/procedural code

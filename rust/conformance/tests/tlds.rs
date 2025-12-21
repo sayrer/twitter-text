@@ -1,17 +1,17 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::extractor::Extractor;
-use twitter_text::ExternalValidator;
+use twitter_text::ParserBackend;
 
-/// Returns all ExternalValidator variants for testing both backends.
-fn all_external_validators() -> [ExternalValidator; 3] {
+/// Returns all ParserBackend variants for testing both backends.
+fn all_parser_backends() -> [ParserBackend; 3] {
     [
-        ExternalValidator::External,
-        ExternalValidator::Pest,
-        ExternalValidator::Nom,
+        ParserBackend::External,
+        ParserBackend::Pest,
+        ParserBackend::Nom,
     ]
 }
 
@@ -35,7 +35,7 @@ pub struct Manifest {
 
 const MANIFEST_YML: &str = include_str!("tlds.yml");
 
-fn tld_check(assertions: &[Assertion], external_validator: ExternalValidator) {
+fn tld_check(assertions: &[Assertion], external_validator: ParserBackend) {
     let extractor = Extractor::with_external_validator(external_validator);
     for assertion in assertions {
         let url_text = extractor.extract_urls(&assertion.text);
@@ -57,7 +57,7 @@ fn tld_check(assertions: &[Assertion], external_validator: ExternalValidator) {
 
 #[test]
 fn tlds() {
-    for external_validator in all_external_validators() {
+    for external_validator in all_parser_backends() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         tld_check(&manifest.tests.country, external_validator);
         tld_check(&manifest.tests.generic, external_validator);

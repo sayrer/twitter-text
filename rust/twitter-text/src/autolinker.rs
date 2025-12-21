@@ -1,10 +1,10 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::entity;
 use crate::entity::Entity;
-use crate::extractor::{ExternalValidator, Extract, Extractor};
+use crate::extractor::{Extract, Extractor, ParserBackend};
 use std::borrow::Cow;
 
 /// Get the character at a given UTF-16 offset in a string.
@@ -172,13 +172,13 @@ pub struct Autolinker<'a> {
 impl<'a> Autolinker<'a> {
     /// An [Autolinker] with default properties.
     pub fn new(no_follow: bool) -> Autolinker<'a> {
-        Self::with_external_validator(no_follow, ExternalValidator::default())
+        Self::with_external_validator(no_follow, ParserBackend::default())
     }
 
     /// An [Autolinker] with a specific TLD matching strategy.
     pub fn with_external_validator(
         no_follow: bool,
-        external_validator: ExternalValidator,
+        external_validator: ParserBackend,
     ) -> Autolinker<'a> {
         let mut extractor = Extractor::with_external_validator(external_validator);
         extractor.set_extract_url_without_protocol(false);

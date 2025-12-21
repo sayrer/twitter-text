@@ -1,11 +1,11 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use crate::extractor::{Extract, Extractor};
 use crate::nom_parser::url::{parse_url, parse_url_without_protocol};
 use crate::parse_with_external_validator;
-use crate::ExternalValidator;
+use crate::ParserBackend;
 use twitter_text_config;
 
 use pest::Parser;
@@ -19,7 +19,7 @@ pub struct Validator {
     short_url_length_https: i32,
     config: twitter_text_config::Configuration,
     extractor: Extractor,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
 }
 
 impl Validator {
@@ -33,11 +33,11 @@ impl Validator {
             short_url_length_https: 23,
             config,
             extractor: Extractor::new(),
-            external_validator: ExternalValidator::default(),
+            external_validator: ParserBackend::default(),
         }
     }
 
-    pub fn with_external_validator(external_validator: ExternalValidator) -> Validator {
+    pub fn with_external_validator(external_validator: ParserBackend) -> Validator {
         Validator {
             short_url_length: 23,
             short_url_length_https: 23,
@@ -87,14 +87,14 @@ impl Validator {
 
     pub fn is_valid_url(&self, s: &str) -> bool {
         match self.external_validator {
-            ExternalValidator::Nom => {
+            ParserBackend::Nom => {
                 // Use Nom parser
                 match parse_url(s) {
                     Ok((remaining, _)) => remaining.is_empty(),
                     Err(_) => false,
                 }
             }
-            ExternalValidator::Pest | ExternalValidator::External => {
+            ParserBackend::Pest | ParserBackend::External => {
                 // Use Pest parser for both Pest and External modes
                 TwitterTextParser::parse(Rule::valid_url, s).is_ok()
             }
@@ -103,14 +103,14 @@ impl Validator {
 
     pub fn is_valid_url_without_protocol(&self, s: &str) -> bool {
         match self.external_validator {
-            ExternalValidator::Nom => {
+            ParserBackend::Nom => {
                 // Use Nom parser
                 match parse_url_without_protocol(s) {
                     Ok((remaining, _)) => remaining.is_empty(),
                     Err(_) => false,
                 }
             }
-            ExternalValidator::Pest | ExternalValidator::External => {
+            ParserBackend::Pest | ParserBackend::External => {
                 // Use Pest parser for both Pest and External modes
                 TwitterTextParser::parse(Rule::url_without_protocol, s).is_ok()
             }

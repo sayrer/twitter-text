@@ -1,18 +1,18 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::extractor::Extract;
 use twitter_text::extractor::Extractor;
-use twitter_text::ExternalValidator;
+use twitter_text::ParserBackend;
 
-/// Returns all ExternalValidator variants for testing all backends.
-fn all_external_validators() -> [ExternalValidator; 3] {
+/// Returns all ParserBackend variants for testing all backends.
+fn all_parser_backends() -> [ParserBackend; 3] {
     [
-        ExternalValidator::External,
-        ExternalValidator::Pest,
-        ExternalValidator::Nom,
+        ParserBackend::External,
+        ParserBackend::Pest,
+        ParserBackend::Nom,
     ]
 }
 
@@ -150,7 +150,7 @@ const MANIFEST_YML: &str = include_str!("extract.yml");
 
 #[test]
 fn extract() {
-    for external_validator in all_external_validators() {
+    for external_validator in all_parser_backends() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         for mention_assertion in manifest.tests.mentions {
             let extractor = Extractor::with_external_validator(external_validator);

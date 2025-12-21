@@ -1,4 +1,4 @@
-// Copyright 2024 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -16,7 +16,7 @@ use std::fs;
 use std::time::Instant;
 use twitter_text::autolinker::Autolinker;
 use twitter_text::extractor::{Extract, Extractor, ValidatingExtractor};
-use twitter_text::ExternalValidator;
+use twitter_text::ParserBackend;
 use twitter_text_config::Configuration;
 
 const ITERATIONS: u32 = 1000;
@@ -75,7 +75,7 @@ struct AutolinkData {
     tests: Vec<TestCase>,
 }
 
-fn benchmark_autolink(data: &AutolinkData, validator: ExternalValidator) -> f64 {
+fn benchmark_autolink(data: &AutolinkData, validator: ParserBackend) -> f64 {
     let autolinker = Autolinker::with_external_validator(false, validator);
     let tests = &data.tests;
 
@@ -97,7 +97,7 @@ fn benchmark_autolink(data: &AutolinkData, validator: ExternalValidator) -> f64 
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_extract(data: &ExtractData, validator: ExternalValidator) -> f64 {
+fn benchmark_extract(data: &ExtractData, validator: ParserBackend) -> f64 {
     let extractor = Extractor::with_external_validator(validator);
 
     // Collect all texts
@@ -147,7 +147,7 @@ fn benchmark_extract(data: &ExtractData, validator: ExternalValidator) -> f64 {
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_tweet(data: &ValidateData, external_validator: ExternalValidator) -> f64 {
+fn benchmark_validate_tweet(data: &ValidateData, external_validator: ParserBackend) -> f64 {
     use twitter_text::validator::Validator;
 
     let validator = Validator::with_external_validator(external_validator);
@@ -176,7 +176,7 @@ fn benchmark_validate_tweet(data: &ValidateData, external_validator: ExternalVal
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_validate_all(data: &ValidateData, external_validator: ExternalValidator) -> f64 {
+fn benchmark_validate_all(data: &ValidateData, external_validator: ParserBackend) -> f64 {
     use twitter_text::validator::Validator;
 
     let validator = Validator::with_external_validator(external_validator);
@@ -241,7 +241,7 @@ fn benchmark_validate_all(data: &ValidateData, external_validator: ExternalValid
     ITERATIONS as f64 / elapsed
 }
 
-fn benchmark_parse(data: &ParseData, validator: ExternalValidator) -> f64 {
+fn benchmark_parse(data: &ParseData, validator: ParserBackend) -> f64 {
     let config = Configuration::default();
 
     // Warmup
@@ -269,7 +269,7 @@ fn run_benchmarks(
     extract_data: &ExtractData,
     validate_data: &ValidateData,
     parse_data: &ParseData,
-    validator: ExternalValidator,
+    validator: ParserBackend,
     label: &str,
 ) {
     let autolink_ops = benchmark_autolink(autolink_data, validator);
@@ -343,7 +343,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::External,
+                ParserBackend::External,
                 "External",
             );
         }
@@ -353,7 +353,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::Pest,
+                ParserBackend::Pest,
                 "Pest",
             );
         }
@@ -363,7 +363,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::Nom,
+                ParserBackend::Nom,
                 "Nom",
             );
         }
@@ -373,7 +373,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::External,
+                ParserBackend::External,
                 "External",
             );
             run_benchmarks(
@@ -381,7 +381,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::Pest,
+                ParserBackend::Pest,
                 "Pest",
             );
             run_benchmarks(
@@ -389,7 +389,7 @@ fn main() {
                 &extract_data,
                 &validate_data,
                 &parse_data,
-                ExternalValidator::Nom,
+                ParserBackend::Nom,
                 "Nom",
             );
         }

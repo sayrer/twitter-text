@@ -1,17 +1,17 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
 use serde_derive::{Deserialize, Serialize};
 use twitter_text::validator::Validator;
-use twitter_text::ExternalValidator;
+use twitter_text::ParserBackend;
 
-/// Returns all ExternalValidator variants for testing both backends.
-fn all_external_validators() -> [ExternalValidator; 3] {
+/// Returns all ParserBackend variants for testing both backends.
+fn all_parser_backends() -> [ParserBackend; 3] {
     [
-        ExternalValidator::External,
-        ExternalValidator::Pest,
-        ExternalValidator::Nom,
+        ParserBackend::External,
+        ParserBackend::Pest,
+        ParserBackend::Nom,
     ]
 }
 
@@ -93,7 +93,7 @@ fn test_validator() {
 fn validate_weighting(
     assertions: &[WeightedTweetAssertion],
     config: &twitter_text_config::Configuration,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
 ) {
     for assertion in assertions {
         let expected = &assertion.expected;
@@ -140,7 +140,7 @@ fn validate_weighting(
 
 #[test]
 fn test_weighting() {
-    for external_validator in all_external_validators() {
+    for external_validator in all_parser_backends() {
         let manifest: Manifest = serde_yaml_ng::from_str(MANIFEST_YML).expect("Error parsing yaml");
         let v2 = twitter_text_config::config_v2();
         let v3 = twitter_text_config::config_v3();

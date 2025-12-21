@@ -1,4 +1,4 @@
-// Copyright 2024 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -10,7 +10,7 @@
 use std::env;
 use std::time::Instant;
 use twitter_text::extractor::{Extract, Extractor};
-use twitter_text::ExternalValidator;
+use twitter_text::ParserBackend;
 
 const CORPUS_SIZE: usize = 150_000;
 
@@ -81,21 +81,21 @@ fn generate_long_text(mut seed: u32) -> String {
     result
 }
 
-fn parse_backend(args: &[String]) -> ExternalValidator {
+fn parse_backend(args: &[String]) -> ParserBackend {
     for arg in args {
         if arg.starts_with("--backend=") {
             return match arg.strip_prefix("--backend=").unwrap() {
-                "pest" => ExternalValidator::Pest,
-                "external" => ExternalValidator::External,
-                "nom" => ExternalValidator::Nom,
+                "pest" => ParserBackend::Pest,
+                "external" => ParserBackend::External,
+                "nom" => ParserBackend::Nom,
                 other => {
                     eprintln!("Unknown backend: {}. Using 'nom'.", other);
-                    ExternalValidator::Nom
+                    ParserBackend::Nom
                 }
             };
         }
     }
-    ExternalValidator::Nom
+    ParserBackend::Nom
 }
 
 fn main() {
@@ -103,9 +103,9 @@ fn main() {
     let backend = parse_backend(&args);
 
     let backend_name = match backend {
-        ExternalValidator::Nom => "Nom",
-        ExternalValidator::Pest => "Pest",
-        ExternalValidator::External => "External",
+        ParserBackend::Nom => "Nom",
+        ParserBackend::Pest => "Pest",
+        ParserBackend::External => "External",
     };
 
     println!("Long-Text Benchmark: Rust:{}", backend_name);

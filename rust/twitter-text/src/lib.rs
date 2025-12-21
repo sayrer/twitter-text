@@ -1,4 +1,4 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -17,8 +17,8 @@ use extractor::{Extract, ValidatingExtractor};
 use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 
-// Re-export ExternalValidator for convenience
-pub use extractor::ExternalValidator;
+// Re-export ParserBackend for convenience
+pub use extractor::ParserBackend;
 
 /// A struct that represents a parsed tweet containing the length of the tweet,
 /// its validity, display ranges etc. The name mirrors Twitter's Java implementation.
@@ -85,7 +85,7 @@ impl TwitterTextParseResults {
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
 /// NFC-normalized, [ValidatingExtractor::new_with_nfc_input] will be more efficient.
 pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterTextParseResults {
-    parse_with_external_validator(text, config, extract_urls, ExternalValidator::default())
+    parse_with_external_validator(text, config, extract_urls, ParserBackend::default())
 }
 
 /// Produce a [TwitterTextParseResults] struct from a [str] using the specified external validator.
@@ -94,8 +94,8 @@ pub fn parse(text: &str, config: &Configuration, extract_urls: bool) -> TwitterT
 /// [Configuration](twitter_text_configuration::Configuration), regardless of their length.
 ///
 /// The `external_validator` parameter controls how TLDs are validated:
-/// - [ExternalValidator::Pest]: Trust the Pest grammar's TLD matching (original behavior)
-/// - [ExternalValidator::External]: Use phf lookup for O(1) TLD validation (default, faster)
+/// - [ParserBackend::Pest]: Trust the Pest grammar's TLD matching (original behavior)
+/// - [ParserBackend::External]: Use phf lookup for O(1) TLD validation (default, faster)
 ///
 /// This function will allocate an NFC-normalized copy of the input string. If the text is already
 /// NFC-normalized, [ValidatingExtractor::new_with_nfc_input_and_external_validator] will be more efficient.
@@ -103,7 +103,7 @@ pub fn parse_with_external_validator(
     text: &str,
     config: &Configuration,
     extract_urls: bool,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
 ) -> TwitterTextParseResults {
     let mut extractor = ValidatingExtractor::with_external_validator(config, external_validator);
     let input = extractor.prep_input(text);

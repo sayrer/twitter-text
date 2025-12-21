@@ -1,4 +1,4 @@
-// Copyright 2019 Robert Sayre
+// Copyright 2025 Robert Sayre
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -14,7 +14,7 @@ use twitter_text_config::Configuration;
 use twitter_text_config::Range;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
-// Full Pest parser for ExternalValidator::Pest mode
+// Full Pest parser for ParserBackend::Pest mode
 use twitter_text_parser::twitter_text::full_pest::Rule as FullPestRule;
 use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
@@ -54,14 +54,14 @@ type FullPestPair<'a> = pest::iterators::Pair<'a, FullPestRule>;
 /// # Current Implementation
 ///
 /// The current Pest grammar uses a permissive "domain-like" pattern for TLDs,
-/// so `ExternalValidator::External` (the default) is required for correct TLD validation.
-/// `ExternalValidator::Pest` trusts whatever the grammar matches, which may include
+/// so `ParserBackend::External` (the default) is required for correct TLD validation.
+/// `ParserBackend::Pest` trusts whatever the grammar matches, which may include
 /// invalid TLDs with the current permissive grammar.
 ///
-/// To use `ExternalValidator::Pest` correctly, the grammar would need to be restored
+/// To use `ParserBackend::Pest` correctly, the grammar would need to be restored
 /// to include the full TLD alternation (the original ~1500 TLD list).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ExternalValidator {
+pub enum ParserBackend {
     /// Pure Pest parsing - trusts the Pest grammar's TLD matching.
     ///
     /// **Note:** With the current permissive grammar, this will accept any
@@ -99,7 +99,7 @@ pub trait Extract<'a> {
     fn set_extract_url_without_protocol(&mut self, extract_url_without_protocol: bool);
 
     /// Get the TLD matching strategy used by this extractor.
-    fn get_external_validator(&self) -> ExternalValidator;
+    fn get_external_validator(&self) -> ParserBackend;
 
     /// Extract entities from the source text that match rules allowed by r_match.
     fn extract(&self, s: &'a str, r_match: RuleMatch) -> Self::T;
@@ -130,9 +130,9 @@ pub trait Extract<'a> {
 
         // Branch based on TLD matcher to use the appropriate parser
         match external_validator {
-            ExternalValidator::Pest => self.extract_impl_full_pest(s, r_match),
-            ExternalValidator::External => self.extract_impl_external(s, r_match),
-            ExternalValidator::Nom => self.extract_impl_nom(s, r_match),
+            ParserBackend::Pest => self.extract_impl_full_pest(s, r_match),
+            ParserBackend::External => self.extract_impl_external(s, r_match),
+            ParserBackend::Nom => self.extract_impl_nom(s, r_match),
         }
     }
 
@@ -158,7 +158,7 @@ pub trait Extract<'a> {
                             let span = pair.as_span();
                             let requires_exact_tld = r == Rule::url_without_protocol;
                             if let Some(trim_bytes) =
-                                validate_url(pair, requires_exact_tld, ExternalValidator::External)
+                                validate_url(pair, requires_exact_tld, ParserBackend::External)
                             {
                                 entity_count += 1;
                                 // If TLD was shorter than parsed, create trimmed span
@@ -559,7 +559,7 @@ pub trait Extract<'a> {
  */
 pub struct Extractor {
     extract_url_without_protocol: bool,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
 }
 
 impl Extractor {
@@ -567,12 +567,12 @@ impl Extractor {
     pub fn new() -> Extractor {
         Extractor {
             extract_url_without_protocol: true,
-            external_validator: ExternalValidator::default(),
+            external_validator: ParserBackend::default(),
         }
     }
 
     /// Create a new extractor with the specified TLD matcher.
-    pub fn with_external_validator(external_validator: ExternalValidator) -> Extractor {
+    pub fn with_external_validator(external_validator: ParserBackend) -> Extractor {
         Extractor {
             extract_url_without_protocol: true,
             external_validator,
@@ -598,7 +598,7 @@ impl Extractor {
     /// Extract a vector of Cashtags as [String] objects.
     pub fn extract_cashtags(&self, s: &str) -> Vec<String> {
         // Use optimized path for Nom backend - skip Entity creation entirely
-        if self.external_validator == ExternalValidator::Nom {
+        if self.external_validator == ParserBackend::Nom {
             // Early exit if no dollar sign present
             if !s.contains('$') {
                 return Vec::new();
@@ -623,7 +623,7 @@ impl Extractor {
     /// as [Extract::extract_mentioned_screennames_with_indices], but included for compatibility.
     pub fn extract_mentioned_screennames(&self, s: &str) -> Vec<String> {
         // Use optimized path for Nom backend - skip Entity creation entirely
-        if self.external_validator == ExternalValidator::Nom {
+        if self.external_validator == ParserBackend::Nom {
             // Early exit if no at sign present
             if !s.contains('@') && !s.contains('＠') {
                 return Vec::new();
@@ -691,7 +691,7 @@ impl<'a> Extract<'a> for Extractor {
         self.extract_url_without_protocol = extract_url_without_protocol;
     }
 
-    fn get_external_validator(&self) -> ExternalValidator {
+    fn get_external_validator(&self) -> ParserBackend {
         self.external_validator
     }
 
@@ -749,7 +749,7 @@ impl<'a> Extract<'a> for Extractor {
         }
 
         // Use optimized parser for Nom backend
-        if self.external_validator == ExternalValidator::Nom {
+        if self.external_validator == ParserBackend::Nom {
             let nom_entities = nom_parser::parse_mentions_only(s);
             let mut entities = Vec::with_capacity(nom_entities.len());
             let mut iter = s.char_indices().peekable();
@@ -784,7 +784,7 @@ impl<'a> Extract<'a> for Extractor {
         }
 
         // Use optimized parser for Nom backend
-        if self.external_validator == ExternalValidator::Nom {
+        if self.external_validator == ParserBackend::Nom {
             let nom_entities = nom_parser::parse_cashtags_only(s);
             let mut entities = Vec::with_capacity(nom_entities.len());
             let mut iter = s.char_indices().peekable();
@@ -812,7 +812,7 @@ impl<'a> Extract<'a> for Extractor {
  */
 pub struct ValidatingExtractor<'a> {
     extract_url_without_protocol: bool,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
     config: &'a Configuration,
     ld: LengthData,
 }
@@ -823,7 +823,7 @@ impl<'a> ValidatingExtractor<'a> {
     pub fn new(configuration: &Configuration) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            external_validator: ExternalValidator::default(),
+            external_validator: ParserBackend::default(),
             config: configuration,
             ld: LengthData::empty(),
         }
@@ -833,7 +833,7 @@ impl<'a> ValidatingExtractor<'a> {
     /// [ValidatingExtractor::prep_input] must be called prior to extract.
     pub fn with_external_validator(
         configuration: &Configuration,
-        external_validator: ExternalValidator,
+        external_validator: ParserBackend,
     ) -> ValidatingExtractor<'_> {
         ValidatingExtractor {
             extract_url_without_protocol: true,
@@ -871,7 +871,7 @@ impl<'a> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
             extract_url_without_protocol: true,
-            external_validator: ExternalValidator::default(),
+            external_validator: ParserBackend::default(),
             config: configuration,
             ld: LengthData {
                 normalized_length: length,
@@ -886,7 +886,7 @@ impl<'a> ValidatingExtractor<'a> {
     pub fn new_with_nfc_input_and_external_validator(
         configuration: &'a Configuration,
         s: &str,
-        external_validator: ExternalValidator,
+        external_validator: ParserBackend,
     ) -> ValidatingExtractor<'a> {
         let (length, length_utf8) = calculate_length(s);
         ValidatingExtractor {
@@ -935,7 +935,7 @@ impl<'a> Extract<'a> for ValidatingExtractor<'a> {
         self.extract_url_without_protocol = extract_url_without_protocol;
     }
 
-    fn get_external_validator(&self) -> ExternalValidator {
+    fn get_external_validator(&self) -> ParserBackend {
         self.external_validator
     }
 
@@ -1276,12 +1276,12 @@ fn calculate_offset(s: &str) -> usize {
 /// or None if URL is invalid.
 ///
 /// The `external_validator` parameter controls how TLDs are validated:
-/// - `ExternalValidator::Pest`: Trust the Pest grammar's TLD matching (no external validation)
-/// - `ExternalValidator::External`: Use phf lookup for O(1) TLD validation
+/// - `ParserBackend::Pest`: Trust the Pest grammar's TLD matching (no external validation)
+/// - `ParserBackend::External`: Use phf lookup for O(1) TLD validation
 fn validate_url(
     p: Pair,
     requires_exact_tld: bool,
-    external_validator: ExternalValidator,
+    external_validator: ParserBackend,
 ) -> Option<usize> {
     let original_span = p.as_span();
     let original = p.as_str();
@@ -1301,7 +1301,7 @@ fn validate_url(
 
             // For Pest backend, trust the grammar's TLD matching entirely
             // Just validate punycode and return without trimming
-            if external_validator == ExternalValidator::Pest {
+            if external_validator == ParserBackend::Pest {
                 return if valid_punycode(original, &pair) {
                     Some(0)
                 } else {
@@ -2070,11 +2070,11 @@ mod tests {
 
     // Federated mention tests (Mastodon-style @user@domain.tld)
     // These tests run on all backends that support federated mentions.
-    fn federated_mention_backends() -> Vec<ExternalValidator> {
+    fn federated_mention_backends() -> Vec<ParserBackend> {
         vec![
-            ExternalValidator::Pest,
-            ExternalValidator::External,
-            ExternalValidator::Nom,
+            ParserBackend::Pest,
+            ParserBackend::External,
+            ParserBackend::Nom,
         ]
     }
 
@@ -2703,12 +2703,12 @@ mod debug_tests {
         }
     }
 
-    // ExternalValidator backend tests
+    // ParserBackend backend tests
 
     #[test]
     fn test_external_validator_external_validates_tlds() {
         // External backend should reject invalid TLDs
-        let extractor = Extractor::with_external_validator(ExternalValidator::External);
+        let extractor = Extractor::with_external_validator(ParserBackend::External);
 
         // Valid TLD should be extracted
         let urls = extractor.extract_urls("Check out http://example.com/path");
@@ -2723,7 +2723,7 @@ mod debug_tests {
     #[test]
     fn test_external_validator_pest_trusts_grammar() {
         // Pest backend trusts whatever the grammar matches
-        let extractor = Extractor::with_external_validator(ExternalValidator::Pest);
+        let extractor = Extractor::with_external_validator(ParserBackend::Pest);
 
         // With the permissive grammar, this will also match
         let urls = extractor.extract_urls("Check out http://example.com/path");
@@ -2734,19 +2734,19 @@ mod debug_tests {
     #[test]
     fn test_external_validator_default_is_nom() {
         // Default should be Nom
-        assert_eq!(ExternalValidator::default(), ExternalValidator::Nom);
+        assert_eq!(ParserBackend::default(), ParserBackend::Nom);
 
         // New extractor should use Nom by default
         let extractor = Extractor::new();
-        assert_eq!(extractor.get_external_validator(), ExternalValidator::Nom);
+        assert_eq!(extractor.get_external_validator(), ParserBackend::Nom);
     }
 
     #[test]
     fn test_all_backends_produce_same_results() {
         // Test that all three backends produce identical results
-        let external = Extractor::with_external_validator(ExternalValidator::External);
-        let pest = Extractor::with_external_validator(ExternalValidator::Pest);
-        let nom = Extractor::with_external_validator(ExternalValidator::Nom);
+        let external = Extractor::with_external_validator(ParserBackend::External);
+        let pest = Extractor::with_external_validator(ParserBackend::Pest);
+        let nom = Extractor::with_external_validator(ParserBackend::Nom);
 
         let test_cases = [
             "Check out http://example.com/path",
@@ -2816,27 +2816,19 @@ mod debug_tests {
             config_v3.emoji_parsing_enabled
         );
 
-        let ext_v2 = crate::parse_with_external_validator(
-            text,
-            config_v2,
-            false,
-            ExternalValidator::External,
-        );
+        let ext_v2 =
+            crate::parse_with_external_validator(text, config_v2, false, ParserBackend::External);
         let nom_v2 =
-            crate::parse_with_external_validator(text, config_v2, false, ExternalValidator::Nom);
+            crate::parse_with_external_validator(text, config_v2, false, ParserBackend::Nom);
 
         eprintln!("\nV2 config:");
         eprintln!("  External: weighted_length = {}", ext_v2.weighted_length);
         eprintln!("  Nom:      weighted_length = {}", nom_v2.weighted_length);
 
-        let ext_v3 = crate::parse_with_external_validator(
-            text,
-            config_v3,
-            false,
-            ExternalValidator::External,
-        );
+        let ext_v3 =
+            crate::parse_with_external_validator(text, config_v3, false, ParserBackend::External);
         let nom_v3 =
-            crate::parse_with_external_validator(text, config_v3, false, ExternalValidator::Nom);
+            crate::parse_with_external_validator(text, config_v3, false, ParserBackend::Nom);
 
         eprintln!("\nV3 config:");
         eprintln!("  External: weighted_length = {}", ext_v3.weighted_length);
@@ -2859,11 +2851,10 @@ mod debug_tests {
         let config = twitter_text_config::config_v3();
         let text = "🔥🔥🔥 This is amazing! 💯💯💯 Best day ever! 🚀🚀🚀 To the moon! 🌙✨⭐️";
 
-        let pest =
-            crate::parse_with_external_validator(text, config, false, ExternalValidator::Pest);
+        let pest = crate::parse_with_external_validator(text, config, false, ParserBackend::Pest);
         let ext =
-            crate::parse_with_external_validator(text, config, false, ExternalValidator::External);
-        let nom = crate::parse_with_external_validator(text, config, false, ExternalValidator::Nom);
+            crate::parse_with_external_validator(text, config, false, ParserBackend::External);
+        let nom = crate::parse_with_external_validator(text, config, false, ParserBackend::Nom);
 
         // Expected: 72 (matching Old JS behavior)
         // - 12 emoji (🔥🔥🔥💯💯💯🚀🚀🚀🌙✨⭐️) each count as 1
@@ -2881,7 +2872,7 @@ mod debug_tests {
 
     #[test]
     fn test_pest_backend_extracts_punycode_urls() {
-        let extractor = Extractor::with_external_validator(ExternalValidator::Pest);
+        let extractor = Extractor::with_external_validator(ParserBackend::Pest);
 
         // Punycode URL should be extracted
         let urls = extractor.extract_urls("See http://xn--80abe5aohbnkjb.xn--p1ai/");
@@ -2937,12 +2928,12 @@ mod debug_tests {
         }
 
         // Now test the full extractor
-        let extractor = Extractor::with_external_validator(ExternalValidator::Nom);
+        let extractor = Extractor::with_external_validator(ParserBackend::Nom);
         let urls = extractor.extract_urls(text);
         eprintln!("Extracted URLs: {:?}", urls);
 
         // Compare with External
-        let external = Extractor::with_external_validator(ExternalValidator::External);
+        let external = Extractor::with_external_validator(ParserBackend::External);
         let external_urls = external.extract_urls(text);
         eprintln!("External URLs: {:?}", external_urls);
     }
