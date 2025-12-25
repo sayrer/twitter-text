@@ -23,7 +23,7 @@ text = _{ !invalid_char ~ (emoji | ANY) }
 // Pest uses a Parsing Expression Grammar (PEG), so the order of the choices here
 // is significant <https://en.wikipedia.org/wiki/Parsing_expression_grammar#Semantics>.
 // In particular, placing URLs before other entities helps resolve ambiguities where
-// URL fragments might also be interpreted as hashtags (see <goo.gl/4udoLK>).
+// URL fragments might also be interpreted as hashtags (see <https://github.com/twitter/twitter-text/blob/30e2430d90cff3b46393ea54caf511441983c260/rb/lib/twitter-text/extractor.rb#L65>).
 //
 entity = _{ possible_url | possible_hashtag | possible_federated_mention | possible_mention | possible_cashtag }
 
