@@ -298,6 +298,7 @@ _NORMAL_DEPENDENCIES = {
             "clap": Label("@twitter_text//:clap-4.5.53"),
             "cxx": Label("@twitter_text//:cxx-1.0.190"),
             "emojis": Label("@twitter_text//:emojis-0.6.4"),
+            "gungraun": Label("@twitter_text//:gungraun-0.17.0"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
             "js-sys": Label("@twitter_text//:js-sys-0.3.77"),
             "lazy_static": Label("@twitter_text//:lazy_static-1.5.0"),
@@ -513,6 +514,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__bincode-1.3.3",
+        sha256 = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/bincode/1.3.3/download"],
+        strip_prefix = "bincode-1.3.3",
+        build_file = Label("//3rdparty/crates:BUILD.bincode-1.3.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__bindgen-0.69.5",
         sha256 = "271383c67ccabffb7381723dea0672a673f292304fcb45c01cc648c7a8d58088",
         type = "tar.gz",
@@ -703,6 +714,26 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__derive_more-2.1.1",
+        sha256 = "d751e9e49156b02b44f9c1815bcb94b984cdcc4396ecc32521c739452808b134",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/derive_more/2.1.1/download"],
+        strip_prefix = "derive_more-2.1.1",
+        build_file = Label("//3rdparty/crates:BUILD.derive_more-2.1.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__derive_more-impl-2.1.1",
+        sha256 = "799a97264921d8623a957f6c3b9011f3b5492f557bbb7a5a19b7fa6d06ba8dcb",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/derive_more-impl/2.1.1/download"],
+        strip_prefix = "derive_more-impl-2.1.1",
+        build_file = Label("//3rdparty/crates:BUILD.derive_more-impl-2.1.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__digest-0.10.7",
         sha256 = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292",
         type = "tar.gz",
@@ -789,6 +820,36 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/glob/0.3.3/download"],
         strip_prefix = "glob-0.3.3",
         build_file = Label("//3rdparty/crates:BUILD.glob-0.3.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__gungraun-0.17.0",
+        sha256 = "b247b47ec86130ed355045982783d4666f32045e397a4547bbb6793cd53e940f",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/gungraun/0.17.0/download"],
+        strip_prefix = "gungraun-0.17.0",
+        build_file = Label("//3rdparty/crates:BUILD.gungraun-0.17.0.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__gungraun-macros-0.7.0",
+        sha256 = "12b605e561ccca36d68ebacd387751f2d58cf65202b781bb4a9029951dd3a66d",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/gungraun-macros/0.7.0/download"],
+        strip_prefix = "gungraun-macros-0.7.0",
+        build_file = Label("//3rdparty/crates:BUILD.gungraun-macros-0.7.0.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__gungraun-runner-0.17.0",
+        sha256 = "0f0ae6c9fe670d3d77f5576be41568ebf1733e5873c6ca85ff3b85848a31ac76",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/gungraun-runner/0.17.0/download"],
+        strip_prefix = "gungraun-runner-0.17.0",
+        build_file = Label("//3rdparty/crates:BUILD.gungraun-runner-0.17.0.bazel"),
     )
 
     maybe(
@@ -1263,6 +1324,26 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__proc-macro-error-attr2-2.0.0",
+        sha256 = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/proc-macro-error-attr2/2.0.0/download"],
+        strip_prefix = "proc-macro-error-attr2-2.0.0",
+        build_file = Label("//3rdparty/crates:BUILD.proc-macro-error-attr2-2.0.0.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__proc-macro-error2-2.0.1",
+        sha256 = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/proc-macro-error2/2.0.1/download"],
+        strip_prefix = "proc-macro-error2-2.0.1",
+        build_file = Label("//3rdparty/crates:BUILD.proc-macro-error2-2.0.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__proc-macro2-1.0.103",
         sha256 = "5ee95bc4ef87b8d5ba32e8b7714ccc834865276eab0aed5c9958d00ec45f49e8",
         type = "tar.gz",
@@ -1433,6 +1514,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__rustc_version-0.4.1",
+        sha256 = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/rustc_version/0.4.1/download"],
+        strip_prefix = "rustc_version-0.4.1",
+        build_file = Label("//3rdparty/crates:BUILD.rustc_version-0.4.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__rustversion-1.0.22",
         sha256 = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d",
         type = "tar.gz",
@@ -1469,6 +1560,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/scratch/1.0.9/download"],
         strip_prefix = "scratch-1.0.9",
         build_file = Label("//3rdparty/crates:BUILD.scratch-1.0.9.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__semver-1.0.27",
+        sha256 = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/semver/1.0.27/download"],
+        strip_prefix = "semver-1.0.27",
+        build_file = Label("//3rdparty/crates:BUILD.semver-1.0.27.bazel"),
     )
 
     maybe(
@@ -1965,6 +2066,7 @@ def crate_repositories():
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
         struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
         struct(repo = "twitter_text__emojis-0.6.4", is_dev_dep = False),
+        struct(repo = "twitter_text__gungraun-0.17.0", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
         struct(repo = "twitter_text__js-sys-0.3.77", is_dev_dep = False),
         struct(repo = "twitter_text__lazy_static-1.5.0", is_dev_dep = False),

@@ -92,6 +92,9 @@ crates_vendor(
         "js-sys": crate.spec(
             version = "=0.3.77",
         ),
+        "gungraun": crate.spec(
+            version = "0.17.0",
+        ),
     },
     repository_name = "twitter_text",
     tags = ["manual"],

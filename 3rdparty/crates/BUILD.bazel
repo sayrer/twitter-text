@@ -74,6 +74,18 @@ alias(
 )
 
 alias(
+    name = "gungraun-0.17.0",
+    actual = "@twitter_text__gungraun-0.17.0//:gungraun",
+    tags = ["manual"],
+)
+
+alias(
+    name = "gungraun",
+    actual = "@twitter_text__gungraun-0.17.0//:gungraun",
+    tags = ["manual"],
+)
+
+alias(
     name = "idna-1.1.0",
     actual = "@twitter_text__idna-1.1.0//:idna",
     tags = ["manual"],
@@ -329,6 +341,12 @@ alias(
 alias(
     name = "clap__stdio-fixture",
     actual = "@twitter_text__clap-4.5.53//:stdio-fixture__bin",
+    tags = ["manual"],
+)
+
+alias(
+    name = "gungraun-runner__gungraun-runner",
+    actual = "@twitter_text__gungraun-runner-0.17.0//:gungraun-runner__bin",
     tags = ["manual"],
 )
 

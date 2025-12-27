@@ -62,3 +62,16 @@ rust_binary(
     ],
     edition = "2021",
 )
+
+# Gungraun benchmark using Valgrind-based instrumentation
+# Requires valgrind and gungraun-runner to be installed on the system
+rust_binary(
+    name = "gungraun_benchmark",
+    srcs = ["gungraun_benchmark.rs"],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//rust/config:twitter_text_config",
+        "@twitter_text__gungraun-0.17.0//:gungraun",
+    ],
+    edition = "2021",
+)
