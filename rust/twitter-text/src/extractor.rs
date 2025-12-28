@@ -589,6 +589,23 @@ impl Extractor {
 
     /// Extract a vector of Hashtags as [String] objects.
     pub fn extract_hashtags(&self, s: &str) -> Vec<String> {
+        // Use optimized path for Nom backend - skip Entity creation entirely
+        if self.parser_backend == ParserBackend::Nom {
+            // Early exit if no hash sign present
+            if !s.contains('#') && !s.contains('＃') {
+                return Vec::new();
+            }
+            let nom_entities = nom_parser::parse_hashtags_only(s);
+            return nom_entities
+                .into_iter()
+                .map(|e| {
+                    // Strip the # prefix (1 byte for ASCII #, 3 bytes for fullwidth ＃)
+                    let offset = if e.value.starts_with('#') { 1 } else { 3 };
+                    String::from(&e.value[offset..])
+                })
+                .collect();
+        }
+
         self.extract_hashtags_with_indices(s)
             .iter()
             .map(|entity| String::from(entity.get_value()))

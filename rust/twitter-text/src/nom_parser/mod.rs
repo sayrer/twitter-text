@@ -354,6 +354,166 @@ pub fn parse_cashtags_only(input: &str) -> Vec<NomEntity<'_>> {
     entities
 }
 
+/// Parse a tweet and return only hashtag entities.
+/// This is optimized for the case where only hashtags are needed.
+/// Uses memchr to skip directly to # characters, avoiding all URL/mention/cashtag parsing.
+pub fn parse_hashtags_only(input: &str) -> Vec<NomEntity<'_>> {
+    let mut entities = Vec::with_capacity(8);
+    let bytes = input.as_bytes();
+    let mut pos = 0;
+
+    while pos < bytes.len() {
+        // Use memchr to find the next # character (SIMD-accelerated)
+        let remaining_bytes = &bytes[pos..];
+
+        // Find ASCII # first
+        let hash_pos = memchr::memchr(b'#', remaining_bytes);
+
+        // Also need to find fullwidth # (U+FF03 = 0xEF 0xBC 0x83 in UTF-8)
+        let fullwidth_pos = find_fullwidth_hash(remaining_bytes);
+
+        // Take the earlier of the two
+        let next_hash = match (hash_pos, fullwidth_pos) {
+            (Some(h), Some(f)) => Some(h.min(f)),
+            (Some(h), None) => Some(h),
+            (None, Some(f)) => Some(f),
+            (None, None) => None,
+        };
+
+        let hash_offset = match next_hash {
+            Some(offset) => offset,
+            None => break, // No more # in the text
+        };
+
+        pos += hash_offset;
+
+        // Check predecessor - hashtags shouldn't be preceded by & or letter/mark
+        if pos > 0 {
+            // Get the previous character
+            let before = &input[..pos];
+            if let Some(prev_char) = before.chars().last() {
+                if !hashtag::valid_hashtag_predecessor(prev_char) {
+                    pos += 1;
+                    continue;
+                }
+            }
+
+            // Check if this # is part of a URL fragment (e.g., http://example.com/#hash)
+            // Look backwards for URL-like pattern without whitespace
+            if is_url_fragment_hash(before) {
+                pos += 1;
+                continue;
+            }
+        }
+
+        let remaining = &input[pos..];
+
+        // Check for invalid hashtag: # followed by URL protocol
+        let after_hash = if remaining.starts_with('#') {
+            &remaining[1..]
+        } else {
+            // Fullwidth #
+            &remaining[3..]
+        };
+        if after_hash.starts_with("http://")
+            || after_hash.starts_with("https://")
+            || after_hash.starts_with("HTTP://")
+            || after_hash.starts_with("HTTPS://")
+        {
+            pos += 1;
+            continue;
+        }
+
+        // Try to parse a hashtag
+        if let Ok((_, matched)) = hashtag::parse_hashtag(remaining) {
+            let consumed = matched.len();
+            entities.push(NomEntity::new(
+                NomEntityType::Hashtag,
+                matched,
+                pos,
+                pos + consumed,
+            ));
+            pos += consumed;
+            continue;
+        }
+
+        // Failed to parse - skip this # and continue
+        pos += 1;
+    }
+
+    entities
+}
+
+/// Check if the # at current position is likely a URL fragment.
+/// This checks if there's a URL-like pattern before the # without intervening whitespace.
+#[inline]
+fn is_url_fragment_hash(before: &str) -> bool {
+    let bytes = before.as_bytes();
+
+    // Find the last whitespace to get the "word" containing the #
+    let mut word_start = 0;
+    for (i, &b) in bytes.iter().enumerate().rev() {
+        if b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' {
+            word_start = i + 1;
+            break;
+        }
+    }
+
+    let word = &before[word_start..];
+
+    // Check for URL patterns:
+    // 1. Starts with http:// or https://
+    // 2. Contains :// (protocol URL)
+    // 3. Ends with / and contains a dot (domain.com/)
+    if word.starts_with("http://")
+        || word.starts_with("https://")
+        || word.starts_with("HTTP://")
+        || word.starts_with("HTTPS://")
+    {
+        return true;
+    }
+
+    // Check for "://" pattern (any protocol URL)
+    if word.contains("://") {
+        return true;
+    }
+
+    // Check for URL without protocol ending in / (e.g., "twitter.com/")
+    // Must have a dot and end with /
+    if word.ends_with('/') && word.contains('.') {
+        // Additional check: the part before / should look like a domain
+        let without_slash = &word[..word.len() - 1];
+        // Simple heuristic: contains at least one dot and alphanumeric chars
+        if without_slash
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '_' || c == '/')
+        {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// Find fullwidth # (U+FF03) in a byte slice.
+/// U+FF03 is encoded as 0xEF 0xBC 0x83 in UTF-8.
+#[inline]
+fn find_fullwidth_hash(bytes: &[u8]) -> Option<usize> {
+    let mut i = 0;
+    while i + 2 < bytes.len() {
+        if let Some(offset) = memchr::memchr(0xEF, &bytes[i..]) {
+            let pos = i + offset;
+            if pos + 2 < bytes.len() && bytes[pos + 1] == 0xBC && bytes[pos + 2] == 0x83 {
+                return Some(pos);
+            }
+            i = pos + 1;
+        } else {
+            break;
+        }
+    }
+    None
+}
+
 /// Find fullwidth @ (U+FF20) in a byte slice.
 /// U+FF20 is encoded as 0xEF 0xBC 0xA0 in UTF-8.
 #[inline]
