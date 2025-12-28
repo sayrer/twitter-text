@@ -6,7 +6,7 @@
 
 Gem::Specification.new do |s|
   s.name = "twitter-text"
-  s.version = "3.0.0"
+  s.version = "3.1.0"
   s.authors = ["David LaMacchia", "Sudheer Guntupalli", "Kaushik Lakshmikanth", "Jose Antonio Marquez Russo", "Lee Adams",
                "Yoshimasa Niwa"]
   s.email = ["opensource@twitter.com"]
@@ -15,12 +15,11 @@ Gem::Specification.new do |s|
   s.license = "Apache 2.0"
 
   s.platform = Gem::Platform::RUBY
-  s.has_rdoc = true
   s.summary = "Twitter text handling library"
 
   s.add_development_dependency "test-unit"
   s.add_development_dependency "multi_json", "~> 1.3"
-  s.add_development_dependency "nokogiri", "~> 1.8.0"
+  s.add_development_dependency "nokogiri", "~> 1.10.9"
   s.add_development_dependency "rake"
   s.add_development_dependency "rdoc"
   s.add_development_dependency "rspec", "~> 3.0"

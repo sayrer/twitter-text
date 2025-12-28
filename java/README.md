@@ -7,7 +7,7 @@ This is the Java implementation of the twitter-text parsing library. The library
 
 ## Getting Started
 
-The latest artifacts are published to maven central.
+The latest artifacts are published to Maven Central.
 
 Bringing twitter-text-java into your project should be as simple as adding the following to your pom.xml:
 
@@ -16,7 +16,7 @@ Bringing twitter-text-java into your project should be as simple as adding the f
     <dependency>
       <groupId>com.twitter.twittertext</groupId>
       <artifactId>twitter-text</artifactId>
-      <version>3.0.0</version> <!-- or whatever the latest version is -->
+      <version>3.1.0</version> <!-- or whatever the latest version is -->
     </dependency>
   </dependencies>
 ```
@@ -48,15 +48,15 @@ twitter-text 2.0 introduced configuration files that define how Tweets are parse
 
 This method takes a string as input and returns a results object that contains information about the string. `TwitterTextParseResults` includes:
 
-* `public final int weightedLength`: the overall length of the tweet with code points weighted per the ranges defined in the configuration file.
+* `public final int weightedLength`: the overall length of the Tweet with code points weighted per the ranges defined in the configuration file.
 
 * `public final int permillage`: indicates the proportion (per thousand) of the weighted length in comparison to the max weighted length. A value > 1000 indicates input text that is longer than the allowable maximum.
 
 * `public final boolean isValid`: indicates if input text length corresponds to a valid result.
 
-* `public final Range displayTextRange`: A pair of unicode code point indices identifying the inclusive start and exclusive end of the displayable content of the Tweet. For more information, see the description of `display_text_range` here: [Tweet updates](https://developer.twitter.com/en/docs/tweets/tweet-updates)
+* `public final Range displayTextRange`: A pair of unicode code point indices identifying the inclusive start and exclusive end of the displayable content of the Tweet.
 
-* `public final Range validDisplayTextRange`: A pair of unicode code point indices identifying the inclusive start and exclusive end of the valid content of the Tweet. For more information on the `display_text_range` see [Tweet updates](https://developer.twitter.com/en/docs/tweets/tweet-updates)
+* `public final Range validDisplayTextRange`: A pair of unicode code point indices identifying the inclusive start and exclusive end of the valid content of the Tweet.
 
 ## Tweet Length Examples
 
@@ -87,6 +87,6 @@ https://github.com/twitter/twitter-text/issues
 
 ## License
 
-Copyright 2011-2018 Twitter, Inc. and other contributors
+Copyright 2011-2020 Twitter, Inc. and other contributors
 
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
