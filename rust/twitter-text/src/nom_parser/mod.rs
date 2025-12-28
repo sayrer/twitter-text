@@ -437,18 +437,11 @@ fn try_parse_entity<'a>(
             // EXCEPT for the special "RT" prefix case (legacy retweet syntax)
             // Also check for = and / which are invalid for federated mentions
             if let Some(pc) = prev_char {
-                let is_invalid_prefix = pc.is_ascii_alphanumeric()
-                    || pc == '_'
-                    || pc == '@'
-                    || pc == '\u{ff20}'
-                    || pc == '!'
-                    || pc == '#'
-                    || pc == '$'
-                    || pc == '%'
-                    || pc == '&'
-                    || pc == '*'
-                    || pc == '='
-                    || pc == '/';
+                let is_invalid_prefix = match pc {
+                    '_' | '@' | '!' | '#' | '$' | '%' | '&' | '*' | '=' | '/' | '\u{ff20}' => true,
+                    c if c.is_ascii_alphanumeric() => true,
+                    _ => false,
+                };
 
                 if is_invalid_prefix {
                     // Check for RT prefix exception: "RT@" or "RT:@" preceded by space/SOI
