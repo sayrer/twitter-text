@@ -581,6 +581,44 @@ impl Extractor {
 
     /// Extract a vector of URLs as [String] objects.
     pub fn extract_urls(&self, s: &str) -> Vec<String> {
+        // Use optimized path for Nom backend - skip Entity creation entirely
+        if self.parser_backend == ParserBackend::Nom {
+            let include_without_protocol = self.get_extract_url_without_protocol();
+
+            // Early exit checks
+            if include_without_protocol {
+                if !s.contains('.') {
+                    return Vec::new();
+                }
+            } else if !s.contains(':') {
+                return Vec::new();
+            }
+
+            let nom_entities = nom_parser::parse_urls_only(s, include_without_protocol);
+            let requires_exact_tld = true; // For protocol-less URLs
+
+            return nom_entities
+                .into_iter()
+                .filter_map(|entity| {
+                    let is_protocol_less =
+                        entity.entity_type == nom_parser::NomEntityType::UrlWithoutProtocol;
+                    if let Some(trim_bytes) =
+                        validate_url_nom(&entity, is_protocol_less && requires_exact_tld)
+                    {
+                        if trim_bytes > 0 {
+                            Some(String::from(
+                                &entity.value[..entity.value.len() - trim_bytes],
+                            ))
+                        } else {
+                            Some(String::from(entity.value))
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+        }
+
         self.extract_urls_with_indices(s)
             .iter()
             .map(|entity| String::from(entity.get_value()))

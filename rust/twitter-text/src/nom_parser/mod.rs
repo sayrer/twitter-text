@@ -444,6 +444,180 @@ pub fn parse_hashtags_only(input: &str) -> Vec<NomEntity<'_>> {
     entities
 }
 
+/// Parse a tweet and return only URL entities (with and without protocol).
+/// This is optimized for the case where only URLs are needed.
+pub fn parse_urls_only(input: &str, include_without_protocol: bool) -> Vec<NomEntity<'_>> {
+    let mut entities = Vec::with_capacity(4);
+    let bytes = input.as_bytes();
+    let mut pos = 0;
+    let mut prev_char: Option<char> = None;
+    // Track if we're inside a hashtag/mention context (after # or @ until whitespace)
+    let mut in_hashtag_mention = false;
+
+    while pos < bytes.len() {
+        let b = bytes[pos];
+
+        // Skip common non-URL-starting characters
+        if b < 128 {
+            // Check for hashtag/mention/cashtag start
+            if b == b'#' || b == b'@' || b == b'$' {
+                in_hashtag_mention = true;
+                prev_char = Some(b as char);
+                pos += 1;
+                continue;
+            }
+
+            // Whitespace resets hashtag/mention context
+            if matches!(b, b' ' | b'\t' | b'\n' | b'\r') {
+                in_hashtag_mention = false;
+                prev_char = Some(b as char);
+                pos += 1;
+                continue;
+            }
+
+            // Fast skip for punctuation that can't start URLs
+            if matches!(
+                b,
+                b',' | b'!'
+                    | b'?'
+                    | b'\''
+                    | b'"'
+                    | b'('
+                    | b')'
+                    | b'['
+                    | b']'
+                    | b'{'
+                    | b'}'
+                    | b'<'
+                    | b'>'
+                    | b';'
+                    | b'\\'
+                    | b'|'
+                    | b'`'
+                    | b'~'
+                    | b'+'
+                    | b'*'
+                    | b'^'
+            ) {
+                prev_char = Some(b as char);
+                pos += 1;
+                continue;
+            }
+
+            // Skip if inside hashtag/mention context
+            if in_hashtag_mention {
+                prev_char = Some(b as char);
+                pos += 1;
+                continue;
+            }
+
+            // Check predecessor - URLs shouldn't be preceded by @, #, $
+            if let Some(pc) = prev_char {
+                if pc == '@' || pc == '#' || pc == '$' || pc == '\u{ff20}' || pc == '\u{ff03}' {
+                    prev_char = Some(b as char);
+                    pos += 1;
+                    continue;
+                }
+            }
+
+            let remaining = &input[pos..];
+
+            // Try protocol URL (http:// or https://)
+            if b == b'h' || b == b'H' {
+                if let Ok((_, (matched, host_start, host_end))) = url::parse_url(remaining) {
+                    let consumed = matched.len();
+                    entities.push(NomEntity::new_url(
+                        NomEntityType::Url,
+                        matched,
+                        pos,
+                        pos + consumed,
+                        pos + host_start,
+                        pos + host_end,
+                    ));
+                    prev_char = last_char(matched);
+                    pos += consumed;
+                    continue;
+                }
+            }
+
+            // Try URL without protocol if enabled
+            if include_without_protocol && b.is_ascii_alphanumeric() {
+                // Quick check: is there a dot in the remaining text before whitespace?
+                let remaining_bytes = &bytes[pos..];
+                let has_dot = remaining_bytes
+                    .iter()
+                    .take_while(|&&c| c != b' ' && c != b'\t' && c != b'\n' && c != b'\r')
+                    .any(|&c| c == b'.');
+
+                if has_dot {
+                    // Check we're not inside a failed protocol URL context
+                    let in_url_context = if pos >= 3 {
+                        let before = &input[..pos];
+                        is_after_protocol_colon(before)
+                    } else {
+                        false
+                    };
+
+                    if !in_url_context {
+                        if let Ok((after, (matched, host_start, host_end))) =
+                            url::parse_url_without_protocol(remaining)
+                        {
+                            // Don't extract if followed by @ (email address)
+                            if !after.starts_with('@') && !after.starts_with('\u{ff20}') {
+                                let consumed = matched.len();
+                                entities.push(NomEntity::new_url(
+                                    NomEntityType::UrlWithoutProtocol,
+                                    matched,
+                                    pos,
+                                    pos + consumed,
+                                    pos + host_start,
+                                    pos + host_end,
+                                ));
+                                prev_char = last_char(matched);
+                                pos += consumed;
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+
+            prev_char = Some(b as char);
+            pos += 1;
+        } else {
+            // Non-ASCII character
+            let remaining = &input[pos..];
+            let c = remaining.chars().next().unwrap();
+
+            // Check for fullwidth # or @ which start hashtag/mention context
+            if c == '\u{ff03}' || c == '\u{ff20}' {
+                in_hashtag_mention = true;
+            } else if common::is_space(c) {
+                in_hashtag_mention = false;
+            }
+
+            prev_char = Some(c);
+            pos += c.len_utf8();
+        }
+    }
+
+    entities
+}
+
+/// Check if we're positioned right after "://" in a URL context.
+#[inline]
+fn is_after_protocol_colon(before: &str) -> bool {
+    before.ends_with("://")
+        || before.ends_with(":/-")
+        || before
+            .as_bytes()
+            .iter()
+            .rev()
+            .take_while(|&&b| b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' && b < 128)
+            .any(|&b| b == b':')
+            && before.contains("://")
+}
+
 /// Check if the # at current position is likely a URL fragment.
 /// This checks if there's a URL-like pattern before the # without intervening whitespace.
 #[inline]
