@@ -1062,11 +1062,21 @@ struct TextMetrics<'a> {
     valid_offset: i32,
     normalized_length: i32,
     scaled_max_weighted_tweet_length: i32,
+    /// Cached weight for fast path (code points 0-4351), or None if no fast path available
+    fast_path_weight: Option<i32>,
     config: &'a Configuration,
 }
 
 impl<'a> TextMetrics<'a> {
     fn new(config: &Configuration, normalized_length: i32) -> TextMetrics<'_> {
+        // Pre-compute fast path weight if first range starts at 0
+        let fast_path_weight = config.ranges.first().and_then(|r| {
+            if r.range.start() == 0 {
+                Some(r.weight)
+            } else {
+                None
+            }
+        });
         TextMetrics {
             is_valid: true,
             weighted_count: 0,
@@ -1074,6 +1084,7 @@ impl<'a> TextMetrics<'a> {
             valid_offset: 0,
             normalized_length,
             scaled_max_weighted_tweet_length: config.max_weighted_tweet_length * config.scale,
+            fast_path_weight,
             config,
         }
     }
@@ -1102,12 +1113,16 @@ impl<'a> TextMetrics<'a> {
     fn track_text(&mut self, c: char) {
         if self.offset < self.normalized_length {
             let code_point: i32 = c as i32;
-            // Fast path: first range (0-4351) covers ASCII, Latin-1, common scripts
-            // This handles >99% of typical tweet characters
-            let char_weight = if code_point <= 4351 {
-                100 // weight for first range
+            // Fast path: use cached weight for code points 0-4351 (ASCII, Latin-1, common scripts)
+            let char_weight = if let Some(weight) = self.fast_path_weight {
+                if code_point <= 4351 {
+                    weight
+                } else {
+                    self.weight_for_code_point(code_point)
+                }
             } else {
-                self.weight_for_code_point(code_point)
+                // No fast path (v1 config or unusual ranges) - use default weight
+                self.config.default_weight
             };
             self.weighted_count += char_weight;
             self.add_char(c);
