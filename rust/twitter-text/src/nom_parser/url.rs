@@ -13,16 +13,18 @@
 use nom::IResult;
 
 use super::common;
+use crate::tlds::is_valid_tld_case_insensitive;
 
 /// Check if a character is an invalid TLD suffix.
-/// TLDs cannot be immediately followed by alphanumeric or @.
-/// From grammar: invalid_tld_suffix = _{ 'a'..'z' | '0'..'9' | "@" }
+/// TLDs cannot be immediately followed by alphanumeric, @, or hyphen.
+/// From grammar: invalid_tld_suffix = _{ 'a'..'z' | '0'..'9' | "@" | "-" }
 fn is_invalid_tld_suffix(c: char) -> bool {
     c.is_ascii_lowercase()
         || c.is_ascii_uppercase()
         || c.is_ascii_digit()
         || c == '@'
         || c == '\u{ff20}'
+        || c == '-'
 }
 
 /// Parse the http:// or https:// protocol prefix using direct byte scanning.
@@ -492,6 +494,15 @@ fn domain(input: &str) -> IResult<&str, (&str, &str)> {
             // If not, this dot is trailing punctuation, not part of the domain
             if domain_segment(after_dot).is_err() {
                 // No valid segment after dot - treat current segment as TLD
+                // Check for invalid TLD suffix (hyphen, alphanumeric, or @)
+                if let Some(first_char) = after_segment.chars().next() {
+                    if is_invalid_tld_suffix(first_char) {
+                        return Err(nom::Err::Error(nom::error::Error::new(
+                            input,
+                            nom::error::ErrorKind::Verify,
+                        )));
+                    }
+                }
                 // The previous segment (before current) is the domain segment - check for underscores
                 if let Some(prev) = prev_segment {
                     if prev.contains('_') {
@@ -509,6 +520,31 @@ fn domain(input: &str) -> IResult<&str, (&str, &str)> {
             remaining = after_dot;
         } else {
             // No more dots - this segment should be the TLD
+            // Check for invalid TLD suffix (hyphen, alphanumeric, or @)
+            if let Some(first_char) = after_segment.chars().next() {
+                if is_invalid_tld_suffix(first_char) {
+                    return Err(nom::Err::Error(nom::error::Error::new(
+                        input,
+                        nom::error::ErrorKind::Verify,
+                    )));
+                }
+            }
+
+            // Check if segment contains a hyphen - if so, the part before the hyphen
+            // might be the actual TLD (e.g., "com-that-you..." -> TLD is "com")
+            // If the full segment is not a valid TLD but a prefix before hyphen is,
+            // we should reject this domain (it's a hyphenated TLD typo)
+            if let Some(hyphen_pos) = segment.find('-') {
+                let before_hyphen = &segment[..hyphen_pos];
+                if is_valid_tld_case_insensitive(before_hyphen) {
+                    // Valid TLD followed by hyphen - this is a hyphenated TLD error
+                    return Err(nom::Err::Error(nom::error::Error::new(
+                        input,
+                        nom::error::ErrorKind::Verify,
+                    )));
+                }
+            }
+
             // The previous segment is the domain segment - check for underscores
             if let Some(prev) = prev_segment {
                 if prev.contains('_') {
@@ -609,6 +645,17 @@ fn normal_url(input: &str) -> IResult<&str, (&str, usize, usize)> {
     // Host: domain, IPv4, or IPv6
     let (remaining, _) = host(remaining)?;
     let host_end = start.len() - remaining.len();
+
+    // Check for invalid TLD suffix (hyphen after TLD indicates hyphenated TLD, which is invalid)
+    // This handles cases like "http://domain.com-that-you-should-have-put-a-space-after"
+    if let Some(first_char) = remaining.chars().next() {
+        if is_invalid_tld_suffix(first_char) {
+            return Err(nom::Err::Error(nom::error::Error::new(
+                input,
+                nom::error::ErrorKind::Verify,
+            )));
+        }
+    }
 
     // Optional port
     let remaining = if let Ok((after_port, _)) = port(remaining) {

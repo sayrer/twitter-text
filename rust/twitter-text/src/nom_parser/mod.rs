@@ -60,6 +60,7 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
 
         // Fast path: common ASCII characters that can't start entities
         // This covers ~80% of typical tweet content
+        // NOTE: digits 0-9, #, *, and + are NOT in this list because they can start keycap emoji
         if b < 128 {
             // ASCII fast path
             if matches!(
@@ -75,29 +76,25 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                     | b'\n'
                     | b'\r'
                     | b'\t'
-                    | b'0'
-                    ..=b'9'
-                        | b'('
-                        | b')'
-                        | b'['
-                        | b']'
-                        | b'{'
-                        | b'}'
-                        | b':'
-                        | b';'
-                        | b'<'
-                        | b'>'
-                        | b'/'
-                        | b'\\'
-                        | b'|'
-                        | b'`'
-                        | b'~'
-                        | b'='
-                        | b'+'
-                        | b'*'
-                        | b'&'
-                        | b'^'
-                        | b'%'
+                    | b'('
+                    | b')'
+                    | b'['
+                    | b']'
+                    | b'{'
+                    | b'}'
+                    | b':'
+                    | b';'
+                    | b'<'
+                    | b'>'
+                    | b'/'
+                    | b'\\'
+                    | b'|'
+                    | b'`'
+                    | b'~'
+                    | b'='
+                    | b'&'
+                    | b'^'
+                    | b'%'
             ) {
                 prev_char = Some(b as char);
                 pos += 1;
@@ -127,6 +124,21 @@ pub fn parse_tweet(input: &str) -> Vec<NomEntity<'_>> {
                     let skip = skip_email_domain(after_at);
                     prev_char = last_char(&input[pos..pos + 1 + skip]);
                     pos += 1 + skip;
+                } else if matches!(b, b'#' | b'*' | b'+' | b'0'..=b'9') {
+                    // These ASCII chars can start keycap emoji sequences (e.g., 1⃣)
+                    if let Some((matched, consumed)) = emoji::try_parse_emoji(remaining) {
+                        entities.push(NomEntity::new(
+                            NomEntityType::Emoji,
+                            matched,
+                            pos,
+                            pos + consumed,
+                        ));
+                        prev_char = last_char(matched);
+                        pos += consumed;
+                    } else {
+                        prev_char = Some(current_char);
+                        pos += 1;
+                    }
                 } else {
                     // Regular ASCII char, just skip
                     prev_char = Some(current_char);
@@ -563,7 +575,11 @@ pub fn parse_urls_only(input: &str, include_without_protocol: bool) -> Vec<NomEn
                             url::parse_url_without_protocol(remaining)
                         {
                             // Don't extract if followed by @ (email address)
-                            if !after.starts_with('@') && !after.starts_with('\u{ff20}') {
+                            // Also don't extract if followed by -something@ or +something@ (email with hyphen/plus in local part)
+                            if !after.starts_with('@')
+                                && !after.starts_with('\u{ff20}')
+                                && !looks_like_email_continuation(after)
+                            {
                                 let consumed = matched.len();
                                 entities.push(NomEntity::new_url(
                                     NomEntityType::UrlWithoutProtocol,
@@ -734,6 +750,33 @@ fn skip_email_domain(input: &str) -> usize {
     }
 
     0
+}
+
+/// Check if the text after a potential URL looks like it's part of an email address.
+/// This handles cases like "name.al-lastname@foo.com" where "name.al" would otherwise
+/// be extracted as a URL. We check if the pattern is `-something@` or `+something@`.
+fn looks_like_email_continuation(after: &str) -> bool {
+    let bytes = after.as_bytes();
+    if bytes.is_empty() {
+        return false;
+    }
+
+    // Check for - or + followed by alphanumeric characters and then @
+    if bytes[0] == b'-' || bytes[0] == b'+' {
+        // Scan for @ within a reasonable distance (email local part limit is 64 chars)
+        for &b in bytes.iter().skip(1).take(64) {
+            if b == b'@' || b == 0xff {
+                // Found @ - this looks like an email
+                return true;
+            }
+            if b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' {
+                // Whitespace - not an email continuation
+                return false;
+            }
+        }
+    }
+
+    false
 }
 
 /// Try to parse an entity at the current position.
@@ -1009,7 +1052,11 @@ fn try_parse_entity<'a>(
                     url::parse_url_without_protocol(input)
                 {
                     // Don't extract UWP if followed by @ (it's an email address)
-                    if remaining.starts_with('@') || remaining.starts_with('\u{ff20}') {
+                    // Also don't extract if followed by -something@ or +something@ (email with hyphen/plus in local part)
+                    if remaining.starts_with('@')
+                        || remaining.starts_with('\u{ff20}')
+                        || looks_like_email_continuation(remaining)
+                    {
                         return None;
                     }
                     let consumed = matched.len();

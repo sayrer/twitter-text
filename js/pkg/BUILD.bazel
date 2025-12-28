@@ -4,7 +4,7 @@ js_library(
     name = "twitter_text_old",
     srcs = [
         "package.json",
-        "twitter-text-3.0.1.js",
+        "twitter-text-3.1.0.js",
         "twitter-text-wrapper.cjs",
     ],
     visibility = ["//visibility:public"],

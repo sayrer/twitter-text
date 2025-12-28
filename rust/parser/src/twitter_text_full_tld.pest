@@ -159,7 +159,7 @@ host = { !"t.co" ~ domain | ipv4_address | ip_literal }
 //
 // TLD
 //
-invalid_tld_suffix = _{ 'a'..'z' | '0'..'9' | "@" }
+invalid_tld_suffix = _{ 'a'..'z' | '0'..'9' | "@" | "-" }
 tld = { tld_list ~ !invalid_tld_suffix }
 
 //
@@ -216,7 +216,10 @@ h16 = _{ HEX_DIGIT{1,4} }
 //
 invalid_preceding_url_chars = { "_" | "-" | "." | protocol }
 uwp = { invalid_preceding_url_chars ~ uwp_domain | url_without_protocol }
-url_without_protocol = { uwp_domain ~ port? ~ path? ~ query? ~ fragment? }
+// Email continuation pattern: -something@ or +something@ (don't extract URL if followed by this)
+email_local_char = _{ alphanumeric | "." | "_" | "-" | "+" }
+email_continuation = _{ ("-" | "+") ~ email_local_char* ~ ("@" | "\u{ff20}") }
+url_without_protocol = { uwp_domain ~ !email_continuation ~ port? ~ path? ~ query? ~ fragment? }
 // Short-circuit: require a dot before space/EOF to avoid expensive TLD hunting
 uwp_domain = { &((!space ~ !EOI ~ !"." ~ ANY)* ~ ".") ~ (uwp_sl_domain | uwp_longer_domain) ~ tld }
 uwp_sl_domain = _{ (uwp_domain_char+ ~ "." ~ &tld) ~ !((uwp_domain_char+ ~ "." ~ &tld) | "." ~ &tld | uwp_sl_domain) }
