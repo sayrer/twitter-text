@@ -1,0 +1,15 @@
+[package]
+name = "twitter-text-bench"
+version = "0.1.0"
+edition = "2021"
+
+[[bench]]
+name = "gungraun_benchmark"
+harness = false
+
+[dependencies]
+twitter-text = { path = "../../rust/twitter-text" }
+twitter_text_config = { path = "../../rust/config" }
+
+[dev-dependencies]
+gungraun = "0.17.0"
