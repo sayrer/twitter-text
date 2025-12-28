@@ -1,0 +1,26 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@tld_gen_deps//:requirements.bzl", "requirement")
+
+package(default_visibility = ["//visibility:public"])
+
+py_binary(
+    name = "python_benchmark",
+    srcs = ["benchmark.py"],
+    main = "benchmark.py",
+    deps = [
+        "//rust/python-bindings:twitter_text",
+        requirement("PyYAML"),
+    ],
+    data = [
+        "//benchmark/data:autolink.yml",
+        "//benchmark/data:extract.yml",
+        "//benchmark/data:validate.yml",
+        "//benchmark/data:parse.yml",
+    ],
+)
+
+# Alias for consistency with other benchmarks (e.g., //benchmark/cpp:benchmark)
+alias(
+    name = "benchmark",
+    actual = ":python_benchmark",
+)
