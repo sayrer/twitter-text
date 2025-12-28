@@ -15,15 +15,29 @@ use nom::IResult;
 /// Check if a character is a hashtag letter or mark.
 /// Corresponds to hashtag_letter_or_mark in the Pest grammar.
 #[inline]
-fn is_hashtag_letter_or_mark(c: char) -> bool {
-    // Fast path for ASCII letters (most common case)
-    if c.is_ascii_alphabetic() {
-        return true;
+pub fn is_hashtag_letter_or_mark(c: char) -> bool {
+    let cp = c as u32;
+
+    // Fast path for ASCII (most common case)
+    if cp < 128 {
+        // Only ASCII letters are valid
+        return c.is_ascii_alphabetic();
     }
-    // Non-ASCII or non-letter ASCII - use Unicode categories
-    if (c as u32) < 128 {
-        return false; // ASCII but not a letter
+
+    // Fast path for CJK/Kana ranges (all letters, very common in non-ASCII tweets)
+    // These ranges contain only letters - no need for table lookup
+    if cp >= 0x3040 {
+        if cp <= 0x9FFF {
+            // Hiragana (3040-309F), Katakana (30A0-30FF), CJK (4E00-9FFF)
+            return cp <= 0x30FF || cp >= 0x4E00;
+        }
+        if cp >= 0xAC00 && cp <= 0xD7AF {
+            // Hangul Syllables
+            return true;
+        }
     }
+
+    // Fall back to full Unicode category check for other ranges
     use unicode_categories::UnicodeCategories;
     c.is_letter() || c.is_mark()
 }
