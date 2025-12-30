@@ -6,13 +6,3 @@ members = [
     "conformance",
     "parser",
 ]
-
-[raze]
-workspace_path = "//rust"
-target = "x86_64-apple-darwin"
-output_buildfile_suffix = "BUILD.bazel"
-
-[raze.crates.proc-macro2.'1.0.8']
-additional_flags = [
-    "--cfg", "use_proc_macro"
-]
