@@ -62,14 +62,14 @@ alias(
 )
 
 alias(
-    name = "emojis-0.6.4",
-    actual = "@twitter_text__emojis-0.6.4//:emojis",
+    name = "emojis-0.8.0",
+    actual = "@twitter_text__emojis-0.8.0//:emojis",
     tags = ["manual"],
 )
 
 alias(
     name = "emojis",
-    actual = "@twitter_text__emojis-0.6.4//:emojis",
+    actual = "@twitter_text__emojis-0.8.0//:emojis",
     tags = ["manual"],
 )
 

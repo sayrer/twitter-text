@@ -297,7 +297,7 @@ _NORMAL_DEPENDENCIES = {
         _COMMON_CONDITION: {
             "clap": Label("@twitter_text//:clap-4.5.53"),
             "cxx": Label("@twitter_text//:cxx-1.0.190"),
-            "emojis": Label("@twitter_text//:emojis-0.6.4"),
+            "emojis": Label("@twitter_text//:emojis-0.8.0"),
             "gungraun": Label("@twitter_text//:gungraun-0.17.0"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
             "js-sys": Label("@twitter_text//:js-sys-0.3.77"),
@@ -764,12 +764,12 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__emojis-0.6.4",
-        sha256 = "99e1f1df1f181f2539bac8bf027d31ca5ffbf9e559e3f2d09413b9107b5c02f4",
+        name = "twitter_text__emojis-0.8.0",
+        sha256 = "50c1c1870b766fc398e5f0526498d09c94b6de15be5fd769a28bbc804fb1b05d",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/emojis/0.6.4/download"],
-        strip_prefix = "emojis-0.6.4",
-        build_file = Label("//3rdparty/crates:BUILD.emojis-0.6.4.bazel"),
+        urls = ["https://static.crates.io/crates/emojis/0.8.0/download"],
+        strip_prefix = "emojis-0.8.0",
+        build_file = Label("//3rdparty/crates:BUILD.emojis-0.8.0.bazel"),
     )
 
     maybe(
@@ -1254,6 +1254,16 @@ def crate_repositories():
 
     maybe(
         http_archive,
+        name = "twitter_text__phf-0.13.1",
+        sha256 = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf/0.13.1/download"],
+        strip_prefix = "phf-0.13.1",
+        build_file = Label("//3rdparty/crates:BUILD.phf-0.13.1.bazel"),
+    )
+
+    maybe(
+        http_archive,
         name = "twitter_text__phf_generator-0.11.3",
         sha256 = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d",
         type = "tar.gz",
@@ -1280,6 +1290,16 @@ def crate_repositories():
         urls = ["https://static.crates.io/crates/phf_shared/0.11.3/download"],
         strip_prefix = "phf_shared-0.11.3",
         build_file = Label("//3rdparty/crates:BUILD.phf_shared-0.11.3.bazel"),
+    )
+
+    maybe(
+        http_archive,
+        name = "twitter_text__phf_shared-0.13.1",
+        sha256 = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/phf_shared/0.13.1/download"],
+        strip_prefix = "phf_shared-0.13.1",
+        build_file = Label("//3rdparty/crates:BUILD.phf_shared-0.13.1.bazel"),
     )
 
     maybe(
@@ -2065,7 +2085,7 @@ def crate_repositories():
     return [
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
         struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
-        struct(repo = "twitter_text__emojis-0.6.4", is_dev_dep = False),
+        struct(repo = "twitter_text__emojis-0.8.0", is_dev_dep = False),
         struct(repo = "twitter_text__gungraun-0.17.0", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
         struct(repo = "twitter_text__js-sys-0.3.77", is_dev_dep = False),

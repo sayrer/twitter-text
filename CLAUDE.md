@@ -22,8 +22,6 @@ bazel build //rust/...
 
 # Run all tests
 bazel test //rust/...
-# Or use the convenience script:
-./all_tests.sh
 
 # Build specific language bindings
 bazel build //rust/ruby-bindings:twittertext

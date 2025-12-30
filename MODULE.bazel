@@ -338,7 +338,7 @@ use_repo(
     "twitter_text",
     "twitter_text__clap-4.5.53",
     "twitter_text__cxx-1.0.190",
-    "twitter_text__emojis-0.6.4",
+    "twitter_text__emojis-0.8.0",
     "twitter_text__gungraun-0.17.0",
     "twitter_text__idna-1.1.0",
     "twitter_text__js-sys-0.3.77",

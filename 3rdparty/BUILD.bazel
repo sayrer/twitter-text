@@ -62,7 +62,7 @@ crates_vendor(
             features = ["macros", "unicase"],
         ),
         "emojis": crate.spec(
-            version = "0.6",
+            version = "0.8",
         ),
         "memchr": crate.spec(
             version = "2.7",

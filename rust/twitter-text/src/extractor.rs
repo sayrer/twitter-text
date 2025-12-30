@@ -20,25 +20,8 @@ use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 /// Checks if an emoji string is valid using the emojis crate.
-/// Handles variation selector FE0F (emoji presentation selector) by stripping it
-/// when not part of a ZWJ sequence, similar to twemoji-parser's removeVS16s.
 fn is_valid_emoji(s: &str) -> bool {
-    // First try direct lookup
-    if emojis::get(s).is_some() {
-        return true;
-    }
-
-    // If direct lookup failed and string contains FE0F but no ZWJ,
-    // try stripping FE0F and looking up again
-    const VS16: char = '\u{fe0f}';
-    const ZWJ: char = '\u{200d}';
-
-    if s.contains(VS16) && !s.contains(ZWJ) {
-        let stripped: String = s.chars().filter(|&c| c != VS16).collect();
-        return emojis::get(&stripped).is_some();
-    }
-
-    false
+    emojis::get(s).is_some()
 }
 
 type RuleMatch = fn(Rule) -> bool;
@@ -3049,7 +3032,6 @@ mod debug_tests {
         );
 
         // Test star emoji with and without variation selector
-        // The emojis crate doesn't find star+FE0F directly, but is_valid_emoji handles it
         let star_with_vs = "\u{2b50}\u{fe0f}"; // ⭐️
         let plain_star = "\u{2b50}"; // ⭐
         assert!(
@@ -3057,8 +3039,8 @@ mod debug_tests {
             "Plain star should be found"
         );
         assert!(
-            emojis::get(star_with_vs).is_none(),
-            "Star+FE0F not found directly by emojis crate"
+            emojis::get(star_with_vs).is_some(),
+            "Star+FE0F should be found by emojis crate"
         );
         assert!(
             is_valid_emoji(star_with_vs),
