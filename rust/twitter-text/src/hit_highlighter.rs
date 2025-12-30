@@ -14,6 +14,12 @@ pub struct HitHighlighter {
     pub highlight_tag: String,
 }
 
+impl Default for HitHighlighter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HitHighlighter {
     pub fn new() -> HitHighlighter {
         HitHighlighter {
@@ -34,20 +40,20 @@ impl HitHighlighter {
 
         let mut builder = HighlightBuilder::new(text, &self.highlight_tag, &hits);
         if let Ok(pairs) = HighlightParser::parse(Rule::hit_text, text) {
-            self.walk(pairs, &hits[..], &mut builder);
+            Self::walk(pairs, &hits[..], &mut builder);
         }
 
         builder.buffer()
     }
 
-    fn walk(&self, pairs: Pairs<Rule>, hits: &[Hit], builder: &mut HighlightBuilder) -> usize {
+    fn walk(pairs: Pairs<Rule>, hits: &[Hit], builder: &mut HighlightBuilder) -> usize {
         let mut start = 0;
         let mut tag_open = false;
 
         for pair in pairs {
             let rule = pair.as_rule();
             match rule {
-                Rule::element => start += self.walk(pair.into_inner(), &hits[start..], builder),
+                Rule::element => start += Self::walk(pair.into_inner(), &hits[start..], builder),
                 Rule::start_tag => builder.append_tag(pair.as_span().as_str()),
                 Rule::end_tag => builder.append_tag(pair.as_span().as_str()),
                 Rule::text => {
@@ -86,7 +92,7 @@ struct HighlightBuilder {
 }
 
 impl HighlightBuilder {
-    fn new(text: &str, tag: &str, hits: &Vec<Hit>) -> HighlightBuilder {
+    fn new(text: &str, tag: &str, hits: &[Hit]) -> HighlightBuilder {
         let capacity = text.len() + (hits.len() * (tag.len() + 2 + tag.len() + 3));
         HighlightBuilder {
             buffer: String::with_capacity(capacity),

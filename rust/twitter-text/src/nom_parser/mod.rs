@@ -421,8 +421,8 @@ pub fn parse_hashtags_only(input: &str) -> Vec<NomEntity<'_>> {
         let remaining = &input[pos..];
 
         // Check for invalid hashtag: # followed by URL protocol
-        let after_hash = if remaining.starts_with('#') {
-            &remaining[1..]
+        let after_hash = if let Some(stripped) = remaining.strip_prefix('#') {
+            stripped
         } else {
             // Fullwidth #
             &remaining[3..]

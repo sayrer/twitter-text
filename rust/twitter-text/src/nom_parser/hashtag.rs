@@ -31,7 +31,7 @@ pub fn is_hashtag_letter_or_mark(c: char) -> bool {
             // Hiragana (3040-309F), Katakana (30A0-30FF), CJK (4E00-9FFF)
             return cp <= 0x30FF || cp >= 0x4E00;
         }
-        if cp >= 0xAC00 && cp <= 0xD7AF {
+        if (0xAC00..=0xD7AF).contains(&cp) {
             // Hangul Syllables
             return true;
         }

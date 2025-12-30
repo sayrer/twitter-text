@@ -342,11 +342,11 @@ pub trait Extract<'a> {
     fn extract_reply_username_impl(&self, s: &'a str) -> Self::Mention {
         match TwitterTextParser::parse(Rule::reply, s) {
             Ok(pairs) => {
-                for pair in pairs.flatten() {
-                    return self.mention_result(s, Some(pair));
+                if let Some(pair) = pairs.flatten().next() {
+                    self.mention_result(s, Some(pair))
+                } else {
+                    self.mention_result(s, None)
                 }
-
-                return self.mention_result(s, None);
             }
             Err(_) => self.mention_result(s, None),
         }
@@ -428,7 +428,7 @@ pub trait Extract<'a> {
                                 Some(Entity::new_list(
                                     Type::MENTION,
                                     &name[calculate_offset(name)..],
-                                    &ls.as_str(),
+                                    ls.as_str(),
                                     start,
                                     end,
                                 ))
@@ -473,7 +473,7 @@ pub trait Extract<'a> {
                                 Some(Entity::new_list(
                                     Type::MENTION,
                                     &name[calculate_offset(name)..],
-                                    &ls.as_str(),
+                                    ls.as_str(),
                                     start,
                                     end,
                                 ))
@@ -543,6 +543,12 @@ pub trait Extract<'a> {
 pub struct Extractor {
     extract_url_without_protocol: bool,
     parser_backend: ParserBackend,
+}
+
+impl Default for Extractor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor {
@@ -696,12 +702,8 @@ impl Extractor {
     fn scan(&self, iter: &mut Peekable<CharIndices>, limit: usize) -> i32 {
         let mut offset: i32 = 0;
 
-        loop {
-            if let Some((peeked_pos, _c)) = iter.peek() {
-                if *peeked_pos >= limit {
-                    break;
-                }
-            } else {
+        while let Some((peeked_pos, _c)) = iter.peek() {
+            if *peeked_pos >= limit {
                 break;
             }
 
@@ -1540,7 +1542,7 @@ fn valid_punycode_str(original: &str, domain: &str) -> bool {
 /// Returns Some(byte_position) of the valid domain end, or None if no valid TLD found.
 fn find_valid_tld_boundary(domain: &str, requires_exact_tld: bool) -> Option<usize> {
     // First check if domain has any script mixing (Latin followed by non-Latin in same label)
-    let has_script_mixing_in_domain = domain.split('.').any(|label| has_script_mixing(label));
+    let has_script_mixing_in_domain = domain.split('.').any(has_script_mixing);
 
     // Find all dot positions in the domain
     let dot_positions: Vec<usize> = domain
@@ -1788,7 +1790,7 @@ pub const MAX_URL_LENGTH: usize = 4096;
 
 // The best that can currently be done per <https://goo.gl/CBHdE9>
 fn as_i32(us: usize) -> i32 {
-    let u = if us > std::i32::MAX as usize {
+    let u = if us > i32::MAX as usize {
         None
     } else {
         Some(us as i32)
@@ -1837,9 +1839,9 @@ mod tests {
     fn test_extract_setting() {
         let mut extractor = Extractor::new();
         extractor.set_extract_url_without_protocol(false);
-        assert_eq!(false, extractor.get_extract_url_without_protocol());
+        assert!(!extractor.get_extract_url_without_protocol());
         extractor.set_extract_url_without_protocol(true);
-        assert_eq!(true, extractor.get_extract_url_without_protocol());
+        assert!(extractor.get_extract_url_without_protocol());
     }
 
     // Reply tests - ported from Java ExtractorTest.ReplyTest
@@ -1908,7 +1910,7 @@ mod tests {
     #[test]
     fn test_mention_with_supplementary_characters() {
         // U+10400 DESERET CAPITAL LETTER LONG I
-        let text = format!("\u{10400} @mention \u{10400} @mention");
+        let text = "\u{10400} @mention \u{10400} @mention".to_string();
         let extractor = Extractor::new();
 
         // Extract with UTF-16 indices
@@ -1975,7 +1977,7 @@ mod tests {
 
     #[test]
     fn test_hashtag_with_supplementary_characters() {
-        let text = format!("\u{10400} #hashtag \u{10400} #hashtag");
+        let text = "\u{10400} #hashtag \u{10400} #hashtag".to_string();
         let extractor = Extractor::new();
 
         let extracted = extractor.extract_hashtags_with_indices(&text);
@@ -2072,7 +2074,7 @@ mod tests {
 
     #[test]
     fn test_url_with_supplementary_characters() {
-        let text = format!("\u{10400} http://twitter.com \u{10400} http://twitter.com");
+        let text = "\u{10400} http://twitter.com \u{10400} http://twitter.com".to_string();
         let extractor = Extractor::new();
 
         let extracted = extractor.extract_urls_with_indices(&text);
@@ -2729,7 +2731,7 @@ mod debug_tests {
         eprintln!("Dot positions: {:?}", dot_positions);
 
         // Check for script mixing
-        let has_mixing = domain.split('.').any(|l| has_script_mixing(l));
+        let has_mixing = domain.split('.').any(has_script_mixing);
         eprintln!("Has script mixing: {}", has_mixing);
 
         // Check each segment
@@ -2963,7 +2965,7 @@ mod debug_tests {
             }
             Err(e) => eprintln!("Pest parse error: {}", e),
         }
-        eprintln!("");
+        eprintln!();
 
         // Test with Nom parser
         let nom_entities = nom_parser::parse_tweet(text);

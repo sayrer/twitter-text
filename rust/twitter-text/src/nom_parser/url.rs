@@ -272,12 +272,7 @@ fn domain_segment_unicode(input: &str) -> IResult<&str, &str> {
     let mut end_pos = first.len_utf8();
 
     // Continue matching
-    loop {
-        let c = match chars.next() {
-            Some(c) => c,
-            None => break,
-        };
-
+    while let Some(c) = chars.next() {
         if c == '-' || c == '_' {
             // Must be followed by domain_char
             if let Some(next) = chars.next() {
@@ -302,12 +297,7 @@ fn domain_segment_continue_unicode(input: &str, start_pos: usize) -> IResult<&st
     let mut end_pos = start_pos;
     let mut chars = input[start_pos..].chars();
 
-    loop {
-        let c = match chars.next() {
-            Some(c) => c,
-            None => break,
-        };
-
+    while let Some(c) = chars.next() {
         if c == '-' || c == '_' {
             // Must be followed by domain_char
             if let Some(next) = chars.next() {
@@ -415,12 +405,7 @@ fn uwp_domain_segment_unicode(input: &str) -> IResult<&str, &str> {
 
     let mut end_pos = first.len_utf8();
 
-    loop {
-        let c = match chars.next() {
-            Some(c) => c,
-            None => break,
-        };
-
+    while let Some(c) = chars.next() {
         if c == '-' || c == '_' {
             if let Some(next) = chars.next() {
                 if is_uwp_domain_char(next) {
@@ -444,12 +429,7 @@ fn uwp_domain_segment_continue_unicode(input: &str, start_pos: usize) -> IResult
     let mut end_pos = start_pos;
     let mut chars = input[start_pos..].chars();
 
-    loop {
-        let c = match chars.next() {
-            Some(c) => c,
-            None => break,
-        };
-
+    while let Some(c) = chars.next() {
         if c == '-' || c == '_' {
             if let Some(next) = chars.next() {
                 if is_uwp_domain_char(next) {
@@ -1014,14 +994,8 @@ fn path_continue_unicode(
     mut paren_depth: i32,
 ) -> IResult<&str, &str> {
     let mut end_pos = start_pos;
-    let mut chars = input[start_pos..].chars();
 
-    loop {
-        let c = match chars.next() {
-            Some(c) => c,
-            None => break,
-        };
-
+    for c in input[start_pos..].chars() {
         if c == '(' {
             paren_depth += 1;
             end_pos += 1;
@@ -1063,10 +1037,8 @@ fn fixup_unbalanced_parens(input: &str, end_pos: usize) -> usize {
             depth -= 1;
         }
 
-        if depth == 0 {
-            if is_path_char(c) || c == ')' {
-                last_balanced_end = abs_pos + c.len_utf8();
-            }
+        if depth == 0 && (is_path_char(c) || c == ')') {
+            last_balanced_end = abs_pos + c.len_utf8();
         }
 
         if abs_pos + c.len_utf8() >= end_pos {
@@ -1100,20 +1072,16 @@ fn query(input: &str) -> IResult<&str, &str> {
     let mut remaining = after_q;
     let mut last_valid_end = 0usize; // Position of last valid end (after end_char)
 
-    loop {
-        if let Some(c) = remaining.chars().next() {
-            if is_query_end_char(c) {
-                remaining = &remaining[c.len_utf8()..];
-                last_valid_end = after_q.len() - remaining.len();
-            } else if is_query_punctuation(c) {
-                // Punctuation is tentatively consumed, but only valid if followed by end_char
-                remaining = &remaining[c.len_utf8()..];
-                // Continue consuming punctuation
-            } else {
-                // Not a query char - stop
-                break;
-            }
+    while let Some(c) = remaining.chars().next() {
+        if is_query_end_char(c) {
+            remaining = &remaining[c.len_utf8()..];
+            last_valid_end = after_q.len() - remaining.len();
+        } else if is_query_punctuation(c) {
+            // Punctuation is tentatively consumed, but only valid if followed by end_char
+            remaining = &remaining[c.len_utf8()..];
+            // Continue consuming punctuation
         } else {
+            // Not a query char - stop
             break;
         }
     }

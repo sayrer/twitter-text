@@ -273,19 +273,13 @@ impl<'a> Autolinker<'a> {
         let hash_char = char_at_utf16_offset(text, entity.get_start());
         let hashtag = entity.get_value();
         let mut attrs: Attributes = Vec::new();
-        attrs.push((
-            HREF.to_string(),
-            String::from(self.hashtag_url_base.to_owned() + hashtag),
-        ));
-        attrs.push((TITLE.to_string(), String::from("#".to_owned() + hashtag)));
+        attrs.push((HREF.to_string(), self.hashtag_url_base.to_owned() + hashtag));
+        attrs.push((TITLE.to_string(), "#".to_owned() + hashtag));
 
         if contains_rtl(text) {
-            attrs.push((
-                CLASS.to_string(),
-                String::from(self.hashtag_class.to_owned() + " rtl"),
-            ));
+            attrs.push((CLASS.to_string(), self.hashtag_class.to_owned() + " rtl"));
         } else {
-            attrs.push((CLASS.to_string(), String::from(self.hashtag_class)));
+            attrs.push((CLASS.to_string(), self.hashtag_class.to_string()));
         }
         let hash_str = hash_char.to_string();
         self.link_to_text_with_symbol(entity, &hash_str, hashtag, &mut attrs, buf);
@@ -516,16 +510,16 @@ impl<'a> Autolinker<'a> {
 
 fn contains_rtl(s: &str) -> bool {
     for c in s.chars() {
-        if (c >= '\u{0600}' && c <= '\u{06FF}')
-            || (c >= '\u{0750}' && c <= '\u{077F}')
-            || (c >= '\u{0590}' && c <= '\u{05FF}')
-            || (c >= '\u{FE70}' && c <= '\u{FEFF}')
+        if ('\u{0600}'..='\u{06FF}').contains(&c)
+            || ('\u{0750}'..='\u{077F}').contains(&c)
+            || ('\u{0590}'..='\u{05FF}').contains(&c)
+            || ('\u{FE70}'..='\u{FEFF}').contains(&c)
         {
             return true;
         }
     }
 
-    return false;
+    false
 }
 
 /**

@@ -128,13 +128,13 @@ mod tests {
         // Expected weighted_length: 16
         let config = twitter_text_config::config_v2();
         let text = "H🐱☺👨‍👩‍👧‍👦";
-        let result = parse(text, &config, false);
+        let result = parse(text, config, false);
 
         assert_eq!(
             result.weighted_length, 16,
             "Mixed single/double byte Unicode and emoji family counting is incorrect"
         );
-        assert_eq!(result.is_valid, true);
+        assert!(result.is_valid);
         assert_eq!(result.permillage, 57);
     }
 
@@ -145,13 +145,13 @@ mod tests {
         // Expected weighted_length: 9
         let config = twitter_text_config::config_v2();
         let text = "🙋🏽👨‍🎤";
-        let result = parse(text, &config, false);
+        let result = parse(text, config, false);
 
         assert_eq!(
             result.weighted_length, 9,
             "Emoji with skin tone modifiers counting is incorrect"
         );
-        assert_eq!(result.is_valid, true);
+        assert!(result.is_valid);
         assert_eq!(result.permillage, 32);
     }
 
@@ -162,13 +162,13 @@ mod tests {
         // With v3 config, emoji families are counted as single units
         let config = twitter_text_config::config_v3();
         let text = "H🐱☺👨‍👩‍👧‍👦";
-        let result = parse(text, &config, false);
+        let result = parse(text, config, false);
 
         assert_eq!(
             result.weighted_length, 7,
             "V3: Mixed single/double byte Unicode and emoji family counting is incorrect"
         );
-        assert_eq!(result.is_valid, true);
+        assert!(result.is_valid);
         assert_eq!(result.permillage, 25);
     }
 
@@ -179,13 +179,13 @@ mod tests {
         // With v3 config, emojis with modifiers are counted as single units
         let config = twitter_text_config::config_v3();
         let text = "🙋🏽👨‍🎤";
-        let result = parse(text, &config, false);
+        let result = parse(text, config, false);
 
         assert_eq!(
             result.weighted_length, 4,
             "V3: Emoji with skin tone modifiers counting is incorrect"
         );
-        assert_eq!(result.is_valid, true);
+        assert!(result.is_valid);
         assert_eq!(result.permillage, 14);
     }
 }

@@ -22,6 +22,12 @@ pub struct Validator {
     parser_backend: ParserBackend,
 }
 
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Validator {
     pub fn new() -> Validator {
         Validator::with_config(twitter_text_config::config_v1().clone())

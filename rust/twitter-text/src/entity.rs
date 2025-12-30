@@ -33,16 +33,16 @@ impl<'a> Entity<'a> {
         self.end
     }
     pub fn get_value(&self) -> &str {
-        &self.value
+        self.value
     }
     pub fn get_list_slug(&self) -> &'a str {
-        &self.list_slug
+        self.list_slug
     }
     pub fn get_display_url(&self) -> &'a str {
-        &self.display_url
+        self.display_url
     }
     pub fn get_expanded_url(&self) -> &'a str {
-        &self.expanded_url
+        self.expanded_url
     }
 
     pub fn new(t: Type, value: &'a str, start: i32, end: i32) -> Entity<'a> {
