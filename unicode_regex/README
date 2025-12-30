@@ -1,3 +1,6 @@
+This is only used by the non-Rust code.
+
+
 Why manually generate regex groups for unicode char classes?
 
 Even though there are unicode regex groups like \p{L} (all unicode letters) \p{M} (all unicode marks), and \p{Nd} (unicode decimal digits), the exact set they represent is inconsistent between languages and versions. And JavaScript doesn't support these groups at all. Event if JavaScript did, it doesn't support the astral ranges without resorting to using RegEx groupings because its regex engine uses UCS-2 rather than UTF-16 encoding.
