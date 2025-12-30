@@ -57,8 +57,8 @@ pub struct Configuration {
     pub emoji_parsing_enabled: bool,
 }
 
-impl Configuration {
-    pub fn default() -> Configuration {
+impl Default for Configuration {
+    fn default() -> Configuration {
         Configuration {
             version: DEFAULT_VERSION,
             max_weighted_tweet_length: DEFAULT_WEIGHTED_LENGTH,
@@ -69,7 +69,9 @@ impl Configuration {
             emoji_parsing_enabled: true,
         }
     }
+}
 
+impl Configuration {
     fn default_ranges() -> Vec<WeightedRange> {
         vec![
             WeightedRange::new(0, 4351, 100),
@@ -88,7 +90,7 @@ impl Configuration {
     }
 
     pub fn configuration_from_json(json: &str) -> Configuration {
-        serde_json::from_str(&json).expect("Error parsing json")
+        serde_json::from_str(json).expect("Error parsing json")
     }
 }
 
@@ -181,7 +183,7 @@ impl<'de> Deserialize<'de> for WeightedRange {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["start", "end", "weight"];
+        const FIELDS: &[&str] = &["start", "end", "weight"];
         deserializer.deserialize_struct("WeightedRange", FIELDS, WeightedRangeVisitor)
     }
 }
@@ -221,7 +223,7 @@ impl Ord for Range {
         } else if self.start == other.start {
             if self.end < other.end {
                 Ordering::Less
-            } else if self.end < other.end {
+            } else if self.end == other.end {
                 Ordering::Equal
             } else {
                 Ordering::Greater
