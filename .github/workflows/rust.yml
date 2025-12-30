@@ -8,7 +8,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_BUILD_RUSTFLAGS: ""
 
 jobs:
   fmt:
@@ -19,6 +18,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
+      - name: Remove Bazel cargo config
+        run: rm -f .cargo/config.toml
       - name: Check formatting
         run: cargo fmt --all --manifest-path rust/twitter-text/Cargo.toml -- --check
 
@@ -30,5 +31,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+      - name: Remove Bazel cargo config
+        run: rm -f .cargo/config.toml
       - name: Run Clippy
         run: cargo clippy --all-targets --manifest-path rust/twitter-text/Cargo.toml -- -D warnings
