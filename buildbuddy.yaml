@@ -1,22 +1,23 @@
 actions:
-    - name: "Test all targets"
-      triggers:
-          push:
-              branches:
-                  - "main"
-          pull_request:
-              branches:
-                  - "*"
-      container_image: "ubuntu-24.04"
-      resource_requests:
-          disk: "50GB"
-      steps:
-          - run: |
-                bazel test --config=ci-linux //rust/twitter-text/... \
-                //rust/ffi-bindings/... \
-                //rust/python-bindings/... \
-                //rust/cpp-bindings/... \
-                //rust/cpp-sanitizer-bindings/... \
-                //rust/java-bindings/... \
-                //rust/swift-bindings/... \
-                //rust/wasm-bindings/...
+  - name: "Test all targets"
+    triggers:
+      push:
+        branches:
+          - "main"
+      pull_request:
+        branches:
+          - "*"
+    container_image: "ubuntu-24.04"
+    resource_requests:
+      disk: "50GB"
+    steps:
+      - run: |
+          bazel test --config=ci-linux //rust/twitter-text/... \
+          //rust/conformance/... \
+          //rust/ffi-bindings/... \
+          //rust/python-bindings/... \
+          //rust/cpp-bindings/... \
+          //rust/cpp-sanitizer-bindings/... \
+          //rust/java-bindings/... \
+          //rust/swift-bindings/... \
+          //rust/wasm-bindings/...
