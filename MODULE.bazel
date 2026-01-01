@@ -8,12 +8,10 @@ ruby_version_check = use_repo_rule("//tools:ruby_version_check.bzl", "ruby_versi
 
 ruby_version_check(name = "ruby_version_check")
 
-#local_path_override(
-#    module_name = "rules_swift",
-#    path = "../rules_swift",  # adjust path as needed
-#)
+###############################################################################
+# Bazel Dependencies
+###############################################################################
 
-# -- bazel_dep definitions -- #
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_rust", version = "0.67.0")
@@ -41,7 +39,7 @@ bazel_dep(name = "rules_swift", version = "3.3.0")
 # Fix a bug in rules_swift with hermetic toolchains
 single_version_override(
     module_name = "rules_swift",
-    patch_strip = 1,  # Adjust strip value if needed
+    patch_strip = 1,
     patches = ["//patches:rules_swift.patch"],
     version = "3.3.0",
 )
@@ -58,10 +56,12 @@ single_version_override(
 bazel_dep(name = "aspect_rules_js", version = "2.3.7")
 bazel_dep(name = "rules_nodejs", version = "6.3.4")
 
-# Java toolchains
+###############################################################################
+# Java Toolchains and Maven Dependencies
+###############################################################################
+
 java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 
-# Maven dependencies for Java tests
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     artifacts = [
@@ -81,10 +81,9 @@ use_repo(maven, "maven")
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 ###############################################################################
-# C libraries for Ruby
+# C Libraries for Ruby
 ###############################################################################
 
-# libyaml for psych extension
 http_archive(
     name = "libyaml",
     build_file_content = """
@@ -101,7 +100,6 @@ cc_library(
     urls = ["https://github.com/yaml/libyaml/archive/refs/tags/0.2.5.tar.gz"],
 )
 
-# zlib for zlib extension
 http_archive(
     name = "zlib",
     build_file_content = """
@@ -118,7 +116,6 @@ cc_library(
     urls = ["https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"],
 )
 
-# readline for readline extension
 http_archive(
     name = "readline",
     build_file_content = """
@@ -137,7 +134,7 @@ cc_library(
 )
 
 ###############################################################################
-# Swift toolchains
+# Swift Toolchains
 ###############################################################################
 
 http_archive(
@@ -150,13 +147,11 @@ filegroup(
     srcs = glob(["usr/**/*"]),
 )
 
-# Runtime libraries needed at execution time
 filegroup(
     name = "runtime_libs",
     srcs = glob(["usr/lib/swift/linux/*.so"]),
 )
 
-# Create a version file for the toolchain
 genrule(
     name = "version_file",
     outs = ["swift_version.txt"],
@@ -181,13 +176,11 @@ filegroup(
     srcs = glob(["usr/**/*"]),
 )
 
-# Runtime libraries needed at execution time
 filegroup(
     name = "runtime_libs",
     srcs = glob(["usr/lib/swift/linux/*.so"]),
 )
 
-# Create a version file for the toolchain
 genrule(
     name = "version_file",
     outs = ["swift_version.txt"],
@@ -202,14 +195,12 @@ exports_files(glob(["usr/**/*"]))
     urls = ["https://download.swift.org/swift-6.0.3-release/ubuntu2204-aarch64/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu22.04-aarch64.tar.gz"],
 )
 
-# Hermetic Swift toolchains for Linux
 register_toolchains("//tools/swift:hermetic_swift_linux_x86_64_toolchain")
 
 ###############################################################################
-# Hermetic LLVM wrapper
+# Hermetic LLVM Toolchain
 ###############################################################################
 
-# Chromium sysroot for Linux x86_64 (includes libzstd and other system libs)
 http_archive(
     name = "linux_sysroot",
     build_file_content = """
@@ -225,12 +216,10 @@ filegroup(
 
 bazel_dep(name = "toolchains_llvm", version = "1.6.0")
 
-# Configure and register the toolchain.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
     cxx_builtin_include_directories = {
         "": [
-            # BuildBuddy remote execution paths
             "/usr/include",
             "/usr/local/include",
         ],
@@ -240,7 +229,6 @@ llvm.toolchain(
     strip_prefix = {
         "": "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04",
     },
-    # Use empty key for remote execution compatibility
     urls = {
         "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"],
     },
@@ -253,19 +241,17 @@ use_repo(llvm, "llvm_toolchain")
 use_repo(llvm, "llvm_toolchain_llvm")
 
 # Register Apple CC toolchain first so it takes precedence on macOS
-# (toolchains are matched in registration order)
 register_toolchains("@local_config_apple_cc_toolchains//:all")
 
-# LLVM last (hermetic)
 register_toolchains("@llvm_toolchain//:all")
 
 ###############################################################################
-# Rust toolchains from rules_rust (0.67.0)
+# Rust Toolchains
 ###############################################################################
 
 RUST_EDITION = "2021"
 
-RUST_VERSION = "1.91.1"  # as you had
+RUST_VERSION = "1.91.1"
 
 rust_ext = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust_ext.toolchain(
@@ -275,12 +261,12 @@ rust_ext.toolchain(
 )
 use_repo(rust_ext, "rust_toolchains")
 
-# This registers the standard rules_rust toolchains (rustc, cargo, etc.)
 register_toolchains("@rust_toolchains//:all")
 
 ###############################################################################
-# Python for PyO3
+# Python Toolchain (for PyO3)
 ###############################################################################
+
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     python_version = "3.12",
@@ -289,7 +275,6 @@ use_repo(python, "python_3_12", "python_versions")
 
 register_toolchains("@python_3_12//:all")
 
-# Python dependencies for tld_gen.py
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip.parse(
     hub_name = "tld_gen_deps",
@@ -304,8 +289,9 @@ pip.parse(
 use_repo(pip, "rust_python_test_deps", "tld_gen_deps")
 
 ###############################################################################
-# Ruby for Magnus
+# Ruby Toolchain (for Magnus)
 ###############################################################################
+
 ruby = use_extension("@rules_ruby//ruby:extensions.bzl", "ruby")
 ruby.toolchain(
     name = "ruby",
@@ -330,8 +316,9 @@ use_repo(ruby, "bundle", "ruby", "ruby_toolchains")
 register_toolchains("@ruby_toolchains//:all")
 
 ###############################################################################
-# R U S T  C R A T E S
+# Rust Crates
 ###############################################################################
+
 deps = use_extension("//:extensions.bzl", "rust_deps")
 use_repo(
     deps,
@@ -363,9 +350,9 @@ use_repo(
     "twitter_text__wasm-bindgen-0.2.100",
 )
 
-#
-# The codegen tool needed by cxx.
-#
+###############################################################################
+# cxxbridge-cmd (codegen tool for cxx.rs)
+###############################################################################
 
 CXX_BRIDGE_VERSION = "1.0.190"
 
@@ -410,7 +397,7 @@ use_repo(
 )
 
 ###############################################################################
-# C++
+# C++ (yaml-cpp)
 ###############################################################################
 
 http_archive(
@@ -423,12 +410,10 @@ http_archive(
 )
 
 ###############################################################################
-# Java
+# Java (JDK 23 and jextract)
 ###############################################################################
 
 jdk23_ext = use_extension("//tools:jdk23_and_jextract.bzl", "jdk23_ext")
-
-# --- Hermetic JDK 23.0.2 ------------------------------
 
 jdk23_ext.add_jdk(
     name = "jdk23_macos_arm64",
@@ -461,14 +446,11 @@ jdk23_ext.add_jdk(
     ],
 )
 
-# --- Hermetic jextract --------------------------------
-# Using jextract 25 EA build 2 (current stable Project Panama EA drop)
-
 jdk23_ext.add_jextract(
     name = "jextract_macos_arm64",
     cpu = "arm64",
     os = "macos",
-    sha256 = "",  # TODO: Add checksum
+    sha256 = "",
     strip_prefix = "jextract-25",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_macos-aarch64_bin.tar.gz",
@@ -478,7 +460,7 @@ jdk23_ext.add_jextract(
     name = "jextract_linux_x86_64",
     cpu = "x86_64",
     os = "linux",
-    sha256 = "",  # TODO: Add checksum
+    sha256 = "",
     strip_prefix = "jextract-25",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-x64_bin.tar.gz",
@@ -488,7 +470,7 @@ jdk23_ext.add_jextract(
     name = "jextract_linux_arm64",
     cpu = "arm64",
     os = "linux",
-    sha256 = "",  # TODO: Add checksum
+    sha256 = "",
     strip_prefix = "jextract-25",
     urls = [
         "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-aarch64_bin.tar.gz",
@@ -508,8 +490,9 @@ use_repo(
 register_toolchains("@jdk23_toolchains//:all")
 
 ###############################################################################
-# Node.js for WASM tests
+# Node.js (for WASM tests)
 ###############################################################################
+
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
 node.toolchain(
     name = "nodejs",
