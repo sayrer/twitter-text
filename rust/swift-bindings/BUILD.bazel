@@ -44,7 +44,7 @@ _TEST_DATA = [
     "//conformance:hit_highlighting.yml",
     "//conformance:tlds.yml",
     "//conformance:validate.yml",
-    "//rust/conformance:tests/unicode11-emoji-test.txt",
+    "//rust/conformance:tests/unicode17-emoji-test.txt",
 ]
 
 _TEST_DEPS = [

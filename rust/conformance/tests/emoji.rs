@@ -14,7 +14,7 @@ use twitter_text_parser::twitter_text::full_pest::TwitterTextFullPestParser;
 use twitter_text_parser::twitter_text::Rule;
 use twitter_text_parser::twitter_text::TwitterTextParser;
 
-const EMOJI_TXT: &str = include_str!("unicode16-emoji-test.txt");
+const EMOJI_TXT: &str = include_str!("unicode17-emoji-test.txt");
 
 fn build_emoji_strings() -> Vec<String> {
     let f = io::BufReader::new(EMOJI_TXT.as_bytes());

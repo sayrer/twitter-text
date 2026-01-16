@@ -2832,7 +2832,7 @@
     },
     "@@rules_rust+//crate_universe:extensions.bzl%crate": {
       "general": {
-        "bzlTransitiveDigest": "E8CDKpy1kspLVab7d0Uyvll8doVznOl8Bc8L2Np3xw8=",
+        "bzlTransitiveDigest": "H66AMp08daYJjoS3x2drCb97sm8Zkn4RTc2MJMm655g=",
         "usagesDigest": "7QTThtUDcroHuIP7YGR6scF2yVSY8foQKPPk6MJNNDw=",
         "recordedFileInputs": {
           "@@+_repo_rules2+cxxbridge-cmd//Cargo.toml": "e1ea8d7de8a76a9f8534902c3feee69bf09981dfab9a7b1ca18e5380631bc4d1",

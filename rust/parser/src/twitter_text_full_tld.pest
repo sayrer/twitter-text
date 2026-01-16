@@ -337,7 +337,7 @@ man_or_woman_with_optional_skin_tone_and_modifier = _{
     ((("\u{2695}" | "\u{2696}" | "\u{2708}") ~ "\u{fe0f}"?) |
      ("\u{1f33e}" | "\u{1f373}" | "\u{1f37c}" | "\u{1f384}" | "\u{1f393}" | "\u{1f3a4}" | "\u{1f3a8}" |
       "\u{1f3eb}" | "\u{1f3ed}" | "\u{1f4bb}" | "\u{1f4bc}" | "\u{1f527}" | "\u{1f52c}" | "\u{1f680}" |
-      "\u{1f692}" | '\u{1f9b0}'..'\u{1f9b3}' | "\u{1f9af}" | "\u{1f9bc}" | "\u{1f9bd}" |
+      "\u{1f692}" | '\u{1f9b0}'..'\u{1f9b3}' | "\u{1f9af}" | "\u{1f9bc}" | "\u{1f9bd}" | "\u{1fa70}" |
       "\u{2764}" ~ "\u{fe0f}"? ~ zwj ~ "\u{1f48b}" ~ zwj ~ "\u{1f9d1}")
     )
 }
@@ -358,6 +358,10 @@ couple_sequences = _{
     ((man_or_woman | "\u{1f9d1}") ~ skin_tone? ~ zwj ~ "\u{2764}" ~ "\u{fe0f}"? ~ zwj ~ (man_or_woman | "\u{1f9d1}") ~ skin_tone?) |
     // People holding hands
     ((man_or_woman | "\u{1f9d1}") ~ skin_tone? ~ zwj ~ "\u{1f91d}" ~ zwj ~ (man_or_woman | "\u{1f9d1}") ~ skin_tone?) |
+    // People with bunny ears (Unicode 17.0): person + skin? + ZWJ + rabbit + ZWJ + person + skin?
+    ((man_or_woman | "\u{1f9d1}") ~ skin_tone? ~ zwj ~ "\u{1f430}" ~ zwj ~ (man_or_woman | "\u{1f9d1}") ~ skin_tone?) |
+    // People gardening (Unicode 17.0): person + skin? + ZWJ + shovel + ZWJ + person + skin?
+    ((man_or_woman | "\u{1f9d1}") ~ skin_tone? ~ zwj ~ "\u{1faef}" ~ zwj ~ (man_or_woman | "\u{1f9d1}") ~ skin_tone?) |
     // Family: person + ZWJ + person + ZWJ + child (+ ZWJ + child)?
     ("\u{1f9d1}" ~ zwj ~ "\u{1f9d1}" ~ zwj ~ "\u{1f9d2}" ~ (zwj ~ "\u{1f9d2}")?) |
     // Parent + child(ren)
@@ -401,10 +405,10 @@ person_directional_sequences = _{
 }
 
 person_with_optional_skin_tone_and_trailing_mf_symbol = _{
-    ("\u{1f3c3}" | "\u{1f3c4}" | "\u{1f3ca}" | "\u{1f46e}" | "\u{1f470}" | "\u{1f471}" | "\u{1f473}" | "\u{1f477}" |
+    ("\u{1f3c3}" | "\u{1f3c4}" | "\u{1f3ca}" | "\u{1f46e}" | "\u{1f46f}" | "\u{1f470}" | "\u{1f471}" | "\u{1f473}" | "\u{1f477}" |
      "\u{1f481}" | "\u{1f482}" | "\u{1f486}" | "\u{1f487}" | '\u{1f645}'..'\u{1f647}'  | "\u{1f64b}" |
      "\u{1f64d}" | "\u{1f64e}" | "\u{1f6a3}" | '\u{1f6b4}'..'\u{1f6b6}'  | "\u{1f926}" | "\u{1f935}" | "\u{1f936}" |
-     '\u{1f937}'..'\u{1f939}'  | "\u{1f93d}" | "\u{1f93e}" | "\u{1f9b8}" | "\u{1f9b9}" |
+     '\u{1f937}'..'\u{1f939}'  | "\u{1f93c}" | "\u{1f93d}" | "\u{1f93e}" | "\u{1f9b8}" | "\u{1f9b9}" |
      '\u{1f9cd}'..'\u{1f9cf}' | '\u{1f9d4}'..'\u{1f9dd}') ~ skin_tone? ~ trailing_mf_symbol
 }
 
@@ -504,10 +508,10 @@ diversity_emoji_with_optional_skin_tone = _{
       "\u{1f47c}" | '\u{1f481}'..'\u{1f483}' | '\u{1f485}'..'\u{1f487}' | "\u{1f4aa}" | "\u{1f57a}" | "\u{1f595}" |
       "\u{1f596}" | '\u{1f645}'..'\u{1f647}' | '\u{1f64b}'..'\u{1f64f}' | "\u{1f6a3}" | '\u{1f6b4}'..'\u{1f6b6}' |
       "\u{1f6c0}" | "\u{1f6cc}" | '\u{1f90c}'..'\u{1f90f}' | '\u{1f918}'..'\u{1f91f}' | "\u{1f926}" |
-      '\u{1f930}'..'\u{1f939}' | "\u{1f93d}" | "\u{1f93e}" | "\u{1f977}" | "\u{1f9b5}" | "\u{1f9b6}" | "\u{1f9b8}" | "\u{1f9b9}" |
+      '\u{1f930}'..'\u{1f939}' | "\u{1f93c}" | "\u{1f93d}" | "\u{1f93e}" | "\u{1f977}" | "\u{1f9b5}" | "\u{1f9b6}" | "\u{1f9b8}" | "\u{1f9b9}" |
       '\u{1f9bb}'..'\u{1f9bf}' | '\u{1f9cd}'..'\u{1f9cf}' | '\u{1f9d1}'..'\u{1f9dd}' |
       '\u{1fac3}'..'\u{1fac5}' | '\u{1faf0}'..'\u{1faf8}' |
-      '\u{1f46b}'..'\u{1f46d}')) ~ skin_tone?
+      '\u{1f46b}'..'\u{1f46d}' | "\u{1f46f}")) ~ skin_tone?
 }
 
 flags_and_regular_emoji = _{
@@ -559,8 +563,8 @@ flags_and_regular_emoji = _{
       '\u{1f47d}'..'\u{1f480}' | "\u{1f484}" | '\u{1f488}'..'\u{1f4a9}' | '\u{1f4ab}'..'\u{1f4fc}' |
       '\u{1f4ff}'..'\u{1f53d}' | '\u{1f54b}'..'\u{1f54e}' | '\u{1f550}'..'\u{1f567}' | "\u{1f5a4}" |
       '\u{1f5fb}'..'\u{1f644}' | '\u{1f648}'..'\u{1f64a}' | '\u{1f680}'..'\u{1f6a2}' | '\u{1f6a4}'..'\u{1f6b3}' |
-      '\u{1f6b7}'..'\u{1f6bf}' | '\u{1f6c1}'..'\u{1f6c5}' | '\u{1f6d0}'..'\u{1f6d2}' | '\u{1f6d5}'..'\u{1f6d7}' |
-      '\u{1f6dc}'..'\u{1f6df}' | "\u{1f6eb}" | "\u{1f6ec}" |
+      '\u{1f6b7}'..'\u{1f6bf}' | '\u{1f6c1}'..'\u{1f6c5}' | '\u{1f6d0}'..'\u{1f6d2}' | '\u{1f6d5}'..'\u{1f6df}' |
+      "\u{1f6eb}" | "\u{1f6ec}" |
       '\u{1f6f4}'..'\u{1f6fc}' | '\u{1f7e0}'..'\u{1f7eb}' | "\u{1f7f0}" |
       '\u{1f90c}'..'\u{1f90f}' | '\u{1f910}'..'\u{1f917}' | "\u{1f91d}" | '\u{1f920}'..'\u{1f925}' |
       '\u{1f927}'..'\u{1f92f}' | "\u{1f93a}" | "\u{1f93c}" | '\u{1f93f}'..'\u{1f945}' | '\u{1f947}'..'\u{1f970}' |
@@ -568,8 +572,8 @@ flags_and_regular_emoji = _{
       '\u{1f97c}'..'\u{1f9a2}' | '\u{1f9a3}'..'\u{1f9af}' | '\u{1f9b0}'..'\u{1f9b4}' | "\u{1f9b7}" |
       '\u{1f9ba}'..'\u{1f9bf}' | '\u{1f9c0}'..'\u{1f9c2}' | '\u{1f9c3}'..'\u{1f9cf}' | "\u{1f9d0}" |
       '\u{1f9de}'..'\u{1f9ff}' |
-      '\u{1fa70}'..'\u{1fa7c}' | '\u{1fa80}'..'\u{1fa89}' | '\u{1fa8f}'..'\u{1fac2}' | "\u{1fac6}" |
-      '\u{1face}'..'\u{1fadc}' | '\u{1fadf}'..'\u{1fae9}') |
+      '\u{1fa70}'..'\u{1fa7c}' | '\u{1fa80}'..'\u{1fac8}' |
+      '\u{1facd}'..'\u{1fadc}' | '\u{1fadf}'..'\u{1faef}') |
      "\u{fe0f}"
 }
 
