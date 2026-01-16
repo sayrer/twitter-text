@@ -3053,4 +3053,108 @@ mod debug_tests {
             "Plain star should be valid via is_valid_emoji"
         );
     }
+
+    #[test]
+    fn test_invalid_tld_not_extracted() {
+        // URLs with invalid TLDs like ".sayrer" should NOT be extracted
+        // URLs with valid TLDs like ".co.jp" SHOULD be extracted
+        let extractor = Extractor::new();
+
+        // Invalid TLD ".sayrer" - should NOT be extracted
+        let urls = extractor.extract_urls("http://example.sayrer");
+        assert!(
+            urls.is_empty(),
+            "http://example.sayrer should NOT be extracted (invalid TLD .sayrer)"
+        );
+
+        let urls = extractor.extract_urls("https://example.sayrer");
+        assert!(
+            urls.is_empty(),
+            "https://example.sayrer should NOT be extracted (invalid TLD .sayrer)"
+        );
+
+        let urls = extractor.extract_urls("example.sayrer");
+        assert!(
+            urls.is_empty(),
+            "example.sayrer should NOT be extracted (invalid TLD .sayrer)"
+        );
+
+        // Valid TLD ".co.jp" - SHOULD be extracted
+        let urls = extractor.extract_urls("http://example.co.jp");
+        assert_eq!(
+            urls,
+            vec!["http://example.co.jp"],
+            "http://example.co.jp SHOULD be extracted (valid TLD .jp)"
+        );
+
+        let urls = extractor.extract_urls("https://example.co.jp");
+        assert_eq!(
+            urls,
+            vec!["https://example.co.jp"],
+            "https://example.co.jp SHOULD be extracted (valid TLD .jp)"
+        );
+
+        let urls = extractor.extract_urls("example.co.jp");
+        assert_eq!(
+            urls,
+            vec!["example.co.jp"],
+            "example.co.jp SHOULD be extracted (valid TLD .jp)"
+        );
+
+        // Test all backends produce the same results
+        for backend in [
+            ParserBackend::Nom,
+            ParserBackend::External,
+            ParserBackend::Pest,
+        ] {
+            let extractor = Extractor::with_parser_backend(backend);
+
+            // Invalid TLD
+            let urls = extractor.extract_urls("http://example.sayrer");
+            assert!(
+                urls.is_empty(),
+                "{:?}: http://example.sayrer should NOT be extracted",
+                backend
+            );
+
+            let urls = extractor.extract_urls("https://example.sayrer");
+            assert!(
+                urls.is_empty(),
+                "{:?}: https://example.sayrer should NOT be extracted",
+                backend
+            );
+
+            let urls = extractor.extract_urls("example.sayrer");
+            assert!(
+                urls.is_empty(),
+                "{:?}: example.sayrer should NOT be extracted",
+                backend
+            );
+
+            // Valid TLD
+            let urls = extractor.extract_urls("http://example.co.jp");
+            assert_eq!(
+                urls,
+                vec!["http://example.co.jp"],
+                "{:?}: http://example.co.jp SHOULD be extracted",
+                backend
+            );
+
+            let urls = extractor.extract_urls("https://example.co.jp");
+            assert_eq!(
+                urls,
+                vec!["https://example.co.jp"],
+                "{:?}: https://example.co.jp SHOULD be extracted",
+                backend
+            );
+
+            let urls = extractor.extract_urls("example.co.jp");
+            assert_eq!(
+                urls,
+                vec!["example.co.jp"],
+                "{:?}: example.co.jp SHOULD be extracted",
+                backend
+            );
+        }
+    }
 }
