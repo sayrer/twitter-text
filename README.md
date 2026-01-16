@@ -67,6 +67,7 @@ bazel build //rust/wasm-bindings:twitter_text_wasm
 ### Core Components
 
 - **PEG Grammar Parser** (`rust/parser/`): Pest grammar for parsing tweet entities
+- **Nom Parser** (`rust/twitter-text/src/nom_parser/`): High performance parser using [Nom](https://docs.rs/nom/latest/nom/), tested against the PEG grammar for correctness
 - **Main Library** (`rust/twitter-text/`): Extraction, validation, autolinking, and highlighting
 - **Configuration** (`rust/config/`): Character weights and URL length settings
 - **Conformance Tests** (`rust/conformance/`): Tests against canonical twitter-text test suites
