@@ -82,6 +82,8 @@ The grammar processes entities in this order to resolve ambiguities:
 
 ## Dependencies
 
+Most of these are downloaded by Bazel. These dependencies are listed to explain which versions they are implemented in. A notable exception are the Ruby dependencies, because they are not fully managed by Bazel.
+
 - **Rust**: 1.91.1+
 - **Bazel**: 8.4.2+ (for full build)
 - **Ruby**: 3.3+ (requires libyaml: `brew install libyaml` on macOS)
