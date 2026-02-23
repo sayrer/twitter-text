@@ -27,55 +27,19 @@ fn is_invalid_tld_suffix(c: char) -> bool {
         || c == '-'
 }
 
-/// Parse the http:// or https:// protocol prefix using direct byte scanning.
+/// Parse the http:// or https:// protocol prefix.
 fn protocol(input: &str) -> IResult<&str, &str> {
     let bytes = input.as_bytes();
-
-    // Check for "http" (case insensitive)
-    if bytes.len() < 7 {
-        return Err(nom::Err::Error(nom::error::Error::new(
-            input,
-            nom::error::ErrorKind::Tag,
-        )));
-    }
-
-    let h = bytes[0];
-    let t = bytes[1];
-    let t2 = bytes[2];
-    let p = bytes[3];
-
-    if !((h == b'h' || h == b'H')
-        && (t == b't' || t == b'T')
-        && (t2 == b't' || t2 == b'T')
-        && (p == b'p' || p == b'P'))
-    {
-        return Err(nom::Err::Error(nom::error::Error::new(
-            input,
-            nom::error::ErrorKind::Tag,
-        )));
-    }
-
-    // Check for optional 's' and "://"
-    let (proto_len, remaining_start) = if bytes[4] == b's' || bytes[4] == b'S' {
-        // https://
-        if bytes.len() < 8 || bytes[5] != b':' || bytes[6] != b'/' || bytes[7] != b'/' {
-            return Err(nom::Err::Error(nom::error::Error::new(
-                input,
-                nom::error::ErrorKind::Tag,
-            )));
-        }
-        (8, 8)
-    } else if bytes[4] == b':' && bytes.len() >= 7 && bytes[5] == b'/' && bytes[6] == b'/' {
-        // http://
-        (7, 7)
+    if bytes.len() >= 8 && bytes[..8].eq_ignore_ascii_case(b"https://") {
+        Ok((&input[8..], &input[..8]))
+    } else if bytes.len() >= 7 && bytes[..7].eq_ignore_ascii_case(b"http://") {
+        Ok((&input[7..], &input[..7]))
     } else {
-        return Err(nom::Err::Error(nom::error::Error::new(
+        Err(nom::Err::Error(nom::error::Error::new(
             input,
             nom::error::ErrorKind::Tag,
-        )));
-    };
-
-    Ok((&input[remaining_start..], &input[..proto_len]))
+        )))
+    }
 }
 
 /// Check if a character is a Latin accent character.
@@ -125,27 +89,12 @@ fn is_uwp_domain_char(c: char) -> bool {
     c.is_ascii_alphanumeric() || is_latin_accent(c)
 }
 
-/// Match a punycode domain segment (xn--...) using direct byte scanning.
+/// Match a punycode domain segment (xn--...).
 /// Punycode labels start with "xn--" (case insensitive) followed by alphanumerics and hyphens.
 fn punycode_segment(input: &str) -> IResult<&str, &str> {
     let bytes = input.as_bytes();
 
-    // Check for "xn--" prefix (case insensitive)
-    if bytes.len() < 5 {
-        return Err(nom::Err::Error(nom::error::Error::new(
-            input,
-            nom::error::ErrorKind::Tag,
-        )));
-    }
-
-    let x = bytes[0];
-    let n = bytes[1];
-
-    if !((x == b'x' || x == b'X')
-        && (n == b'n' || n == b'N')
-        && bytes[2] == b'-'
-        && bytes[3] == b'-')
-    {
+    if bytes.len() < 5 || !bytes[..4].eq_ignore_ascii_case(b"xn--") {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
             nom::error::ErrorKind::Tag,
