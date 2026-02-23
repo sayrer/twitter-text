@@ -8,21 +8,15 @@ use crate::extractor::{Extract, Extractor, ParserBackend};
 use std::borrow::Cow;
 
 /// Get the character at a given UTF-16 offset in a string.
-/// Panics if the offset is out of bounds or doesn't align with a character boundary.
-fn char_at_utf16_offset(text: &str, utf16_offset: i32) -> char {
+fn char_at_utf16_offset(text: &str, utf16_offset: i32) -> Option<char> {
     let mut current_utf16 = 0i32;
     for c in text.chars() {
         if current_utf16 == utf16_offset {
-            return c;
+            return Some(c);
         }
         current_utf16 += c.len_utf16() as i32;
     }
-    panic!(
-        "UTF-16 offset {} not found in text of length {} (UTF-16 length {})",
-        utf16_offset,
-        text.len(),
-        current_utf16
-    );
+    None
 }
 
 type Attributes = Vec<(String, String)>;
@@ -270,7 +264,7 @@ impl<'a> Autolinker<'a> {
     }
 
     fn link_to_hashtag(&self, entity: &Entity, text: &str, buf: &mut String) {
-        let hash_char = char_at_utf16_offset(text, entity.get_start());
+        let hash_char = char_at_utf16_offset(text, entity.get_start()).unwrap_or('#');
         let hashtag = entity.get_value();
         let mut attrs: Attributes = Vec::new();
         attrs.push((HREF.to_string(), self.hashtag_url_base.to_owned() + hashtag));
@@ -297,7 +291,7 @@ impl<'a> Autolinker<'a> {
 
     fn link_to_mention_and_list(&self, entity: &Entity, text: &str, buf: &mut String) {
         let mut mention = String::from(entity.get_value());
-        let at_char = char_at_utf16_offset(text, entity.get_start());
+        let at_char = char_at_utf16_offset(text, entity.get_start()).unwrap_or('@');
         let mut attrs: Attributes = Vec::new();
 
         if entity.get_type() == entity::Type::MENTION && !entity.get_list_slug().is_empty() {
@@ -416,6 +410,9 @@ impl<'a> Autolinker<'a> {
 
         let mut attrs: Attributes = Vec::new();
         attrs.push((HREF.to_string(), String::from(url)));
+        if !entity.get_expanded_url().is_empty() {
+            attrs.push((TITLE.to_string(), String::from(entity.get_expanded_url())));
+        }
         if !self.url_class.is_empty() {
             attrs.push((CLASS.to_string(), String::from(self.url_class)));
         }
@@ -830,22 +827,23 @@ mod tests {
     #[test]
     fn test_char_at_utf16_offset() {
         // ASCII text - UTF-16 offset equals char index
-        assert_eq!(char_at_utf16_offset("hello", 0), 'h');
-        assert_eq!(char_at_utf16_offset("hello", 4), 'o');
+        assert_eq!(char_at_utf16_offset("hello", 0), Some('h'));
+        assert_eq!(char_at_utf16_offset("hello", 4), Some('o'));
+        assert_eq!(char_at_utf16_offset("hello", 99), None);
 
         // Emoji at start (🔥 is U+1F525, takes 2 UTF-16 code units)
         let text = "🔥hello";
-        assert_eq!(char_at_utf16_offset(text, 0), '🔥');
-        assert_eq!(char_at_utf16_offset(text, 2), 'h'); // After emoji (2 UTF-16 units)
-        assert_eq!(char_at_utf16_offset(text, 3), 'e');
+        assert_eq!(char_at_utf16_offset(text, 0), Some('🔥'));
+        assert_eq!(char_at_utf16_offset(text, 2), Some('h')); // After emoji (2 UTF-16 units)
+        assert_eq!(char_at_utf16_offset(text, 3), Some('e'));
 
         // Multiple emoji
         let text = "🔥🔥🔥 @test";
-        assert_eq!(char_at_utf16_offset(text, 0), '🔥');
-        assert_eq!(char_at_utf16_offset(text, 2), '🔥');
-        assert_eq!(char_at_utf16_offset(text, 4), '🔥');
-        assert_eq!(char_at_utf16_offset(text, 6), ' ');
-        assert_eq!(char_at_utf16_offset(text, 7), '@');
+        assert_eq!(char_at_utf16_offset(text, 0), Some('🔥'));
+        assert_eq!(char_at_utf16_offset(text, 2), Some('🔥'));
+        assert_eq!(char_at_utf16_offset(text, 4), Some('🔥'));
+        assert_eq!(char_at_utf16_offset(text, 6), Some(' '));
+        assert_eq!(char_at_utf16_offset(text, 7), Some('@'));
     }
 
     #[test]

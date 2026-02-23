@@ -53,6 +53,19 @@ impl Validator {
         }
     }
 
+    pub fn with_config_and_parser_backend(
+        config: twitter_text_config::Configuration,
+        parser_backend: ParserBackend,
+    ) -> Validator {
+        Validator {
+            short_url_length: 23,
+            short_url_length_https: 23,
+            config,
+            extractor: Extractor::new(),
+            parser_backend,
+        }
+    }
+
     pub fn is_valid_tweet(&self, s: &str) -> bool {
         parse_with_parser_backend(s, &self.config, false, self.parser_backend).is_valid
     }

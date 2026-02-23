@@ -12,13 +12,12 @@ public:
     config(config)
   {}
 
-  // TODO: these are fallible, so the return type should change
-  static TwitterTextConfiguration* configurationFromPath(std::string path) {
-    return new TwitterTextConfiguration(configuration_from_path(path));
+  static std::unique_ptr<TwitterTextConfiguration> configurationFromPath(std::string path) {
+    return std::make_unique<TwitterTextConfiguration>(configuration_from_path(path));
   }
 
-  static TwitterTextConfiguration* configurationFromJson(std::string json) {
-    return new TwitterTextConfiguration(configuration_from_json(json));
+  static std::unique_ptr<TwitterTextConfiguration> configurationFromJson(std::string json) {
+    return std::make_unique<TwitterTextConfiguration>(configuration_from_json(json));
   }
 
   int32_t getVersion() {

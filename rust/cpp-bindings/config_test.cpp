@@ -27,7 +27,6 @@ TEST(TwitterTextConfigurationTest, Path) {
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
-  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Json) {
@@ -47,7 +46,6 @@ TEST(TwitterTextConfigurationTest, Json) {
   ASSERT_EQ(wr.range.start, 0);
   ASSERT_EQ(wr.range.end, 4351);
   ASSERT_EQ(wr.weight, 200);
-  delete config;
 }
 
 TEST(TwitterTextConfigurationTest, Version) {
