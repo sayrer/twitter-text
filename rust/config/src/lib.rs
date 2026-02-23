@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-use lazy_static::lazy_static;
 use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use serde_derive::{Deserialize, Serialize};
@@ -11,6 +10,7 @@ use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 
 pub const DEFAULT_VERSION: i32 = 3;
 pub const DEFAULT_WEIGHTED_LENGTH: i32 = 280;
@@ -21,11 +21,45 @@ pub const V1_JSON: &str = include_str!("v1.json");
 pub const V2_JSON: &str = include_str!("v2.json");
 pub const V3_JSON: &str = include_str!("v3.json");
 
-lazy_static! {
-    static ref CONFIG_V1: Configuration = Configuration::configuration_from_json(V1_JSON);
-    static ref CONFIG_V2: Configuration = Configuration::configuration_from_json(V2_JSON);
-    static ref CONFIG_V3: Configuration = Configuration::configuration_from_json(V3_JSON);
-}
+static CONFIG_V1: LazyLock<Configuration> = LazyLock::new(|| Configuration {
+    version: 1,
+    max_weighted_tweet_length: 140,
+    scale: 1,
+    default_weight: 1,
+    transformed_url_length: 23,
+    ranges: vec![],
+    emoji_parsing_enabled: false,
+});
+
+static CONFIG_V2: LazyLock<Configuration> = LazyLock::new(|| Configuration {
+    version: 2,
+    max_weighted_tweet_length: 280,
+    scale: 100,
+    default_weight: 200,
+    transformed_url_length: 23,
+    ranges: vec![
+        WeightedRange::new(0, 4351, 100),
+        WeightedRange::new(8192, 8205, 100),
+        WeightedRange::new(8208, 8223, 100),
+        WeightedRange::new(8242, 8247, 100),
+    ],
+    emoji_parsing_enabled: false,
+});
+
+static CONFIG_V3: LazyLock<Configuration> = LazyLock::new(|| Configuration {
+    version: 3,
+    max_weighted_tweet_length: 280,
+    scale: 100,
+    default_weight: 200,
+    transformed_url_length: 23,
+    ranges: vec![
+        WeightedRange::new(0, 4351, 100),
+        WeightedRange::new(8192, 8205, 100),
+        WeightedRange::new(8208, 8223, 100),
+        WeightedRange::new(8242, 8247, 100),
+    ],
+    emoji_parsing_enabled: true,
+});
 
 pub extern "C" fn config_v1() -> &'static Configuration {
     &CONFIG_V1
