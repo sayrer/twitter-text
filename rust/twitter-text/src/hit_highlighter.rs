@@ -59,10 +59,12 @@ impl HitHighlighter {
                 Rule::text => {
                     let span = pair.as_span();
                     for c in span.as_str().chars() {
-                        if builder.count() == hits.get(start).unwrap_or(&(0, 0)).0 {
-                            builder.append_open();
-                            tag_open = true;
-                            start += 1;
+                        if let Some(hit) = hits.get(start) {
+                            if builder.count() == hit.0 {
+                                builder.append_open();
+                                tag_open = true;
+                                start += 1;
+                            }
                         }
                         builder.append_char(c);
                         if tag_open && builder.count() == hits[start - 1].1 {
