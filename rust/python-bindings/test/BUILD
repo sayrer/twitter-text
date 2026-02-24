@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_test")
 load("@rust_python_test_deps//:requirements.bzl", "requirement")
 
 TEST_DEPS = [

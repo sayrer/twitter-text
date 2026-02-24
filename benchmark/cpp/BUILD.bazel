@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 cc_binary(
     name = "cpp_benchmark",

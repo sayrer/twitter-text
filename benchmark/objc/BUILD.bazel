@@ -1,8 +1,9 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@rules_cc//cc:defs.bzl", "objc_library")
-load("@rules_swift//swift:swift.bzl", "swift_library")
 load("@rules_apple//apple:macos.bzl", "macos_command_line_application")
+load("@rules_cc//cc:defs.bzl", "objc_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_swift//swift:swift.bzl", "swift_library")
 
 # Swift helper for YAML parsing (exposes Yams to Obj-C)
 swift_library(

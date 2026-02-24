@@ -1,5 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
 # Rust C-ABI shared library for Java FFM
