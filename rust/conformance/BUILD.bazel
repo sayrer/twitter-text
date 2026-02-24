@@ -181,3 +181,23 @@ genrule(
     tools = ["tests/insert_tld_grammar.sh"],
     visibility = ["//visibility:public"],
 )
+
+# Hermetic PHF TLD hash set generator
+py_binary(
+    name = "tld_gen_phf",
+    srcs = ["tests/tld_gen_phf.py"],
+    main = "tests/tld_gen_phf.py",
+    python_version = "PY3",
+    deps = [
+        requirement("PyYAML"),
+    ],
+)
+
+genrule(
+    name = "generate_tlds_rs",
+    srcs = ["tests/tld_lib.yml"],
+    outs = ["tlds.rs"],
+    cmd = "$(location :tld_gen_phf) --input $(location tests/tld_lib.yml) --output $@",
+    tools = [":tld_gen_phf"],
+    visibility = ["//visibility:public"],
+)
