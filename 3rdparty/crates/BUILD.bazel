@@ -44,20 +44,20 @@ alias(
 )
 
 alias(
-    name = "cxx-1.0.190",
-    actual = "@twitter_text__cxx-1.0.190//:cxx",
+    name = "cxx-1.0.194",
+    actual = "@twitter_text__cxx-1.0.194//:cxx",
     tags = ["manual"],
 )
 
 alias(
     name = "cxx",
-    actual = "@twitter_text__cxx-1.0.190//:cxx",
+    actual = "@twitter_text__cxx-1.0.194//:cxx",
     tags = ["manual"],
 )
 
 alias(
     name = "cxx_cc",
-    actual = "@twitter_text__cxx-1.0.190//:cxx_cc",
+    actual = "@twitter_text__cxx-1.0.194//:cxx_cc",
     tags = ["manual"],
 )
 

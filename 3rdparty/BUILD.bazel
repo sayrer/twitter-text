@@ -28,7 +28,7 @@ crates_vendor(
             features = ["std"],
         ),
         "cxx": crate.spec(
-            version = "1.0.189",
+            version = "1.0.194",
         ),
         "pest": crate.spec(
             version = "2.8.4",

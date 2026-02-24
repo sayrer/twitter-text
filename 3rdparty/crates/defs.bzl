@@ -296,7 +296,7 @@ _NORMAL_DEPENDENCIES = {
     "": {
         _COMMON_CONDITION: {
             "clap": Label("@twitter_text//:clap-4.5.53"),
-            "cxx": Label("@twitter_text//:cxx-1.0.190"),
+            "cxx": Label("@twitter_text//:cxx-1.0.194"),
             "emojis": Label("@twitter_text//:emojis-0.8.0"),
             "gungraun": Label("@twitter_text//:gungraun-0.17.0"),
             "idna": Label("@twitter_text//:idna-1.1.0"),
@@ -674,42 +674,42 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__cxx-1.0.190",
-        sha256 = "a7620f6cfc4dcca21f2b085b7a890e16c60fd66f560cd69ee60594908dc72ab1",
+        name = "twitter_text__cxx-1.0.194",
+        sha256 = "747d8437319e3a2f43d93b341c137927ca70c0f5dabeea7a005a73665e247c7e",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxx/1.0.190/download"],
-        strip_prefix = "cxx-1.0.190",
-        build_file = Label("//3rdparty/crates:BUILD.cxx-1.0.190.bazel"),
+        urls = ["https://static.crates.io/crates/cxx/1.0.194/download"],
+        strip_prefix = "cxx-1.0.194",
+        build_file = Label("//3rdparty/crates:BUILD.cxx-1.0.194.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxx-build-1.0.190",
-        sha256 = "7a9bc1a22964ff6a355fbec24cf68266a0ed28f8b84c0864c386474ea3d0e479",
+        name = "twitter_text__cxx-build-1.0.194",
+        sha256 = "b0f4697d190a142477b16aef7da8a99bfdc41e7e8b1687583c0d23a79c7afc1e",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxx-build/1.0.190/download"],
-        strip_prefix = "cxx-build-1.0.190",
-        build_file = Label("//3rdparty/crates:BUILD.cxx-build-1.0.190.bazel"),
+        urls = ["https://static.crates.io/crates/cxx-build/1.0.194/download"],
+        strip_prefix = "cxx-build-1.0.194",
+        build_file = Label("//3rdparty/crates:BUILD.cxx-build-1.0.194.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxxbridge-flags-1.0.190",
-        sha256 = "d67109015f93f683e364085aa6489a5b2118b4a40058482101d699936a7836d6",
+        name = "twitter_text__cxxbridge-flags-1.0.194",
+        sha256 = "23384a836ab4f0ad98ace7e3955ad2de39de42378ab487dc28d3990392cb283a",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxxbridge-flags/1.0.190/download"],
-        strip_prefix = "cxxbridge-flags-1.0.190",
-        build_file = Label("//3rdparty/crates:BUILD.cxxbridge-flags-1.0.190.bazel"),
+        urls = ["https://static.crates.io/crates/cxxbridge-flags/1.0.194/download"],
+        strip_prefix = "cxxbridge-flags-1.0.194",
+        build_file = Label("//3rdparty/crates:BUILD.cxxbridge-flags-1.0.194.bazel"),
     )
 
     maybe(
         http_archive,
-        name = "twitter_text__cxxbridge-macro-1.0.190",
-        sha256 = "d187e019e7b05a1f3e69a8396b70800ee867aa9fc2ab972761173ccee03742df",
+        name = "twitter_text__cxxbridge-macro-1.0.194",
+        sha256 = "e6acc6b5822b9526adfb4fc377b67128fdd60aac757cc4a741a6278603f763cf",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/cxxbridge-macro/1.0.190/download"],
-        strip_prefix = "cxxbridge-macro-1.0.190",
-        build_file = Label("//3rdparty/crates:BUILD.cxxbridge-macro-1.0.190.bazel"),
+        urls = ["https://static.crates.io/crates/cxxbridge-macro/1.0.194/download"],
+        strip_prefix = "cxxbridge-macro-1.0.194",
+        build_file = Label("//3rdparty/crates:BUILD.cxxbridge-macro-1.0.194.bazel"),
     )
 
     maybe(
@@ -2084,7 +2084,7 @@ def crate_repositories():
 
     return [
         struct(repo = "twitter_text__clap-4.5.53", is_dev_dep = False),
-        struct(repo = "twitter_text__cxx-1.0.190", is_dev_dep = False),
+        struct(repo = "twitter_text__cxx-1.0.194", is_dev_dep = False),
         struct(repo = "twitter_text__emojis-0.8.0", is_dev_dep = False),
         struct(repo = "twitter_text__gungraun-0.17.0", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),

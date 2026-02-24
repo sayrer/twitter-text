@@ -6,6 +6,8 @@
 #     bazel run @@//3rdparty:crates_vendor
 ###############################################################################
 
+# Additive BUILD file content
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
@@ -17,7 +19,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "cxx_build",
+    name = "cxx",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -34,8 +36,16 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
+    crate_features = [
+        "alloc",
+        "default",
+        "std",
+    ],
     crate_root = "src/lib.rs",
     edition = "2021",
+    proc_macro_deps = [
+        "@twitter_text__cxxbridge-macro-1.0.194//:cxxbridge_macro",
+    ],
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -44,7 +54,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=cxx-build",
+        "crate-name=cxx",
         "manual",
         "noclippy",
         "norustfmt",
@@ -92,14 +102,21 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "1.0.190",
+    version = "1.0.194",
     deps = [
-        "@twitter_text__cc-1.2.48//:cc",
-        "@twitter_text__codespan-reporting-0.13.1//:codespan_reporting",
-        "@twitter_text__indexmap-2.12.1//:indexmap",
-        "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__scratch-1.0.9//:scratch",
-        "@twitter_text__syn-2.0.111//:syn",
+        ":cxx_cc",
+        "@twitter_text__foldhash-0.2.0//:foldhash",
+        "@twitter_text__link-cplusplus-1.0.12//:link_cplusplus",
     ],
+)
+
+cc_library(
+    name = "cxx_cc",
+    srcs = ["src/cxx.cc"],
+    hdrs = ["include/cxx.h"],
+    include_prefix = "rust",
+    includes = ["include"],
+    linkstatic = True,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
 )
