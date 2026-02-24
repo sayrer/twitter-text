@@ -1,33 +1,8 @@
-"""Hermetic Swift toolchain configuration."""
+"""Hermetic Swift toolchain configuration.
 
-load("@rules_swift//swift/toolchains:swift_toolchain.bzl", "swift_toolchain")
+The actual swift_toolchain and toolchain rules are generated dynamically
+by the swift_toolchain_repo repository rule (swift_toolchain_wrapper.bzl)
+to avoid hardcoding the canonical repo path which changes between Bazel versions.
+"""
 
 package(default_visibility = ["//visibility:public"])
-
-# Hermetic Swift 6.0.3 toolchain for Linux x86_64
-swift_toolchain(
-    name = "hermetic_swift_linux_x86_64",
-    arch = "x86_64",
-    # Enable module wrapping (swift-modulewrap) instead of -add_ast_path which is Darwin-only
-    features = [
-        "swift.use_module_wrap",
-    ],
-    os = "linux",
-    root = "external/+_repo_rules2+swift_linux_x86_64/usr",
-    toolchain_files = "@swift_linux_x86_64//:usr",
-    version_file = "@swift_linux_x86_64//:version_file",
-)
-
-toolchain(
-    name = "hermetic_swift_linux_x86_64_toolchain",
-    exec_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-    toolchain = ":hermetic_swift_linux_x86_64",
-    toolchain_type = "@rules_swift//toolchains:toolchain_type",
-)

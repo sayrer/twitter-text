@@ -199,7 +199,10 @@ exports_files(glob(["usr/**/*"]))
     urls = ["https://download.swift.org/swift-6.0.3-release/ubuntu2204-aarch64/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu22.04-aarch64.tar.gz"],
 )
 
-register_toolchains("//tools/swift:hermetic_swift_linux_x86_64_toolchain")
+swift_toolchain_ext = use_extension("//tools/swift:extensions.bzl", "swift_toolchain_ext")
+use_repo(swift_toolchain_ext, "hermetic_swift_toolchain")
+
+register_toolchains("@hermetic_swift_toolchain//:hermetic_swift_linux_x86_64_toolchain")
 
 ###############################################################################
 # Hermetic LLVM Toolchain
