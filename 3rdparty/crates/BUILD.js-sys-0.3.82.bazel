@@ -17,7 +17,7 @@ cargo_toml_env_vars(
 )
 
 rust_library(
-    name = "wasm_bindgen_backend",
+    name = "js_sys",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -34,6 +34,10 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
+    crate_features = [
+        "default",
+        "std",
+    ],
     crate_root = "src/lib.rs",
     edition = "2021",
     rustc_env_files = [
@@ -44,7 +48,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=wasm-bindgen-backend",
+        "crate-name=js-sys",
         "manual",
         "noclippy",
         "norustfmt",
@@ -92,13 +96,9 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.100",
+    version = "0.3.82",
     deps = [
-        "@twitter_text__bumpalo-3.19.0//:bumpalo",
-        "@twitter_text__log-0.4.28//:log",
-        "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__syn-2.0.111//:syn",
-        "@twitter_text__wasm-bindgen-shared-0.2.100//:wasm_bindgen_shared",
+        "@twitter_text__once_cell-1.21.3//:once_cell",
+        "@twitter_text__wasm-bindgen-0.2.105//:wasm_bindgen",
     ],
 )

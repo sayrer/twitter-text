@@ -92,12 +92,12 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.100",
+    version = "0.2.105",
     deps = [
+        "@twitter_text__bumpalo-3.19.0//:bumpalo",
         "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
         "@twitter_text__quote-1.0.42//:quote",
         "@twitter_text__syn-2.0.111//:syn",
-        "@twitter_text__wasm-bindgen-backend-0.2.100//:wasm_bindgen_backend",
-        "@twitter_text__wasm-bindgen-shared-0.2.100//:wasm_bindgen_shared",
+        "@twitter_text__wasm-bindgen-shared-0.2.105//:wasm_bindgen_shared",
     ],
 )

@@ -47,7 +47,6 @@ single_version_override(
 
 # Override nlohmann_json to bcr.1 which adds cc_library load for Bazel 9
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1")
-
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "yams", version = "6.2.0")
 single_version_override(
@@ -335,7 +334,7 @@ use_repo(
     "twitter_text__emojis-0.8.0",
     "twitter_text__gungraun-0.17.0",
     "twitter_text__idna-1.1.0",
-    "twitter_text__js-sys-0.3.77",
+    "twitter_text__js-sys-0.3.82",
     "twitter_text__lazy_static-1.5.0",
     "twitter_text__libc-0.2.178",
     "twitter_text__log-0.4.28",
@@ -354,7 +353,7 @@ use_repo(
     "twitter_text__serde_yaml_ng-0.10.0",
     "twitter_text__unicode-normalization-0.1.25",
     "twitter_text__unicode_categories-0.1.1",
-    "twitter_text__wasm-bindgen-0.2.100",
+    "twitter_text__wasm-bindgen-0.2.105",
 )
 
 ###############################################################################

@@ -87,10 +87,10 @@ crates_vendor(
             version = "0.2.178",
         ),
         "wasm-bindgen": crate.spec(
-            version = "=0.2.100",
+            version = "=0.2.105",
         ),
         "js-sys": crate.spec(
-            version = "=0.3.77",
+            version = "=0.3.82",
         ),
         "gungraun": crate.spec(
             version = "0.17.0",

@@ -40,15 +40,12 @@ rust_library(
     ),
     crate_features = [
         "default",
-        "msrv",
-        "rustversion",
         "std",
     ],
     crate_root = "src/lib.rs",
     edition = "2021",
     proc_macro_deps = [
-        "@twitter_text__rustversion-1.0.22//:rustversion",
-        "@twitter_text__wasm-bindgen-macro-0.2.100//:wasm_bindgen_macro",
+        "@twitter_text__wasm-bindgen-macro-0.2.105//:wasm_bindgen_macro",
     ],
     rustc_env_files = [
         ":cargo_toml_env_vars",
@@ -106,11 +103,12 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.100",
+    version = "0.2.105",
     deps = [
         "@twitter_text__cfg-if-1.0.4//:cfg_if",
         "@twitter_text__once_cell-1.21.3//:once_cell",
-        "@twitter_text__wasm-bindgen-0.2.100//:build_script_build",
+        "@twitter_text__wasm-bindgen-0.2.105//:build_script_build",
+        "@twitter_text__wasm-bindgen-shared-0.2.105//:wasm_bindgen_shared",
     ],
 )
 
@@ -120,6 +118,9 @@ cargo_build_script(
         include = ["**/*.rs"],
         allow_empty = True,
     ),
+    aliases = {
+        "@twitter_text__rustversion-1.0.22//:rustversion": "rustversion_compat",
+    },
     compile_data = glob(
         include = ["**"],
         allow_empty = True,
@@ -135,8 +136,6 @@ cargo_build_script(
     ),
     crate_features = [
         "default",
-        "msrv",
-        "rustversion",
         "std",
     ],
     crate_name = "build_script_build",
@@ -154,7 +153,13 @@ cargo_build_script(
         ],
     ),
     edition = "2021",
+    link_deps = [
+        "@twitter_text__wasm-bindgen-shared-0.2.105//:wasm_bindgen_shared",
+    ],
     pkg_name = "wasm-bindgen",
+    proc_macro_deps = [
+        "@twitter_text__rustversion-1.0.22//:rustversion",
+    ],
     rustc_env_files = [
         ":cargo_toml_env_vars",
     ],
@@ -168,7 +173,7 @@ cargo_build_script(
         "noclippy",
         "norustfmt",
     ],
-    version = "0.2.100",
+    version = "0.2.105",
     visibility = ["//visibility:private"],
 )
 

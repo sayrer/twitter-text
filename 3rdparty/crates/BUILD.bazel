@@ -98,14 +98,14 @@ alias(
 )
 
 alias(
-    name = "js-sys-0.3.77",
-    actual = "@twitter_text__js-sys-0.3.77//:js_sys",
+    name = "js-sys-0.3.82",
+    actual = "@twitter_text__js-sys-0.3.82//:js_sys",
     tags = ["manual"],
 )
 
 alias(
     name = "js-sys",
-    actual = "@twitter_text__js-sys-0.3.77//:js_sys",
+    actual = "@twitter_text__js-sys-0.3.82//:js_sys",
     tags = ["manual"],
 )
 
@@ -326,14 +326,14 @@ alias(
 )
 
 alias(
-    name = "wasm-bindgen-0.2.100",
-    actual = "@twitter_text__wasm-bindgen-0.2.100//:wasm_bindgen",
+    name = "wasm-bindgen-0.2.105",
+    actual = "@twitter_text__wasm-bindgen-0.2.105//:wasm_bindgen",
     tags = ["manual"],
 )
 
 alias(
     name = "wasm-bindgen",
-    actual = "@twitter_text__wasm-bindgen-0.2.100//:wasm_bindgen",
+    actual = "@twitter_text__wasm-bindgen-0.2.105//:wasm_bindgen",
     tags = ["manual"],
 )
 

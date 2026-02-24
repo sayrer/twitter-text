@@ -7,7 +7,7 @@
 ###############################################################################
 
 load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
-load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,8 +16,8 @@ cargo_toml_env_vars(
     src = "Cargo.toml",
 )
 
-rust_library(
-    name = "js_sys",
+rust_proc_macro(
+    name = "wasm_bindgen_macro",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -34,10 +34,6 @@ rust_library(
             "WORKSPACE.bazel",
         ],
     ),
-    crate_features = [
-        "default",
-        "std",
-    ],
     crate_root = "src/lib.rs",
     edition = "2021",
     rustc_env_files = [
@@ -48,7 +44,7 @@ rust_library(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=js-sys",
+        "crate-name=wasm-bindgen-macro",
         "manual",
         "noclippy",
         "norustfmt",
@@ -96,9 +92,9 @@ rust_library(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.3.77",
+    version = "0.2.105",
     deps = [
-        "@twitter_text__once_cell-1.21.3//:once_cell",
-        "@twitter_text__wasm-bindgen-0.2.100//:wasm_bindgen",
+        "@twitter_text__quote-1.0.42//:quote",
+        "@twitter_text__wasm-bindgen-macro-support-0.2.105//:wasm_bindgen_macro_support",
     ],
 )

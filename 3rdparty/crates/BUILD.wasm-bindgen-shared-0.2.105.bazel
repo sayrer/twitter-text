@@ -6,8 +6,12 @@
 #     bazel run @@//3rdparty:crates_vendor
 ###############################################################################
 
-load("@rules_rust//cargo:defs.bzl", "cargo_toml_env_vars")
-load("@rules_rust//rust:defs.bzl", "rust_proc_macro")
+load(
+    "@rules_rust//cargo:defs.bzl",
+    "cargo_build_script",
+    "cargo_toml_env_vars",
+)
+load("@rules_rust//rust:defs.bzl", "rust_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,8 +20,8 @@ cargo_toml_env_vars(
     src = "Cargo.toml",
 )
 
-rust_proc_macro(
-    name = "wasm_bindgen_macro",
+rust_library(
+    name = "wasm_bindgen_shared",
     srcs = glob(
         include = ["**/*.rs"],
         allow_empty = True,
@@ -44,7 +48,7 @@ rust_proc_macro(
     ],
     tags = [
         "cargo-bazel",
-        "crate-name=wasm-bindgen-macro",
+        "crate-name=wasm-bindgen-shared",
         "manual",
         "noclippy",
         "norustfmt",
@@ -92,9 +96,68 @@ rust_proc_macro(
         "@rules_rust//rust/platform:x86_64-unknown-uefi": [],
         "//conditions:default": ["@platforms//:incompatible"],
     }),
-    version = "0.2.100",
+    version = "0.2.105",
     deps = [
-        "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__wasm-bindgen-macro-support-0.2.100//:wasm_bindgen_macro_support",
+        "@twitter_text__unicode-ident-1.0.22//:unicode_ident",
+        "@twitter_text__wasm-bindgen-shared-0.2.105//:build_script_build",
     ],
+)
+
+cargo_build_script(
+    name = "_bs",
+    srcs = glob(
+        include = ["**/*.rs"],
+        allow_empty = True,
+    ),
+    compile_data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            "**/*.rs",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    crate_name = "build_script_build",
+    crate_root = "build.rs",
+    data = glob(
+        include = ["**"],
+        allow_empty = True,
+        exclude = [
+            "**/* *",
+            ".tmp_git_root/**/*",
+            "BUILD",
+            "BUILD.bazel",
+            "WORKSPACE",
+            "WORKSPACE.bazel",
+        ],
+    ),
+    edition = "2021",
+    links = "wasm_bindgen",
+    pkg_name = "wasm-bindgen-shared",
+    rustc_env_files = [
+        ":cargo_toml_env_vars",
+    ],
+    rustc_flags = [
+        "--cap-lints=allow",
+    ],
+    tags = [
+        "cargo-bazel",
+        "crate-name=wasm-bindgen-shared",
+        "manual",
+        "noclippy",
+        "norustfmt",
+    ],
+    version = "0.2.105",
+    visibility = ["//visibility:private"],
+)
+
+alias(
+    name = "build_script_build",
+    actual = ":_bs",
+    tags = ["manual"],
 )
