@@ -249,6 +249,8 @@ java_runtime(
             jextract_repo_name = "jextract_%s_%s" % (t.os, t.cpu)
 
             build_content = """
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
 genrule(
     name = "jextract_wrapper_gen",
     outs = ["jextract_wrapper.sh"],
