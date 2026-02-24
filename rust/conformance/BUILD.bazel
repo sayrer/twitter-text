@@ -22,6 +22,7 @@ rust_test(
     	"//rust/parser:twitter_text_parser",
         "//3rdparty/crates:pest",
         "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_json",
         "//3rdparty/crates:serde_yaml_ng",
     ],
     proc_macro_deps = [
