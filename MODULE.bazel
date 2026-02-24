@@ -45,6 +45,9 @@ single_version_override(
     version = "3.3.0",
 )
 
+# Override nlohmann_json to bcr.1 which adds cc_library load for Bazel 9
+bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1")
+
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "yams", version = "6.2.0")
 single_version_override(
