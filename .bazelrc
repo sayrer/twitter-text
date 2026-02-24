@@ -28,6 +28,8 @@ build:ci-linux --remote_cache_compression
 build:ci-linux --extra_execution_platforms=//tools:linux_remote
 build:ci-linux --host_platform=//tools:linux_remote
 build:ci-linux --jobs=50
+# Rust 1.86+ defaults to rust-lld on linux-x86_64; disable for remote execution
+build:ci-linux --action_env=RUSTFLAGS=-Clink-self-contained=no
 build:ci-linux --remote_executor=grpcs://remote.buildbuddy.io
 build:ci-linux --remote_default_exec_properties=container-image=docker://ghcr.io/sayrer/twitter-text-build@sha256:5af27112f67cf17164eb8f762328df9777faf026bf80aa3c8002282eb0aa95a9
 
