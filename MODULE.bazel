@@ -12,17 +12,17 @@ ruby_version_check(name = "ruby_version_check")
 # Bazel Dependencies
 ###############################################################################
 
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
-bazel_dep(name = "rules_rust", version = "0.67.0")
-bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.67.0")
+bazel_dep(name = "rules_rust", version = "0.68.1")
+bazel_dep(name = "rules_rust_wasm_bindgen", version = "0.68.1")
 
 # apple_support MUST come before rules_cc for proper toolchain selection on macOS
-bazel_dep(name = "apple_support", version = "1.24.2")
-bazel_dep(name = "rules_cc", version = "0.2.14")
-bazel_dep(name = "cxx.rs", version = "1.0.190")
+bazel_dep(name = "apple_support", version = "2.3.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "cxx.rs", version = "1.0.194")
 bazel_dep(name = "rules_ruby", version = "0.21.1")
-bazel_dep(name = "rules_apple", version = "4.3.2")
+bazel_dep(name = "rules_apple", version = "4.3.3")
 
 # Apple CC toolchain for macOS (required for swift_test with XCTest)
 apple_cc_configure = use_extension(
@@ -31,7 +31,7 @@ apple_cc_configure = use_extension(
 )
 use_repo(apple_cc_configure, "local_config_apple_cc", "local_config_apple_cc_toolchains")
 
-bazel_dep(name = "rules_java", version = "8.14.0")
+bazel_dep(name = "rules_java", version = "9.0.3")
 bazel_dep(name = "rules_jvm_external", version = "6.9")
 bazel_dep(name = "rules_python", version = "1.7.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
@@ -325,7 +325,7 @@ use_repo(
     deps,
     "twitter_text",
     "twitter_text__clap-4.5.53",
-    "twitter_text__cxx-1.0.190",
+    "twitter_text__cxx-1.0.194",
     "twitter_text__emojis-0.8.0",
     "twitter_text__gungraun-0.17.0",
     "twitter_text__idna-1.1.0",
@@ -355,7 +355,7 @@ use_repo(
 # cxxbridge-cmd (codegen tool for cxx.rs)
 ###############################################################################
 
-CXX_BRIDGE_VERSION = "1.0.190"
+CXX_BRIDGE_VERSION = "1.0.194"
 
 http_archive(
     name = "cxxbridge-cmd",
