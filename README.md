@@ -1,6 +1,6 @@
 # twitter-text in Rust
 
-A Rust implementation of [twitter-text](https://github.com/twitter/twitter-text) that parses tweet text using a [Pest](https://github.com/pest-parser/pest) [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) grammar. Includes bindings for Ruby, Python, Java, C++, Swift, and WebAssembly.
+A Rust implementation of [twitter-text](https://github.com/twitter/twitter-text) that parses tweet text using a [Pest](https://github.com/pest-parser/pest) [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) grammar. Includes bindings for Ruby, Python, Java, C++, Swift, and WebAssembly. There's a [blog post](https://sayrer.com/blog/whats-in-a-tweet/) that covers the background.
 
 ## Features
 
