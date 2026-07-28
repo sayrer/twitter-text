@@ -13,8 +13,8 @@ import TwitterText
         }
 
         func testEmojiParsing() {
-            guard let contents = loadTextFile(from: "unicode17-emoji-test.txt") else {
-                XCTFail("Could not load unicode17-emoji-test.txt")
+            guard let contents = loadTextFile(from: "unicode18-emoji-test.txt") else {
+                XCTFail("Could not load unicode18-emoji-test.txt")
                 return
             }
 
@@ -82,8 +82,8 @@ import TwitterText
         }
 
         func testEmojiParsing() {
-            guard let contents = loadTextFile(from: "unicode17-emoji-test.txt") else {
-                XCTFail("Could not load unicode17-emoji-test.txt")
+            guard let contents = loadTextFile(from: "unicode18-emoji-test.txt") else {
+                XCTFail("Could not load unicode18-emoji-test.txt")
                 return
             }
 
