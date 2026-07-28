@@ -510,7 +510,7 @@ diversity_emoji_with_optional_skin_tone = _{
       "\u{1f6c0}" | "\u{1f6cc}" | '\u{1f90c}'..'\u{1f90f}' | '\u{1f918}'..'\u{1f91f}' | "\u{1f926}" |
       '\u{1f930}'..'\u{1f939}' | "\u{1f93c}" | "\u{1f93d}" | "\u{1f93e}" | "\u{1f977}" | "\u{1f9b5}" | "\u{1f9b6}" | "\u{1f9b8}" | "\u{1f9b9}" |
       '\u{1f9bb}'..'\u{1f9bf}' | '\u{1f9cd}'..'\u{1f9cf}' | '\u{1f9d1}'..'\u{1f9dd}' |
-      '\u{1fac3}'..'\u{1fac5}' | '\u{1faf0}'..'\u{1faf8}' |
+      '\u{1fac3}'..'\u{1fac5}' | '\u{1faf0}'..'\u{1fafa}' |
       '\u{1f46b}'..'\u{1f46d}' | "\u{1f46f}")) ~ skin_tone?
 }
 
@@ -573,7 +573,7 @@ flags_and_regular_emoji = _{
       '\u{1f9ba}'..'\u{1f9bf}' | '\u{1f9c0}'..'\u{1f9c2}' | '\u{1f9c3}'..'\u{1f9cf}' | "\u{1f9d0}" |
       '\u{1f9de}'..'\u{1f9ff}' |
       '\u{1fa70}'..'\u{1fa7c}' | '\u{1fa80}'..'\u{1fac8}' |
-      '\u{1facd}'..'\u{1fadc}' | '\u{1fadf}'..'\u{1faef}') |
+      '\u{1facc}'..'\u{1fadd}' | '\u{1fadf}'..'\u{1faef}') |
      "\u{fe0f}"
 }
 
