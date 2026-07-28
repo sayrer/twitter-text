@@ -5,7 +5,6 @@ package(default_visibility = ["//visibility:public"])
 
 # JVM flags for Java FFM
 _JVM_FLAGS = [
-    "--enable-preview",
     "--enable-native-access=ALL-UNNAMED",
 ]
 

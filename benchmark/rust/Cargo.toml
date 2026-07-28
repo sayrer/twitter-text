@@ -12,4 +12,4 @@ twitter-text = { path = "../../rust/twitter-text" }
 twitter_text_config = { path = "../../rust/config" }
 
 [dev-dependencies]
-gungraun = "0.17.0"
+gungraun = "0.19.4"

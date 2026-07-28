@@ -6,7 +6,7 @@
 //!
 //! These correspond to the character class rules in twitter_text.pest.
 
-use nom::{branch::alt, bytes::complete::tag, character::complete::satisfy, IResult};
+use nom::{branch::alt, bytes::complete::tag, character::complete::satisfy, IResult, Parser};
 
 /// Match a single ASCII alphanumeric character.
 pub fn alphanumeric(input: &str) -> IResult<&str, char> {
@@ -178,12 +178,12 @@ pub fn invalid_char(input: &str) -> IResult<&str, char> {
 
 /// Match the @ prefix (regular or fullwidth).
 pub fn at_prefix(input: &str) -> IResult<&str, &str> {
-    alt((tag("@"), tag("\u{ff20}")))(input) // @ or ＠
+    alt((tag("@"), tag("\u{ff20}"))).parse(input) // @ or ＠
 }
 
 /// Match the # prefix (regular or fullwidth).
 pub fn hash_prefix(input: &str) -> IResult<&str, &str> {
-    alt((tag("#"), tag("\u{ff03}")))(input) // # or ＃
+    alt((tag("#"), tag("\u{ff03}"))).parse(input) // # or ＃
 }
 
 /// Match the $ prefix.

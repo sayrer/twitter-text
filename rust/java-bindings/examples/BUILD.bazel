@@ -11,7 +11,6 @@ java_library(
         "//rust/java-bindings/java:twitter_text_wrappers",
     ],
     javacopts = [
-        "--enable-preview",
         "--release",
         "23",
     ],
@@ -25,7 +24,6 @@ java_binary(
         ":example_lib",
     ],
     jvm_flags = [
-        "--enable-preview",
         "--enable-native-access=ALL-UNNAMED",
     ],
     data = [

@@ -144,7 +144,6 @@ java_library(
     name = "generated_java_sources",
     srcs = [":twitter_text_bindings.srcjar"],
     javacopts = [
-        "--enable-preview",
         "--release",
         "23",
     ],

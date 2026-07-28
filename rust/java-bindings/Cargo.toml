@@ -13,8 +13,8 @@ twitter-text-parser = { path = "../../rust/parser" }
 twitter_text_ffi = { path = "../../ffi-bindings" }
 
 # For JSON serialization if needed
-serde = "1.0"
-serde_json = "1.0"
+serde = "1.0.229"
+serde_json = "1.0.151"
 
 # For C string handling
-libc = "0.2"
+libc = "0.2.189"

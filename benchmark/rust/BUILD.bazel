@@ -9,11 +9,11 @@ rust_binary(
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
-        "@twitter_text__serde-1.0.228//:serde",
-        "@twitter_text__serde_yaml_ng-0.10.0//:serde_yaml_ng",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
     ],
     proc_macro_deps = [
-        "@twitter_text__serde_derive-1.0.228//:serde_derive",
+        "//3rdparty/crates:serde_derive",
     ],
     edition = "2021",
 )
@@ -72,7 +72,7 @@ rust_binary(
     deps = [
         "//rust/twitter-text:twitter_text_rlib",
         "//rust/config:twitter_text_config",
-        "@twitter_text__gungraun-0.17.0//:gungraun",
+        "//3rdparty/crates:gungraun",
     ],
     edition = "2021",
 )

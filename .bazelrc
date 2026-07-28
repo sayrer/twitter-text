@@ -2,6 +2,11 @@
 build:linux --build_tag_filters=-macos_only
 test:linux --test_tag_filters=-macos_only
 
+# aspect_rules_js 3.x pulls in aspect_tools_telemetry, which uploads build
+# environment data to telemetry.aspect.build by default. Keep it off; drop this
+# line to opt in.
+common --repo_env=DO_NOT_TRACK=1
+
 # Set Ruby build environment for rules_ruby
 # These environment variables are used by ruby-build during Ruby compilation
 build --action_env=RUBY_CONFIGURE_OPTS="--disable-install-doc"

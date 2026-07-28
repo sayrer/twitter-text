@@ -299,7 +299,7 @@ impl Autolinker {
  * Link Attribute Modifiers
  * ========================================================================= */
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct AddAttributeModifier {
     entity_types: Vec<entity::Type>,
@@ -330,7 +330,7 @@ impl AddAttributeModifier {
     }
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct ReplaceClassModifier {
     new_class: String,
@@ -348,18 +348,18 @@ impl ReplaceClassModifier {
  * Link Text Modifiers
  * ========================================================================= */
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct LinkTextModifier {
-    modifier_fn: Arc<PyObject>,
+    modifier_fn: Arc<Py<PyAny>>,
 }
 
 #[pymethods]
 impl LinkTextModifier {
     #[new]
-    fn new(py: Python, modifier_fn: PyObject) -> PyResult<Self> {
+    fn new(py: Python, modifier_fn: Py<PyAny>) -> PyResult<Self> {
         // Verify it's callable
-        if !modifier_fn.as_ref(py).is_callable() {
+        if !modifier_fn.bind(py).is_callable() {
             return Err(pyo3::exceptions::PyTypeError::new_err(
                 "modifier_fn must be callable",
             ));
@@ -371,12 +371,12 @@ impl LinkTextModifier {
 }
 
 struct RustLinkTextModifier {
-    modifier_fn: Arc<PyObject>,
+    modifier_fn: Arc<Py<PyAny>>,
 }
 
 impl twitter_text::autolinker::LinkTextModifier for RustLinkTextModifier {
     fn modify(&self, entity: &entity::Entity, text: &str) -> String {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             // Convert entity to a Python-friendly format
             let entity_dict = pyo3::types::PyDict::new(py);
             entity_dict.set_item("type", format!("{:?}", entity.t)).ok();
@@ -403,7 +403,7 @@ impl twitter_text::autolinker::LinkTextModifier for RustLinkTextModifier {
  * Entity for autolink_entities
  * ========================================================================= */
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Entity {
     entity_type: entity::Type,

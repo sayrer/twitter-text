@@ -12,15 +12,15 @@ edition = "2018"
 ffi = []
 
 [dependencies]
-cxx = "1.0.189"
+cxx = "=1.0.197"
 unicode-normalization = "0.1.25"
 idna = "1.1.0"
-pest = "2.8.4"
-pest_derive = "2.8.4"
+pest = "2.8.8"
+pest_derive = "2.8.8"
 twitter_text_config = { path = "../config" , version = "0.2.0" }
 twitter_text_parser = { path = "../parser" , version = "0.2.0" }
-phf = { version = "0.11", features = ["macros", "unicase"] }
-emojis = "0.8"
-memchr = "2.7"
-nom = "7"
+phf = { version = "0.14", features = ["macros", "unicase"] }
+emojis = "0.9"
+memchr = "2.8"
+nom = "8"
 unicode_categories = "0.1"

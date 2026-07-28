@@ -74,6 +74,18 @@ rust_shared_library(
         "//3rdparty/crates:libc",
     ],
     edition = "2021",
+    # rustc links this dylib itself rather than going through the cc toolchain's
+    # cpp_link_dynamic_library action, so it never picks up apple_support's
+    # `set_install_name` feature. apple_support >= 2.6.0 dropped the
+    # osx_cc_wrapper that used to rewrite the resulting `bazel-out/...` install
+    # name to `@loader_path/...` after linking, so set it explicitly here.
+    # Consumers already carry matching `_solib_*` rpaths.
+    rustc_flags = select({
+        "@platforms//os:macos": [
+            "-Clink-arg=-Wl,-install_name,@rpath/libtwitter_text_ffi_cdylib.dylib",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 # Collect all C header files

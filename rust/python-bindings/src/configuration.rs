@@ -2,13 +2,13 @@ use pyo3::prelude::*;
 use std::path::PathBuf;
 use twitter_text_config::{Configuration, Range, WeightedRange as RustWeightedRange};
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct TwitterTextConfiguration {
     inner: Configuration,
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct WeightedRange {
     #[pyo3(get, set)]
@@ -17,7 +17,7 @@ pub struct WeightedRange {
     pub weight: i32,
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct PyRange {
     #[pyo3(get, set)]

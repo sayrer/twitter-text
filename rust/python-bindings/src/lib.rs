@@ -19,7 +19,7 @@ use validator::Validator;
 
 /// Twitter text processing library for Python
 #[pymodule]
-fn twitter_text(_py: Python, m: &PyModule) -> PyResult<()> {
+fn twitter_text(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TwitterTextConfiguration>()?;
     m.add_class::<extractor::Entity>()?;
     m.add_class::<extractor::Range>()?;

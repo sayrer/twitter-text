@@ -1,13 +1,14 @@
 use crate::configuration::TwitterTextConfiguration;
 use crate::parser::TwitterTextParseResult;
 use pyo3::prelude::*;
+use std::sync::atomic::{AtomicBool, Ordering};
 use twitter_text::entity::Entity as RustEntity;
 use twitter_text::extractor::{
     Extract, ExtractResult as RustExtractResult, Extractor as RustExtractor,
     MentionResult as RustMentionResult, ValidatingExtractor as RustValidatingExtractor,
 };
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Range {
     #[pyo3(get, set)]
@@ -16,7 +17,7 @@ pub struct Range {
     pub end: i32,
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct Entity {
     #[pyo3(get, set)]
@@ -196,11 +197,13 @@ impl<'a> From<RustMentionResult<'a>> for MentionResult {
     }
 }
 
+// pyo3 requires `#[pyclass]` types to be `Sync`, so the interior mutability
+// behind these `&self` setters uses atomics rather than `Cell`.
 #[pyclass]
 pub struct ValidatingExtractor {
     config: Py<TwitterTextConfiguration>,
-    extract_url_without_protocol: std::cell::Cell<bool>,
-    normalize: std::cell::Cell<bool>,
+    extract_url_without_protocol: AtomicBool,
+    normalize: AtomicBool,
 }
 
 #[pymethods]
@@ -209,31 +212,32 @@ impl ValidatingExtractor {
     fn new(_py: Python, config: Py<TwitterTextConfiguration>) -> Self {
         ValidatingExtractor {
             config,
-            extract_url_without_protocol: std::cell::Cell::new(true),
-            normalize: std::cell::Cell::new(true),
+            extract_url_without_protocol: AtomicBool::new(true),
+            normalize: AtomicBool::new(true),
         }
     }
 
     fn get_extract_url_without_protocol(&self) -> bool {
-        self.extract_url_without_protocol.get()
+        self.extract_url_without_protocol.load(Ordering::Relaxed)
     }
 
     fn set_extract_url_without_protocol(&self, extract: bool) {
-        self.extract_url_without_protocol.set(extract);
+        self.extract_url_without_protocol
+            .store(extract, Ordering::Relaxed);
     }
 
     fn get_normalize(&self) -> bool {
-        self.normalize.get()
+        self.normalize.load(Ordering::Relaxed)
     }
 
     fn set_normalize(&self, normalize: bool) {
-        self.normalize.set(normalize);
+        self.normalize.store(normalize, Ordering::Relaxed);
     }
 
     fn extract_mentioned_screennames_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_mentioned_screennames_with_indices(&input);
         result.into()
@@ -242,7 +246,7 @@ impl ValidatingExtractor {
     fn extract_mentions_or_lists_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_mentions_or_lists_with_indices(&input);
         result.into()
@@ -251,7 +255,7 @@ impl ValidatingExtractor {
     fn extract_reply_screenname(&self, py: Python, text: &str) -> MentionResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_reply_username(&input);
         result.into()
@@ -260,7 +264,7 @@ impl ValidatingExtractor {
     fn extract_urls_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_urls_with_indices(&input);
         result.into()
@@ -269,7 +273,7 @@ impl ValidatingExtractor {
     fn extract_hashtags_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_hashtags_with_indices(&input);
         result.into()
@@ -278,7 +282,7 @@ impl ValidatingExtractor {
     fn extract_cashtags_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_cashtags_with_indices(&input);
         result.into()
@@ -287,7 +291,7 @@ impl ValidatingExtractor {
     fn extract_federated_mentions(&self, py: Python, text: &str) -> Vec<String> {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         extractor.extract_federated_mentions(&input)
     }
@@ -295,7 +299,7 @@ impl ValidatingExtractor {
     fn extract_federated_mentions_with_indices(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_federated_mentions_with_indices(&input);
         result.into()
@@ -304,7 +308,7 @@ impl ValidatingExtractor {
     fn extract_entities_with_indices_federated(&self, py: Python, text: &str) -> ExtractResult {
         let config = self.config.borrow(py);
         let mut extractor = RustValidatingExtractor::new(config.inner());
-        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.get());
+        extractor.set_extract_url_without_protocol(self.extract_url_without_protocol.load(Ordering::Relaxed));
         let input = extractor.prep_input(text);
         let result = extractor.extract_entities_with_indices_federated(&input);
         result.into()

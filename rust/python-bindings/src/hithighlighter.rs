@@ -42,6 +42,7 @@ pub struct HitHighlighter {
 #[pymethods]
 impl HitHighlighter {
     #[new]
+    #[pyo3(signature = (tag=None))]
     fn new(tag: Option<String>) -> Self {
         HitHighlighter {
             highlight_tag: tag.unwrap_or_else(|| "em".to_string()),

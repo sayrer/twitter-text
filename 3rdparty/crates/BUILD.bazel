@@ -32,56 +32,56 @@ filegroup(
 
 # Workspace Member Dependencies
 alias(
-    name = "clap-4.5.53",
-    actual = "@twitter_text__clap-4.5.53//:clap",
+    name = "clap-4.6.4",
+    actual = "@twitter_text__clap-4.6.4//:clap",
     tags = ["manual"],
 )
 
 alias(
     name = "clap",
-    actual = "@twitter_text__clap-4.5.53//:clap",
+    actual = "@twitter_text__clap-4.6.4//:clap",
     tags = ["manual"],
 )
 
 alias(
-    name = "cxx-1.0.194",
-    actual = "@twitter_text__cxx-1.0.194//:cxx",
+    name = "cxx-1.0.197",
+    actual = "@twitter_text__cxx-1.0.197//:cxx",
     tags = ["manual"],
 )
 
 alias(
     name = "cxx",
-    actual = "@twitter_text__cxx-1.0.194//:cxx",
+    actual = "@twitter_text__cxx-1.0.197//:cxx",
     tags = ["manual"],
 )
 
 alias(
     name = "cxx_cc",
-    actual = "@twitter_text__cxx-1.0.194//:cxx_cc",
+    actual = "@twitter_text__cxx-1.0.197//:cxx_cc",
     tags = ["manual"],
 )
 
 alias(
-    name = "emojis-0.8.0",
-    actual = "@twitter_text__emojis-0.8.0//:emojis",
+    name = "emojis-0.9.0",
+    actual = "@twitter_text__emojis-0.9.0//:emojis",
     tags = ["manual"],
 )
 
 alias(
     name = "emojis",
-    actual = "@twitter_text__emojis-0.8.0//:emojis",
+    actual = "@twitter_text__emojis-0.9.0//:emojis",
     tags = ["manual"],
 )
 
 alias(
-    name = "gungraun-0.17.0",
-    actual = "@twitter_text__gungraun-0.17.0//:gungraun",
+    name = "gungraun-0.19.4",
+    actual = "@twitter_text__gungraun-0.19.4//:gungraun",
     tags = ["manual"],
 )
 
 alias(
     name = "gungraun",
-    actual = "@twitter_text__gungraun-0.17.0//:gungraun",
+    actual = "@twitter_text__gungraun-0.19.4//:gungraun",
     tags = ["manual"],
 )
 
@@ -98,14 +98,14 @@ alias(
 )
 
 alias(
-    name = "js-sys-0.3.82",
-    actual = "@twitter_text__js-sys-0.3.82//:js_sys",
+    name = "js-sys-0.3.98",
+    actual = "@twitter_text__js-sys-0.3.98//:js_sys",
     tags = ["manual"],
 )
 
 alias(
     name = "js-sys",
-    actual = "@twitter_text__js-sys-0.3.82//:js_sys",
+    actual = "@twitter_text__js-sys-0.3.98//:js_sys",
     tags = ["manual"],
 )
 
@@ -122,26 +122,26 @@ alias(
 )
 
 alias(
-    name = "libc-0.2.178",
-    actual = "@twitter_text__libc-0.2.178//:libc",
+    name = "libc-0.2.189",
+    actual = "@twitter_text__libc-0.2.189//:libc",
     tags = ["manual"],
 )
 
 alias(
     name = "libc",
-    actual = "@twitter_text__libc-0.2.178//:libc",
+    actual = "@twitter_text__libc-0.2.189//:libc",
     tags = ["manual"],
 )
 
 alias(
-    name = "log-0.4.28",
-    actual = "@twitter_text__log-0.4.28//:log",
+    name = "log-0.4.33",
+    actual = "@twitter_text__log-0.4.33//:log",
     tags = ["manual"],
 )
 
 alias(
     name = "log",
-    actual = "@twitter_text__log-0.4.28//:log",
+    actual = "@twitter_text__log-0.4.33//:log",
     tags = ["manual"],
 )
 
@@ -158,62 +158,62 @@ alias(
 )
 
 alias(
-    name = "memchr-2.7.6",
-    actual = "@twitter_text__memchr-2.7.6//:memchr",
+    name = "memchr-2.8.3",
+    actual = "@twitter_text__memchr-2.8.3//:memchr",
     tags = ["manual"],
 )
 
 alias(
     name = "memchr",
-    actual = "@twitter_text__memchr-2.7.6//:memchr",
+    actual = "@twitter_text__memchr-2.8.3//:memchr",
     tags = ["manual"],
 )
 
 alias(
-    name = "nom-7.1.3",
-    actual = "@twitter_text__nom-7.1.3//:nom",
+    name = "nom-8.0.0",
+    actual = "@twitter_text__nom-8.0.0//:nom",
     tags = ["manual"],
 )
 
 alias(
     name = "nom",
-    actual = "@twitter_text__nom-7.1.3//:nom",
+    actual = "@twitter_text__nom-8.0.0//:nom",
     tags = ["manual"],
 )
 
 alias(
-    name = "pest-2.8.4",
-    actual = "@twitter_text__pest-2.8.4//:pest",
+    name = "pest-2.8.8",
+    actual = "@twitter_text__pest-2.8.8//:pest",
     tags = ["manual"],
 )
 
 alias(
     name = "pest",
-    actual = "@twitter_text__pest-2.8.4//:pest",
+    actual = "@twitter_text__pest-2.8.8//:pest",
     tags = ["manual"],
 )
 
 alias(
-    name = "pest_derive-2.8.4",
-    actual = "@twitter_text__pest_derive-2.8.4//:pest_derive",
+    name = "pest_derive-2.8.8",
+    actual = "@twitter_text__pest_derive-2.8.8//:pest_derive",
     tags = ["manual"],
 )
 
 alias(
     name = "pest_derive",
-    actual = "@twitter_text__pest_derive-2.8.4//:pest_derive",
+    actual = "@twitter_text__pest_derive-2.8.8//:pest_derive",
     tags = ["manual"],
 )
 
 alias(
-    name = "phf-0.11.3",
-    actual = "@twitter_text__phf-0.11.3//:phf",
+    name = "phf-0.14.0",
+    actual = "@twitter_text__phf-0.14.0//:phf",
     tags = ["manual"],
 )
 
 alias(
     name = "phf",
-    actual = "@twitter_text__phf-0.11.3//:phf",
+    actual = "@twitter_text__phf-0.14.0//:phf",
     tags = ["manual"],
 )
 
@@ -230,62 +230,62 @@ alias(
 )
 
 alias(
-    name = "pyo3-0.20.3",
-    actual = "@twitter_text__pyo3-0.20.3//:pyo3",
+    name = "pyo3-0.29.0",
+    actual = "@twitter_text__pyo3-0.29.0//:pyo3",
     tags = ["manual"],
 )
 
 alias(
     name = "pyo3",
-    actual = "@twitter_text__pyo3-0.20.3//:pyo3",
+    actual = "@twitter_text__pyo3-0.29.0//:pyo3",
     tags = ["manual"],
 )
 
 alias(
-    name = "pyo3-macros-0.20.3",
-    actual = "@twitter_text__pyo3-macros-0.20.3//:pyo3_macros",
+    name = "pyo3-macros-0.29.0",
+    actual = "@twitter_text__pyo3-macros-0.29.0//:pyo3_macros",
     tags = ["manual"],
 )
 
 alias(
     name = "pyo3-macros",
-    actual = "@twitter_text__pyo3-macros-0.20.3//:pyo3_macros",
+    actual = "@twitter_text__pyo3-macros-0.29.0//:pyo3_macros",
     tags = ["manual"],
 )
 
 alias(
-    name = "serde-1.0.228",
-    actual = "@twitter_text__serde-1.0.228//:serde",
+    name = "serde-1.0.229",
+    actual = "@twitter_text__serde-1.0.229//:serde",
     tags = ["manual"],
 )
 
 alias(
     name = "serde",
-    actual = "@twitter_text__serde-1.0.228//:serde",
+    actual = "@twitter_text__serde-1.0.229//:serde",
     tags = ["manual"],
 )
 
 alias(
-    name = "serde_derive-1.0.228",
-    actual = "@twitter_text__serde_derive-1.0.228//:serde_derive",
+    name = "serde_derive-1.0.229",
+    actual = "@twitter_text__serde_derive-1.0.229//:serde_derive",
     tags = ["manual"],
 )
 
 alias(
     name = "serde_derive",
-    actual = "@twitter_text__serde_derive-1.0.228//:serde_derive",
+    actual = "@twitter_text__serde_derive-1.0.229//:serde_derive",
     tags = ["manual"],
 )
 
 alias(
-    name = "serde_json-1.0.145",
-    actual = "@twitter_text__serde_json-1.0.145//:serde_json",
+    name = "serde_json-1.0.151",
+    actual = "@twitter_text__serde_json-1.0.151//:serde_json",
     tags = ["manual"],
 )
 
 alias(
     name = "serde_json",
-    actual = "@twitter_text__serde_json-1.0.145//:serde_json",
+    actual = "@twitter_text__serde_json-1.0.151//:serde_json",
     tags = ["manual"],
 )
 
@@ -326,33 +326,39 @@ alias(
 )
 
 alias(
-    name = "wasm-bindgen-0.2.105",
-    actual = "@twitter_text__wasm-bindgen-0.2.105//:wasm_bindgen",
+    name = "wasm-bindgen-0.2.121",
+    actual = "@twitter_text__wasm-bindgen-0.2.121//:wasm_bindgen",
     tags = ["manual"],
 )
 
 alias(
     name = "wasm-bindgen",
-    actual = "@twitter_text__wasm-bindgen-0.2.105//:wasm_bindgen",
+    actual = "@twitter_text__wasm-bindgen-0.2.121//:wasm_bindgen",
     tags = ["manual"],
 )
 
 # Binaries
 alias(
     name = "clap__stdio-fixture",
-    actual = "@twitter_text__clap-4.5.53//:stdio-fixture__bin",
+    actual = "@twitter_text__clap-4.6.4//:stdio-fixture__bin",
     tags = ["manual"],
 )
 
 alias(
     name = "gungraun-runner__gungraun-runner",
-    actual = "@twitter_text__gungraun-runner-0.17.0//:gungraun-runner__bin",
+    actual = "@twitter_text__gungraun-runner-0.19.4//:gungraun-runner__bin",
     tags = ["manual"],
 )
 
 alias(
     name = "phf_generator__gen_hash_test",
-    actual = "@twitter_text__phf_generator-0.11.3//:gen_hash_test__bin",
+    actual = "@twitter_text__phf_generator-0.14.0//:gen_hash_test__bin",
+    tags = ["manual"],
+)
+
+alias(
+    name = "rapidhash__rapidhash",
+    actual = "@twitter_text__rapidhash-4.5.1//:rapidhash__bin",
     tags = ["manual"],
 )
 

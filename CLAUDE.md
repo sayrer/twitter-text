@@ -77,8 +77,8 @@ cargo test -p twitter-text-parser
 
 ### Language Bindings
 
-- **Ruby** (`rust/ruby-bindings/`): Uses Magnus FFI, requires Ruby 3.3+
-- **Java** (`rust/java-bindings/`): Uses JDK 23+ Foreign Function & Memory API (Project Panama)
+- **Ruby** (`rust/ruby-bindings/`): Uses Magnus FFI, requires Ruby 3.4.1+
+- **Java** (`rust/java-bindings/`): Uses JDK 25 Foreign Function & Memory API (Project Panama)
 - **Python** (`rust/python-bindings/`): Uses PyO3
 - **C++** (`rust/cpp-bindings/`): Uses cxx.rs for safe Rust-C++ interop
 - **Swift** (`rust/swift-bindings/`): Uses C FFI with auto-generated Clang modules
@@ -138,10 +138,10 @@ This order prevents ambiguities (e.g., `goo.gl/4udoLK` could match as hashtag bu
 
 ## Dependencies
 
-- **Rust**: 1.91.1 (edition 2021)
-- **Bazel**: 8.4.2+
-- **Ruby**: 3.3+ (for Ruby bindings, requires libyaml)
-- **Java**: JDK 23+ (for Java FFM bindings)
+- **Rust**: 1.97.1 (edition 2021)
+- **Bazel**: 9.2.0+
+- **Ruby**: 3.4.1+ (for Ruby bindings, requires libyaml)
+- **Java**: JDK 25 (for Java FFM bindings)
 - **Python**: 3.12 (for Python bindings)
 - **LLVM**: 17.0.6 (hermetic toolchain via Bazel)
 

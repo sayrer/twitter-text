@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use twitter_text::TwitterTextParseResults;
 use twitter_text_config::Range as ConfigRange;
 
-#[pyclass(get_all, set_all)]
+#[pyclass(get_all, set_all, from_py_object)]
 #[derive(Clone)]
 pub struct Range {
     pub start: usize,
@@ -27,7 +27,7 @@ impl From<ConfigRange> for Range {
     }
 }
 
-#[pyclass(get_all)]
+#[pyclass(get_all, from_py_object)]
 #[derive(Clone)]
 pub struct TwitterTextParseResult {
     pub weighted_length: i32,
