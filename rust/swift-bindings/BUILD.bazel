@@ -73,10 +73,13 @@ swift_binary(
 )
 
 # macOS: Use swift_test with real XCTest framework
+# no-sandbox: XCTest requires runtime access to Xcode developer frameworks
+# via /private/var/select/developer_dir which the sandbox blocks.
 swift_test(
     name = "SwiftTestsMac",
     srcs = _TEST_SRCS,
     data = _TEST_DATA,
+    tags = ["no-sandbox"],
     target_compatible_with = ["@platforms//os:macos"],
     deps = _TEST_DEPS,
 )
