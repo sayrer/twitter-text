@@ -1,8 +1,0 @@
-"""Hermetic Swift toolchain configuration.
-
-The actual swift_toolchain and toolchain rules are generated dynamically
-by the swift_toolchain_repo repository rule (swift_toolchain_wrapper.bzl)
-to avoid hardcoding the canonical repo path which changes between Bazel versions.
-"""
-
-package(default_visibility = ["//visibility:public"])

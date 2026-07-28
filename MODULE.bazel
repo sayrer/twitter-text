@@ -22,7 +22,7 @@ bazel_dep(name = "apple_support", version = "2.8.0")
 bazel_dep(name = "rules_cc", version = "0.2.22")
 bazel_dep(name = "cxx.rs", version = "1.0.197")
 bazel_dep(name = "rules_ruby", version = "0.28.0")
-bazel_dep(name = "rules_apple", version = "4.5.3")
+bazel_dep(name = "rules_apple", version = "5.0.0-rc2")
 
 # Apple CC toolchain for macOS (required for swift_test with XCTest)
 apple_cc_configure = use_extension(
@@ -35,15 +35,7 @@ bazel_dep(name = "rules_java", version = "9.7.0")
 bazel_dep(name = "rules_jvm_external", version = "7.1")
 bazel_dep(name = "rules_python", version = "2.2.0")
 bazel_dep(name = "rules_shell", version = "0.8.0")
-bazel_dep(name = "rules_swift", version = "3.6.1")
-
-# Fix a bug in rules_swift with hermetic toolchains
-single_version_override(
-    module_name = "rules_swift",
-    patch_strip = 1,
-    patches = ["//patches:rules_swift.patch"],
-    version = "3.6.1",
-)
+bazel_dep(name = "rules_swift", version = "4.0.0-rc4")
 
 # Override nlohmann_json to bcr.1 which adds cc_library load for Bazel 9
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1")
@@ -136,68 +128,30 @@ cc_library(
 # Swift Toolchains
 ###############################################################################
 
-http_archive(
-    name = "swift_linux_x86_64",
-    build_file_content = """
-package(default_visibility = ["//visibility:public"])
-
-filegroup(
-    name = "usr",
-    srcs = glob(["usr/**/*"]),
+# rules_swift >= 4.0.0 ships a standalone toolchain extension (upstream PR
+# #1630), which replaces the hand-rolled http_archive + swift_toolchain wrapper
+# that used to live in //tools/swift, along with the local patch that added a
+# `toolchain_files` attribute to support it.
+#
+# macOS keeps using the Xcode toolchain that rules_swift configures natively;
+# only the Linux platforms are pinned here.
+swift = use_extension("@rules_swift//swift:extensions.bzl", "swift")
+swift.toolchain(
+    name = "swift_toolchain",
+    platform_sha256 = {
+        "ubuntu22.04": "aaaa32f060838f5c5b476afaadcb8b49170e8d5b24afe9cb9df2e8ce33d4a778",
+        "ubuntu22.04-aarch64": "2650ca15c1e23c8644a7dbd36a31420444ab53413aaf18cf001c8b616cac108e",
+    },
+    swift_version = "6.2.4",
+)
+use_repo(
+    swift,
+    "swift_toolchain",
+    "swift_toolchain_ubuntu22.04",
+    "swift_toolchain_ubuntu22.04-aarch64",
 )
 
-filegroup(
-    name = "runtime_libs",
-    srcs = glob(["usr/lib/swift/linux/*.so"]),
-)
-
-genrule(
-    name = "version_file",
-    outs = ["swift_version.txt"],
-    cmd = "echo '6.0.3' > $@",
-    visibility = ["//visibility:public"],
-)
-
-exports_files(glob(["usr/**/*"]))
-""",
-    sha256 = "09d0a53fbddf2878673dd12c1504e7143c788f195caec9f2329740946eba525c",
-    strip_prefix = "swift-6.0.3-RELEASE-ubuntu22.04",
-    urls = ["https://download.swift.org/swift-6.0.3-release/ubuntu2204/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu22.04.tar.gz"],
-)
-
-http_archive(
-    name = "swift_linux_aarch64",
-    build_file_content = """
-package(default_visibility = ["//visibility:public"])
-
-filegroup(
-    name = "usr",
-    srcs = glob(["usr/**/*"]),
-)
-
-filegroup(
-    name = "runtime_libs",
-    srcs = glob(["usr/lib/swift/linux/*.so"]),
-)
-
-genrule(
-    name = "version_file",
-    outs = ["swift_version.txt"],
-    cmd = "echo '6.0.3' > $@",
-    visibility = ["//visibility:public"],
-)
-
-exports_files(glob(["usr/**/*"]))
-""",
-    sha256 = "52fb0b8feb987c99a7a8217b0d71f62f97c0252b1a2b0058c08c0b7374cd2d66",
-    strip_prefix = "swift-6.0.3-RELEASE-ubuntu22.04-aarch64",
-    urls = ["https://download.swift.org/swift-6.0.3-release/ubuntu2204-aarch64/swift-6.0.3-RELEASE/swift-6.0.3-RELEASE-ubuntu22.04-aarch64.tar.gz"],
-)
-
-swift_toolchain_ext = use_extension("//tools/swift:extensions.bzl", "swift_toolchain_ext")
-use_repo(swift_toolchain_ext, "hermetic_swift_toolchain")
-
-register_toolchains("@hermetic_swift_toolchain//:hermetic_swift_linux_x86_64_toolchain")
+register_toolchains("@swift_toolchain//:swift_toolchain_exec_ubuntu22.04")
 
 ###############################################################################
 # Hermetic LLVM Toolchain

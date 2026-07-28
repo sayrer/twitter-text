@@ -58,7 +58,7 @@ swift_binary(
     name = "SwiftTestRunner",
     srcs = _TEST_SRCS,
     data = _TEST_DATA + [
-        "@swift_linux_x86_64//:runtime_libs",
+        "@swift_toolchain_ubuntu22.04//:files",
         "//rust/ffi-bindings:twitter_text_ffi_cdylib",
     ],
     # LD_LIBRARY_PATH is set dynamically by run_tests.sh at runtime
@@ -88,7 +88,7 @@ sh_test(
     args = ["$(location :SwiftTestRunner)"],
     data = [
         ":SwiftTestRunner",
-        "@swift_linux_x86_64//:runtime_libs",
+        "@swift_toolchain_ubuntu22.04//:files",
         "//rust/ffi-bindings:twitter_text_ffi_cdylib",
     ],
     tags = ["no-remote"],  # Swift hermetic toolchain doesn't support RBE
