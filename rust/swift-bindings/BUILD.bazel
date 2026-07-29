@@ -63,6 +63,9 @@ swift_binary(
     ],
     # LD_LIBRARY_PATH is set dynamically by run_tests.sh at runtime
     linkopts = [
+        # rules_swift's Linux toolchain unconditionally adds -static-libgcc,
+        # which the clang driver reports as unused when it only links.
+        "-Wno-unused-command-line-argument",
         "-lswiftCore",
         "-lswiftSwiftOnoneSupport",
         "-lFoundation",

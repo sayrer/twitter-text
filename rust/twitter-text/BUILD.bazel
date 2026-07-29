@@ -75,6 +75,17 @@ twitter_text_wasm_srcs = [
     "src/validator.rs",
 ]
 
+# simd128 only exists on wasm targets. The wasm rules transition their deps to
+# @rules_rust//rust/platform:wasm32, but plain `bazel build` of these targets
+# compiles them for the host, where rustc warns that the feature is unknown.
+WASM_SIMD_FLAGS = select({
+    "@platforms//cpu:wasm32": [
+        "-C",
+        "target-feature=+simd128",
+    ],
+    "//conditions:default": [],
+})
+
 # 1) Core Rust crate, no cxx in the public API
 rust_library(
     name = "twitter_text_rlib",
@@ -93,7 +104,7 @@ rust_library(
     srcs = twitter_text_wasm_srcs,
     deps = twitter_text_wasm_deps,
     edition = "2021",
-    rustc_flags = ["-C", "target-feature=+simd128"],
+    rustc_flags = WASM_SIMD_FLAGS,
 )
 
 # 2) Static library with FFI, built from the same sources but with ffi feature

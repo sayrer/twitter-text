@@ -4,13 +4,25 @@ load("@rules_rust_wasm_bindgen//:defs.bzl", "rust_wasm_bindgen")
 
 package(default_visibility = ["//visibility:public"])
 
+# simd128 only exists on wasm targets. rust_wasm_bindgen transitions this
+# library to @rules_rust//rust/platform:wasm32, but building it directly (e.g.
+# `bazel build //rust/wasm-bindings/...`) compiles it for the host, where rustc
+# warns that the feature is unknown.
+WASM_SIMD_FLAGS = select({
+    "@platforms//cpu:wasm32": [
+        "-C",
+        "target-feature=+simd128",
+    ],
+    "//conditions:default": [],
+})
+
 # Build Rust library targeting WASM
 rust_shared_library(
     name = "twitter_text_wasm_lib",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/lib.rs",
     edition = "2021",
-    rustc_flags = ["-C", "target-feature=+simd128"],
+    rustc_flags = WASM_SIMD_FLAGS,
     deps = [
         "//rust/twitter-text:twitter_text_wasm_rlib",
         "//rust/config:twitter_text_config",

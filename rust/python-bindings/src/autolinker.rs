@@ -242,7 +242,7 @@ impl Autolinker {
 }
 
 impl Autolinker {
-    fn to_rust_autolinker(&self) -> RustAutolinker {
+    fn to_rust_autolinker(&self) -> RustAutolinker<'_> {
         let mut extractor = Extractor::new();
         extractor.set_extract_url_without_protocol(false);
 
