@@ -7,6 +7,17 @@ test:linux --test_tag_filters=-macos_only
 # line to opt in.
 common --repo_env=DO_NOT_TRACK=1
 
+# Don't synthesize __init__.py files into Python runfiles. rules_python warns
+# that this legacy behavior is deprecated; nothing here imports a package that
+# needs it. Setting it globally (rather than legacy_create_init = 0 per target)
+# also covers external py targets such as @bazel_tools//tools/jdk targets.
+#
+# Both flags are needed: rules_python reads the native Bazel flag when
+# ctx.fragments.py exists and its own Starlark flag when it doesn't, and which
+# path is taken depends on the Bazel version.
+build --incompatible_default_to_explicit_init_py
+build --@rules_python//python/config_settings:incompatible_default_to_explicit_init_py=true
+
 # Set Ruby build environment for rules_ruby
 # These environment variables are used by ruby-build during Ruby compilation
 build --action_env=RUBY_CONFIGURE_OPTS="--disable-install-doc"
