@@ -10,6 +10,6 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "pest_derive",
-    actual = "@twitter_text__pest_derive-2.8.8//:pest_derive",
+    actual = "@twitter_text__pest_derive-2.9.3//:pest_derive",
     tags = ["manual"],
 )

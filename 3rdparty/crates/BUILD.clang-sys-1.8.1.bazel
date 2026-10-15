@@ -39,6 +39,8 @@ rust_library(
         ],
     ),
     crate_features = [
+        "clang_10_0",
+        "clang_11_0",
         "clang_3_5",
         "clang_3_6",
         "clang_3_7",
@@ -47,6 +49,9 @@ rust_library(
         "clang_4_0",
         "clang_5_0",
         "clang_6_0",
+        "clang_7_0",
+        "clang_8_0",
+        "clang_9_0",
         "libloading",
         "runtime",
     ],
@@ -126,7 +131,7 @@ rust_library(
     deps = [
         ":build_script_build",
         "@twitter_text__glob-0.3.3//:glob",
-        "@twitter_text__libc-0.2.189//:libc",
+        "@twitter_text__libc-0.2.190//:libc",
         "@twitter_text__libloading-0.8.9//:libloading",
     ],
 )
@@ -137,6 +142,9 @@ cargo_build_script(
         include = ["**/*.rs"],
         allow_empty = True,
     ),
+    build_script_env_files = [
+        ":cargo_toml_env_vars",
+    ],
     compile_data = glob(
         include = ["**"],
         allow_empty = True,
@@ -151,6 +159,8 @@ cargo_build_script(
         ],
     ),
     crate_features = [
+        "clang_10_0",
+        "clang_11_0",
         "clang_3_5",
         "clang_3_6",
         "clang_3_7",
@@ -159,6 +169,9 @@ cargo_build_script(
         "clang_4_0",
         "clang_5_0",
         "clang_6_0",
+        "clang_7_0",
+        "clang_8_0",
+        "clang_9_0",
         "libloading",
         "runtime",
     ],

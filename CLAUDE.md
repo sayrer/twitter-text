@@ -138,7 +138,7 @@ This order prevents ambiguities (e.g., `goo.gl/4udoLK` could match as hashtag bu
 
 ## Dependencies
 
-- **Rust**: 1.97.1 (edition 2021)
+- **Rust**: 1.99.1 (edition 2021)
 - **Bazel**: 9.2.0+
 - **Ruby**: 3.4.1+ (for Ruby bindings, requires libyaml)
 - **Java**: JDK 25 (for Java FFM bindings)
@@ -176,7 +176,7 @@ swift test
 
 ### Swift Toolchain Details
 
-- **Linux**: Uses hermetic Swift 6.0.3 toolchain downloaded by Bazel (see `MODULE.bazel`)
+- **Linux**: Uses hermetic Swift 6.4.0 toolchain downloaded by Bazel (see `MODULE.bazel`)
 - **macOS**: Uses system Swift from Xcode (automatically detected by rules_swift)
 - **C Interop**: C headers from `//rust/ffi-bindings` are auto-wrapped via `swift_interop_hint`
 - **Module Name**: Swift code imports `CTwitterText` to access C FFI functions

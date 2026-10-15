@@ -117,6 +117,6 @@ rust_library(
     deps = [
         "@twitter_text__proc-macro2-1.0.103//:proc_macro2",
         "@twitter_text__quote-1.0.42//:quote",
-        "@twitter_text__syn-2.0.111//:syn",
+        "@twitter_text__syn-3.0.3//:syn",
     ],
 )
