@@ -166,17 +166,48 @@ register_toolchains("@swift_toolchain//:swift_toolchain_exec_ubuntu22.04")
 # Hermetic LLVM Toolchain
 ###############################################################################
 
-http_archive(
+# Sysroot for the hermetic LLVM toolchain, assembled from Debian bookworm
+# (12.15) packages. This used to be Chromium's prebuilt bullseye sysroot, but
+# that is still glibc 2.31 with GCC 10's libstdc++, which lacks symbols the
+# static Swift 6.4 runtime references, and Chromium doesn't publish anything
+# newer. Bookworm's glibc 2.36 keeps the binaries runnable on Ubuntu 24.04.
+#
+# Paths and checksums come from dists/bookworm/main/binary-amd64/Packages.
+# deb.debian.org drops superseded files at the next point release, so
+# snapshot.debian.org is the fallback.
+debian_sysroot = use_repo_rule("//tools:debian_sysroot.bzl", "debian_sysroot")
+
+debian_sysroot(
     name = "linux_sysroot",
-    build_file_content = """
-filegroup(
-    name = "sysroot",
-    srcs = glob(["**"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    sha256 = "e656b9c486a0e5a0aab372bcc8d7c4fc892dddd8e62ec2fbc5222155280a960e",
-    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/98e34ae4d2db673096fa8020e301defee6b877dd/debian_bullseye_amd64_sysroot.tar.xz"],
+    mirrors = [
+        "https://deb.debian.org/debian",
+        "https://snapshot.debian.org/archive/debian/20261015T000000Z",
+    ],
+    packages = {
+        # glibc, kernel headers, libcrypt
+        "pool/main/g/glibc/libc6_2.36-9+deb12u14_amd64.deb": "ba4f88f73dbc3ae9055f3c20f4523bfdbaf1ad13ff95e258924f77d20b4fbedf",
+        "pool/main/g/glibc/libc6-dev_2.36-9+deb12u14_amd64.deb": "0218fc2befcd784c1b0c6292c0a137ce89fad054efaa579ad083bee0f2c01aae",
+        "pool/main/l/linux/linux-libc-dev_6.1.176-1_amd64.deb": "8bb258735b9dffbb111da778ebdd024750878e435ffd9dfcadcb6762ede6b4cf",
+        "pool/main/libx/libxcrypt/libcrypt1_4.4.33-2_amd64.deb": "f5f60a5cdfd4e4eaa9438ade5078a57741a7a78d659fcb0c701204f523e8bd29",
+        "pool/main/libx/libxcrypt/libcrypt-dev_4.4.33-2_amd64.deb": "81ccd29130f75a9e3adabc80e61921abff42f76761e1f792fa2d1bb69af7f52f",
+        # GCC 12 runtime: crt objects, libgcc, libatomic, libstdc++ and headers
+        "pool/main/g/gcc-12/gcc-12-base_12.2.0-14+deb12u1_amd64.deb": "1896a2aacf4ad681ff5eacc24a5b0ca4d5d9c9b9c9e4b6de5197bc1e116ea619",
+        "pool/main/g/gcc-12/libgcc-s1_12.2.0-14+deb12u1_amd64.deb": "3016e62cb4b7cd8038822870601f5ed131befe942774d0f745622cc77d8a88f7",
+        "pool/main/g/gcc-12/libgcc-12-dev_12.2.0-14+deb12u1_amd64.deb": "d720259380a84f2ffc6fe516eff5cbe9c8a005138e8d6a5748747ba4b3404a82",
+        "pool/main/g/gcc-12/libatomic1_12.2.0-14+deb12u1_amd64.deb": "fbd4e154a6b444229ea002cc209df099209c0adc09102e5fd21239a3d2b55e2d",
+        "pool/main/g/gcc-12/libstdc++6_12.2.0-14+deb12u1_amd64.deb": "5cd3171216d4ab0fc911cfe9c35509bf2dd8f47761c43b7f6a4296701551a24d",
+        "pool/main/g/gcc-12/libstdc++-12-dev_12.2.0-14+deb12u1_amd64.deb": "d28def6c23630432b57cb38a4c2fd67a79d4e0484027386ca6e8d6005c3d7a73",
+        # Libraries the Swift static runtime link and the Ruby readline build pull in
+        "pool/main/c/curl/libcurl4_7.88.1-10+deb12u15_amd64.deb": "3042904de01f9c4fbdcf1452b8f81abedcf2b015f9b9deba109063322b5bd68b",
+        "pool/main/c/curl/libcurl4-openssl-dev_7.88.1-10+deb12u15_amd64.deb": "dbd69b15ecb49331f53fbc3483b0508997e2fab551e48c53951391f254b73890",
+        "pool/main/libx/libxml2/libxml2_2.9.14+dfsg-1.3~deb12u6_amd64.deb": "4460e39dda10a815881374217cde08474747cfa018358cd8612c14b390eff53b",
+        "pool/main/libx/libxml2/libxml2-dev_2.9.14+dfsg-1.3~deb12u6_amd64.deb": "e8ceacf656b1720e7a310e1d159439a356bfcb9f5fb0325907f26aa8590e5f70",
+        "pool/main/n/ncurses/libtinfo6_6.4-4_amd64.deb": "072d908f38f51090ca28ca5afa3b46b2957dc61fe35094c0b851426859a49a51",
+        "pool/main/n/ncurses/libncurses6_6.4-4_amd64.deb": "72300f09f02669c06c99b641ea795d52300ec7eb65eaccddf7bc3b72934f0ef5",
+        "pool/main/n/ncurses/libncurses-dev_6.4-4_amd64.deb": "2ad228835756feb118bb131b32834bd23a09047e4de408cc5204cbb5dce0e4bb",
+        "pool/main/z/zlib/zlib1g_1.2.13.dfsg-1_amd64.deb": "d7dd1d1411fedf27f5e27650a6eff20ef294077b568f4c8c5e51466dc7c08ce4",
+        "pool/main/z/zlib/zlib1g-dev_1.2.13.dfsg-1_amd64.deb": "f9ce531f60cbd5df37996af9370e0171be96902a17ec2bdbd8d62038c354094f",
+    },
 )
 
 bazel_dep(name = "toolchains_llvm", version = "1.11.3")
