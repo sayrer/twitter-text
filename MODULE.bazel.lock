@@ -375,7 +375,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%rust_deps": {
       "general": {
-        "bzlTransitiveDigest": "adBvFSN1uNelF57xohX7X4VlzQCGpH9ONBmPQjvWNHU=",
+        "bzlTransitiveDigest": "CO6Btq44FdFes8wB3hZ1EYrBFllmbERnGxpYc1cnB0E=",
         "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_skylib bazel_skylib+",
@@ -739,14 +739,11 @@
             }
           },
           "twitter_text__emojis-0.9.0": {
-            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:git.bzl%git_repository",
             "attributes": {
-              "sha256": "0b1514ced566c94991ed9563258ecf61e311fd773bf0a3f20606830386bf66e3",
-              "type": "tar.gz",
-              "urls": [
-                "https://static.crates.io/crates/emojis/0.9.0/download"
-              ],
-              "strip_prefix": "emojis-0.9.0",
+              "commit": "b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e",
+              "init_submodules": true,
+              "remote": "https://github.com/rossmacarthur/emojis",
               "build_file": "@@//3rdparty/crates:BUILD.emojis-0.9.0.bazel"
             }
           },

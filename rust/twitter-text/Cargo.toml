@@ -19,7 +19,8 @@ pest_derive = "2.9.3"
 twitter_text_config = { path = "../config" , version = "0.2.0" }
 twitter_text_parser = { path = "../parser" , version = "0.2.0" }
 phf = { version = "0.14", features = ["macros", "unicase"] }
-emojis = "0.9"
+# Unicode/Emoji 18.0 support is on trunk but not yet released.
+emojis = { git = "https://github.com/rossmacarthur/emojis", rev = "b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e" }
 memchr = "2.8"
 nom = "8"
 unicode_categories = "0.1"

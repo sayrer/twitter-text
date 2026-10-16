@@ -17,6 +17,7 @@
 """
 
 load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_rust//crate_universe:defs.bzl", "crates_vendor_remote_repository")
@@ -766,12 +767,11 @@ def crate_repositories():
     )
 
     maybe(
-        http_archive,
+        git_repository,
         name = "twitter_text__emojis-0.9.0",
-        sha256 = "0b1514ced566c94991ed9563258ecf61e311fd773bf0a3f20606830386bf66e3",
-        type = "tar.gz",
-        urls = ["https://static.crates.io/crates/emojis/0.9.0/download"],
-        strip_prefix = "emojis-0.9.0",
+        commit = "b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e",
+        init_submodules = True,
+        remote = "https://github.com/rossmacarthur/emojis",
         build_file = Label("//3rdparty/crates:BUILD.emojis-0.9.0.bazel"),
     )
 
