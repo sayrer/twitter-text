@@ -17,29 +17,6 @@ use twitter_text_parser::twitter_text::TwitterTextParser;
 
 const EMOJI_TXT: &str = include_str!("unicode18-emoji-test.txt");
 
-/// Base code points added in Emoji 18.0 that the `emojis` crate does not know
-/// about yet. 0.9.0 is the newest release and its data stops at Emoji 17.0, so
-/// `is_valid_emoji` in the extractor rejects any sequence built from these.
-///
-/// This list exists only to keep the weighting test honest while 18.0 is a
-/// draft; `test_pending_emoji_18_still_unsupported` fails once the `emojis`
-/// crate catches up, at which point delete both this constant and that test.
-const PENDING_EMOJI_18: &[char] = &[
-    '\u{1faeb}', // cracking face
-    '\u{1faf9}', // leftwards thumb sign
-    '\u{1fafa}', // rightwards thumb sign
-    '\u{1facc}', // monarch butterfly
-    '\u{1fadd}', // pickle
-    '\u{1f6d9}', // lighthouse
-    '\u{1fa8b}', // meteor
-    '\u{1fa8c}', // eraser
-    '\u{1fa8d}', // net with handle
-];
-
-fn is_pending_emoji_18(s: &str) -> bool {
-    s.chars().any(|c| PENDING_EMOJI_18.contains(&c))
-}
-
 fn build_emoji_strings() -> Vec<String> {
     let f = io::BufReader::new(EMOJI_TXT.as_bytes());
     f.lines()
@@ -174,9 +151,6 @@ fn test_emoji_weighting_backends_agree() {
     let mut failures: Vec<String> = Vec::new();
 
     for s in build_fully_qualified_sequences() {
-        if is_pending_emoji_18(&s) {
-            continue;
-        }
         let (pest, external, nom) = weighted_lengths(&s);
         if pest != external || pest != nom {
             failures.push(format!(
@@ -199,43 +173,4 @@ fn test_emoji_weighting_backends_agree() {
             failures.len()
         );
     }
-}
-
-/// Guards the `PENDING_EMOJI_18` allowance so it cannot outlive its purpose.
-///
-/// Every multi code point sequence built from a pending base is expected to
-/// *still* disagree across backends. Once the `emojis` crate ships Emoji 18.0
-/// data these will agree, this test will fail, and the correct response is to
-/// delete `PENDING_EMOJI_18`, the skip in
-/// `test_emoji_weighting_backends_agree`, and this test.
-#[test]
-fn test_pending_emoji_18_still_unsupported() {
-    let pending: Vec<String> = build_fully_qualified_sequences()
-        .into_iter()
-        .filter(|s| is_pending_emoji_18(s) && s.chars().count() > 1)
-        .collect();
-
-    assert!(
-        !pending.is_empty(),
-        "No pending Emoji 18.0 sequences found in the test data. If the data no \
-         longer contains them, delete PENDING_EMOJI_18 and this test."
-    );
-
-    let now_supported: Vec<&String> = pending
-        .iter()
-        .filter(|s| {
-            let (pest, external, nom) = weighted_lengths(s);
-            pest == external && pest == nom
-        })
-        .collect();
-
-    assert!(
-        now_supported.is_empty(),
-        "The emojis crate now recognizes {} of {} pending Emoji 18.0 sequences \
-         (e.g. {:?}). Delete PENDING_EMOJI_18, the skip in \
-         test_emoji_weighting_backends_agree, and this test.",
-        now_supported.len(),
-        pending.len(),
-        now_supported[0]
-    );
 }
