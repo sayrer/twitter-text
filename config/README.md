@@ -31,10 +31,20 @@ The version for the configuration string. This is an integer that will
 monotonically increase in future releases. The legacy version of the
 string is version 1; weighted code point ranges and 280-character
 “long” tweets are supported in version 2. Version 3, the default, adds
-`emojiParsingEnabled`. Version 4 corrects the weighting of the Runic
-block (U+16A0–U+16FF): it is an alphabetic script, so it weighs the
-same as Latin rather than taking the default weight (see
+`emojiParsingEnabled`. Version 4 corrects the weighting of the
+alphabetic scripts encoded above U+10FF. Version 3 weighs that whole
+region at the default weight meant for East Asian logographic and
+syllabic scripts, which doubles the cost of Runic, Ethiopic, Cherokee,
+Khmer, Canadian Aboriginal Syllabics, the Latin, Greek, Cyrillic,
+Georgian and Arabic extension and presentation-form blocks, and some
+170 other alphabets, abjads, abugidas and syllabaries (see
 [twitter-text#430](https://github.com/twitter/twitter-text/issues/430)).
+Version 4 weighs every such block like Latin. The block list is derived
+from the Unicode Character Database by `generate_v4.py` in this
+directory: a block above U+10FF qualifies when it contains letters or
+combining marks, none of its letters are East Asian Wide or Fullwidth,
+and it is not Korean, a logographic or hieroglyphic script, or a block of
+letter-shaped symbols such as the Mathematical Alphanumeric Symbols.
 Version 4 must be selected explicitly; versions 1 through 3 are
 unchanged from upstream twitter-text.
 

@@ -69,6 +69,8 @@ cargo test -p twitter-text-parser
    - Loads config from `config/v*.json`
    - Defines character weights and URL length limits
    - Used for tweet length calculation (280 weighted characters)
+   - v1–v3 are byte-identical to upstream twitter-text and v3 is the default; v4 is opt-in
+   - `config/generate_v4.py` regenerates `config/v4.json` and `rust/twitter-text/tests/v4_script_weights.rs` from the Unicode Character Database; do not hand-edit either
 
 4. **Conformance Tests** (`rust/conformance/`)
    - Tests against YAML test suites in `conformance/` directory

@@ -79,6 +79,26 @@ final class ValidateTests: XCTestCase {
         // v4 is opt-in: the default configuration still weighs runes as logograms.
         XCTAssertEqual(TwitterTextParser.parse(text: runes).weightedLength, 12)
     }
+
+    func testAlphabeticScriptsWeighLikeLatinInV4() {
+        // Six letters from an alphabetic block above U+10FF weigh six units under
+        // v4 and twelve under v3 and under the default.
+        let samples: [(String, String)] = [
+            ("Latin Extended Additional", "\u{1E00}\u{1E01}\u{1E02}\u{1E03}\u{1E04}\u{1E05}"),
+            ("Greek Extended", "\u{1F00}\u{1F01}\u{1F02}\u{1F03}\u{1F04}\u{1F05}"),
+            ("Ethiopic", "\u{1200}\u{1208}\u{1210}\u{1218}\u{1220}\u{1228}"),
+            ("Cherokee", "\u{13A0}\u{13A1}\u{13A2}\u{13A3}\u{13A4}\u{13A5}"),
+            ("Khmer", "\u{1780}\u{1781}\u{1782}\u{1783}\u{1784}\u{1785}"),
+            ("Arabic Presentation Forms-A", "\u{FB50}\u{FB51}\u{FB52}\u{FB53}\u{FB54}\u{FB55}"),
+            ("Adlam", "\u{1E900}\u{1E901}\u{1E902}\u{1E903}\u{1E904}\u{1E905}"),
+        ]
+        for (name, text) in samples {
+            XCTAssertEqual(text.unicodeScalars.count, 6, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text, config: .v4).weightedLength, 6, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text, config: .v3).weightedLength, 12, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text).weightedLength, 12, name)
+        }
+    }
 }
 
 #else
@@ -105,6 +125,7 @@ class ValidateTests {
         testURLs()
         testURLsWithoutProtocol()
         testRunicWeighting()
+        testAlphabeticScriptsWeighLikeLatinInV4()
     }
 
     func testTweets() {
@@ -176,6 +197,26 @@ class ValidateTests {
         XCTAssertEqual(TwitterTextParser.parse(text: runes, config: .v3).weightedLength, 12)
         // v4 is opt-in: the default configuration still weighs runes as logograms.
         XCTAssertEqual(TwitterTextParser.parse(text: runes).weightedLength, 12)
+    }
+
+    func testAlphabeticScriptsWeighLikeLatinInV4() {
+        // Six letters from an alphabetic block above U+10FF weigh six units under
+        // v4 and twelve under v3 and under the default.
+        let samples: [(String, String)] = [
+            ("Latin Extended Additional", "\u{1E00}\u{1E01}\u{1E02}\u{1E03}\u{1E04}\u{1E05}"),
+            ("Greek Extended", "\u{1F00}\u{1F01}\u{1F02}\u{1F03}\u{1F04}\u{1F05}"),
+            ("Ethiopic", "\u{1200}\u{1208}\u{1210}\u{1218}\u{1220}\u{1228}"),
+            ("Cherokee", "\u{13A0}\u{13A1}\u{13A2}\u{13A3}\u{13A4}\u{13A5}"),
+            ("Khmer", "\u{1780}\u{1781}\u{1782}\u{1783}\u{1784}\u{1785}"),
+            ("Arabic Presentation Forms-A", "\u{FB50}\u{FB51}\u{FB52}\u{FB53}\u{FB54}\u{FB55}"),
+            ("Adlam", "\u{1E900}\u{1E901}\u{1E902}\u{1E903}\u{1E904}\u{1E905}"),
+        ]
+        for (name, text) in samples {
+            XCTAssertEqual(text.unicodeScalars.count, 6, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text, config: .v4).weightedLength, 6, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text, config: .v3).weightedLength, 12, name)
+            XCTAssertEqual(TwitterTextParser.parse(text: text).weightedLength, 12, name)
+        }
     }
 }
 

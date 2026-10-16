@@ -80,6 +80,32 @@ RSpec.describe Twittertext::Validator do
         default = Twittertext::TwitterTextParser.parse(runes, Twittertext::TwitterTextConfiguration.new, true)
         expect(default.weighted_length).to eq 12
     end
+
+    {
+        'Latin Extended Additional' => "\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05",
+        'Greek Extended' => "\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05",
+        'Ethiopic' => "\u1200\u1208\u1210\u1218\u1220\u1228",
+        'Cherokee' => "\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5",
+        'Khmer' => "\u1780\u1781\u1782\u1783\u1784\u1785",
+        'Arabic Presentation Forms-A' => "\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55",
+        'Adlam' => "\u{1E900}\u{1E901}\u{1E902}\u{1E903}\u{1E904}\u{1E905}",
+    }.each do |name, text|
+        it "weighs #{name} like Latin under v4 only" do
+            # Six letters from an alphabetic block above U+10FF weigh six units
+            # under v4 and twelve under v3 and under the default.
+            expect(text.length).to eq 6
+
+            v4 = Twittertext::TwitterTextParser.parse(text, Twittertext::TwitterTextConfiguration.config_v4, true)
+            expect(v4.weighted_length).to eq 6
+            expect(v4.is_valid).to eq true
+
+            v3 = Twittertext::TwitterTextParser.parse(text, Twittertext::TwitterTextConfiguration.config_v3, true)
+            expect(v3.weighted_length).to eq 12
+
+            default = Twittertext::TwitterTextParser.parse(text, Twittertext::TwitterTextConfiguration.new, true)
+            expect(default.weighted_length).to eq 12
+        end
+    end
 end
 
 def validate_weighting(tests, config)

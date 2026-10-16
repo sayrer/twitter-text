@@ -86,7 +86,7 @@ let config = Configuration.default
 let v1 = Configuration.v1
 let v2 = Configuration.v2
 let v3 = Configuration.v3
-let v4 = Configuration.v4  // opt-in: weighs Runic like Latin
+let v4 = Configuration.v4  // opt-in: weighs alphabetic scripts above U+10FF like Latin
 
 // Access configuration properties
 print("Max tweet length: \(config.maxWeightedTweetLength)")

@@ -23,8 +23,9 @@ public class Configuration {
         return Configuration(handle: twitter_text_config_v3()!)
     }
 
-    /// Get configuration v4, which weighs the Runic block like Latin. Opt-in:
-    /// `default` remains v3.
+    /// Get configuration v4, which weighs the alphabetic scripts encoded above
+    /// U+10FF (Runic, Ethiopic, Khmer, the Latin and Greek extension blocks, and
+    /// so on) like Latin rather than like logograms. Opt-in: `default` remains v3.
     public static var v4: Configuration {
         return Configuration(handle: twitter_text_config_v4()!)
     }

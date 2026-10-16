@@ -677,14 +677,14 @@
     TwitterTextConfiguration *configurationV3 = [TwitterTextConfiguration configurationFromJSONResource:kTwitterTextParserConfigurationV3];
     TwitterTextConfiguration *configurationV4 = [TwitterTextConfiguration configurationFromJSONResource:kTwitterTextParserConfigurationV4];
 
-    // V4 is V3 plus the Runic block. See
+    // V4 is V3 plus the alphabetic scripts above U+10FF. See
     // https://github.com/twitter/twitter-text/issues/430
-    XCTAssertEqual(configurationV4.ranges.count, configurationV3.ranges.count + 1);
+    XCTAssertGreaterThan(configurationV4.ranges.count, configurationV3.ranges.count);
 
     BOOL foundRunic = NO;
     for (TwitterTextWeightedRange *weightedRange in configurationV4.ranges) {
-        if (weightedRange.range.location == 5792) {
-            XCTAssertEqual(weightedRange.range.length, 96);
+        NSRange range = weightedRange.range;
+        if (range.location <= 5792 && NSMaxRange(range) >= 5888) {
             XCTAssertEqual(weightedRange.weight, 100);
             foundRunic = YES;
         }
@@ -692,8 +692,8 @@
     XCTAssertTrue(foundRunic, @"V4 should weight the Runic block like Latin");
 
     for (TwitterTextWeightedRange *weightedRangeV3 in configurationV3.ranges) {
-        XCTAssertNotEqual(weightedRangeV3.range.location, (NSUInteger)5792,
-                          @"V3 should keep the upstream ranges");
+        XCTAssertFalse(NSLocationInRange(5792, weightedRangeV3.range),
+                       @"V3 should keep the upstream ranges");
     }
 
     // Elder Futhark: one unit per rune under V4, two under V3.
@@ -703,6 +703,30 @@
     TTTextParser *parserV3 = [[TTTextParser alloc] initWithConfiguration:configurationV3];
     XCTAssertEqual([parserV4 parseTweet:runes].weightedLength, 6);
     XCTAssertEqual([parserV3 parseTweet:runes].weightedLength, 12);
+}
+
+- (void)testTwitterTextParserConfigurationV4WeightsAlphabeticScriptsLikeLatin
+{
+    TwitterTextConfiguration *configurationV3 = [TwitterTextConfiguration configurationFromJSONResource:kTwitterTextParserConfigurationV3];
+    TwitterTextConfiguration *configurationV4 = [TwitterTextConfiguration configurationFromJSONResource:kTwitterTextParserConfigurationV4];
+    TTTextParser *parserV4 = [[TTTextParser alloc] initWithConfiguration:configurationV4];
+    TTTextParser *parserV3 = [[TTTextParser alloc] initWithConfiguration:configurationV3];
+
+    // Six letters from an alphabetic block above U+10FF weigh six units under
+    // V4 and twelve under V3.
+    NSDictionary<NSString *, NSString *> *samples = @{
+        @"Latin Extended Additional": @"\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05",
+        @"Greek Extended": @"\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05",
+        @"Ethiopic": @"\u1200\u1208\u1210\u1218\u1220\u1228",
+        @"Cherokee": @"\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5",
+        @"Khmer": @"\u1780\u1781\u1782\u1783\u1784\u1785",
+        @"Arabic Presentation Forms-A": @"\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55",
+        @"Adlam": @"\U0001E900\U0001E901\U0001E902\U0001E903\U0001E904\U0001E905",
+    };
+    [samples enumerateKeysAndObjectsUsingBlock:^(NSString *name, NSString *text, BOOL *stop) {
+        XCTAssertEqual([parserV4 parseTweet:text].weightedLength, 6, @"%@", name);
+        XCTAssertEqual([parserV3 parseTweet:text].weightedLength, 12, @"%@", name);
+    }];
 }
 
 - (void)testTwitterTextParserConfigurationV2ToV3Transition

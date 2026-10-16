@@ -137,8 +137,7 @@ dependencies = [
 [[package]]
 name = "emojis"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b1514ced566c94991ed9563258ecf61e311fd773bf0a3f20606830386bf66e3"
+source = "git+https://github.com/rossmacarthur/emojis?rev=b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e#b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e"
 dependencies = [
  "phf 0.13.1",
 ]

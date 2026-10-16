@@ -59,11 +59,39 @@ public class TwitterTextConfigurationTest extends TestCase {
     final List<TwitterTextConfiguration.TwitterTextWeightedRange> ranges =
         configuration.getRanges();
     assertNotNull(ranges);
-    assertEquals(ranges.size(), 5);
-    // v4 adds the Runic block, which v3 leaves at the default weight.
-    final TwitterTextConfiguration.TwitterTextWeightedRange runicRange = ranges.get(1);
-    assertEquals(runicRange.getRange(), new Range(5792, 5887));
-    assertEquals(runicRange.getWeight(), 100);
+    final List<TwitterTextConfiguration.TwitterTextWeightedRange> v3Ranges =
+        TwitterTextConfiguration.configurationFromJson("v3.json", true).getRanges();
+    // v4 is v3 plus the alphabetic scripts above U+10FF.
+    assertTrue(ranges.size() > v3Ranges.size());
+    for (TwitterTextConfiguration.TwitterTextWeightedRange v3Range : v3Ranges) {
+      boolean found = false;
+      for (TwitterTextConfiguration.TwitterTextWeightedRange range : ranges) {
+        found |= range.getRange().equals(v3Range.getRange())
+            && range.getWeight() == v3Range.getWeight();
+      }
+      assertTrue("v3 range " + v3Range.getRange() + " should be in v4", found);
+    }
+    assertTrue(covers(ranges, 0x16A0, 0x16FF));     // Runic
+    assertTrue(covers(ranges, 0x1200, 0x137F));     // Ethiopic
+    assertTrue(covers(ranges, 0x1780, 0x17FF));     // Khmer
+    assertTrue(covers(ranges, 0x1E00, 0x1EFF));     // Latin Extended Additional
+    assertTrue(covers(ranges, 0x1F00, 0x1FFF));     // Greek Extended
+    assertTrue(covers(ranges, 0xFB50, 0xFDFF));     // Arabic Presentation Forms-A
+    assertTrue(covers(ranges, 0x1E900, 0x1E95F));   // Adlam
+    assertFalse(covers(ranges, 0x4E00, 0x9FFF));    // CJK Unified Ideographs
+    assertFalse(covers(ranges, 0xAC00, 0xD7AF));    // Hangul Syllables
+    assertFalse(covers(ranges, 0x1D400, 0x1D7FF));  // Mathematical Alphanumeric Symbols
+  }
+
+  private static boolean covers(
+      List<TwitterTextConfiguration.TwitterTextWeightedRange> ranges, int first, int last) {
+    for (TwitterTextConfiguration.TwitterTextWeightedRange range : ranges) {
+      if (range.getRange().start <= first && range.getRange().end >= last
+          && range.getWeight() == 100) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public void testVersion3RetainsUpstreamRanges() {

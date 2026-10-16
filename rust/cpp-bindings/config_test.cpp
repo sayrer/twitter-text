@@ -127,11 +127,37 @@ TEST(TwitterTextConfigurationTest, V4) {
   ASSERT_EQ(config->getVersion(), 4);
   ASSERT_EQ(config->getEmojiParsingEnabled(), true);
   std::vector<WeightedRange> stdv = config->getRanges();
-  ASSERT_EQ(stdv.size(), 5);
-  // The Runic block, which v3 leaves at the default weight.
-  ASSERT_EQ(stdv[1].range.start, 5792);
-  ASSERT_EQ(stdv[1].range.end, 5887);
-  ASSERT_EQ(stdv[1].weight, 100);
+  TwitterTextConfiguration *v3 = new TwitterTextConfiguration(config_v3());
+  std::vector<WeightedRange> v3_ranges = v3->getRanges();
+  // v4 is v3 plus the alphabetic scripts above U+10FF.
+  ASSERT_GT(stdv.size(), v3_ranges.size());
+  for (const WeightedRange &v3_range : v3_ranges) {
+    bool found = false;
+    for (const WeightedRange &r : stdv) {
+      found |= r.range.start == v3_range.range.start &&
+               r.range.end == v3_range.range.end && r.weight == v3_range.weight;
+    }
+    ASSERT_TRUE(found) << "v3 range " << v3_range.range.start << ".." << v3_range.range.end;
+  }
+  auto covers = [&stdv](int32_t first, int32_t last) {
+    for (const WeightedRange &r : stdv) {
+      if (r.range.start <= first && r.range.end >= last && r.weight == 100) {
+        return true;
+      }
+    }
+    return false;
+  };
+  ASSERT_TRUE(covers(0x16A0, 0x16FF));     // Runic
+  ASSERT_TRUE(covers(0x1200, 0x137F));     // Ethiopic
+  ASSERT_TRUE(covers(0x1780, 0x17FF));     // Khmer
+  ASSERT_TRUE(covers(0x1E00, 0x1EFF));     // Latin Extended Additional
+  ASSERT_TRUE(covers(0x1F00, 0x1FFF));     // Greek Extended
+  ASSERT_TRUE(covers(0xFB50, 0xFDFF));     // Arabic Presentation Forms-A
+  ASSERT_TRUE(covers(0x1E900, 0x1E95F));   // Adlam
+  ASSERT_FALSE(covers(0x4E00, 0x9FFF));    // CJK Unified Ideographs
+  ASSERT_FALSE(covers(0xAC00, 0xD7AF));    // Hangul Syllables
+  ASSERT_FALSE(covers(0x1D400, 0x1D7FF));  // Mathematical Alphanumeric Symbols
+  delete v3;
   delete config;
 }
 
