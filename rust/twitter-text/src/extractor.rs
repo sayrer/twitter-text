@@ -3186,4 +3186,66 @@ mod debug_tests {
 
         assert!(failures.is_empty(), "\n{}", failures.join("\n"));
     }
+
+    /// Domains that differ only in case must be equal once normalized with
+    /// UTS 46, the same mapping `valid_punycode_str` applies.
+    #[test]
+    fn test_unicode_domains_equal_ignoring_case() {
+        fn normalized_domain(extractor: &Extractor, text: &str) -> String {
+            let urls = extractor.extract_urls(text);
+            assert_eq!(
+                urls.len(),
+                1,
+                "expected one URL in {:?}, got {:?}",
+                text,
+                urls
+            );
+            Uts46::new()
+                .to_ascii(
+                    urls[0].as_bytes(),
+                    AsciiDenyList::EMPTY,
+                    Hyphens::Allow,
+                    DnsLength::Verify,
+                )
+                .expect("UTS 46 rejected the domain")
+                .into_owned()
+        }
+
+        let pairs = [
+            (
+                "foo München.xyz bar",
+                "foo münchen.xyz bar",
+                "xn--mnchen-3ya.xyz",
+            ),
+            (
+                "foo München.公司 bar",
+                "foo münchen.公司 bar",
+                "xn--mnchen-3ya.xn--55qx5d",
+            ),
+        ];
+
+        for backend in [
+            ParserBackend::External,
+            ParserBackend::Pest,
+            ParserBackend::Nom,
+        ] {
+            let extractor = Extractor::with_parser_backend(backend);
+            for (upper, lower, expected) in pairs {
+                assert_eq!(
+                    normalized_domain(&extractor, upper),
+                    expected,
+                    "{:?} {:?}",
+                    backend,
+                    upper
+                );
+                assert_eq!(
+                    normalized_domain(&extractor, lower),
+                    expected,
+                    "{:?} {:?}",
+                    backend,
+                    lower
+                );
+            }
+        }
+    }
 }
