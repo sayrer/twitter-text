@@ -62,25 +62,18 @@ static CONFIG_V3: LazyLock<Configuration> = LazyLock::new(|| Configuration {
     emoji_parsing_enabled: true,
 });
 
-/// v4 is v3 plus the Runic block, which is alphabetic and so weighs the same as
-/// Latin rather than taking the default weight. It is opt-in: the default
-/// configuration remains v3, which tracks upstream twitter-text.
+/// v4 is v3 plus every alphabetic script that Unicode encodes above U+10FF.
+/// The default weight was meant for East Asian logographic and syllabic
+/// scripts, but v3's cutoff at U+10FF also doubles the cost of Ethiopic,
+/// Cherokee, Khmer, the Latin, Greek, Cyrillic and Arabic extension blocks,
+/// and some 170 other alphabets, abjads, abugidas and syllabaries. v4 weighs
+/// those like Latin. It is opt-in: the default configuration remains v3,
+/// which tracks upstream twitter-text. The range table is generated from the
+/// Unicode Character Database by config/generate_v4.py and read from the
+/// JSON so that the two cannot drift apart.
 /// See https://github.com/twitter/twitter-text/issues/430
-static CONFIG_V4: LazyLock<Configuration> = LazyLock::new(|| Configuration {
-    version: 4,
-    max_weighted_tweet_length: 280,
-    scale: 100,
-    default_weight: 200,
-    transformed_url_length: 23,
-    ranges: vec![
-        WeightedRange::new(0, 4351, 100),
-        WeightedRange::new(5792, 5887, 100),
-        WeightedRange::new(8192, 8205, 100),
-        WeightedRange::new(8208, 8223, 100),
-        WeightedRange::new(8242, 8247, 100),
-    ],
-    emoji_parsing_enabled: true,
-});
+static CONFIG_V4: LazyLock<Configuration> =
+    LazyLock::new(|| Configuration::configuration_from_json(V4_JSON));
 
 pub extern "C" fn config_v1() -> &'static Configuration {
     &CONFIG_V1

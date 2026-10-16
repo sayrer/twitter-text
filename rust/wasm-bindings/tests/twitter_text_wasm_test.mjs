@@ -514,6 +514,46 @@ describe("Tweet Parser Tests", () => {
     resultDefault.free();
   });
 
+  test("alphabetic scripts above U+10FF weigh like Latin with v4 config", () => {
+    // Six letters from an alphabetic block above U+10FF weigh six units under
+    // v4 and twelve under v3 and under the default.
+    const samples = [
+      ["Latin Extended Additional", "\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05"],
+      ["Greek Extended", "\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05"],
+      ["Ethiopic", "\u1200\u1208\u1210\u1218\u1220\u1228"],
+      ["Cherokee", "\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5"],
+      ["Khmer", "\u1780\u1781\u1782\u1783\u1784\u1785"],
+      ["Arabic Presentation Forms-A", "\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55"],
+      // Adlam is outside the BMP, so each letter is a surrogate pair in JS.
+      ["Adlam", "\u{1E900}\u{1E901}\u{1E902}\u{1E903}\u{1E904}\u{1E905}"],
+    ];
+
+    const configV4 = wasm.TwitterTextConfiguration.configV4();
+    const parserV4 = new wasm.TwitterTextParser(configV4);
+    const configV3 = wasm.TwitterTextConfiguration.configV3();
+    const parserV3 = new wasm.TwitterTextParser(configV3);
+    for (const [name, text] of samples) {
+      assert.strictEqual([...text].length, 6, name);
+
+      const resultV4 = parserV4.parseTweet(text);
+      assert.strictEqual(resultV4.weightedLength, 6, name);
+      assert.strictEqual(resultV4.isValid, true, name);
+      resultV4.free();
+
+      const resultV3 = parserV3.parseTweet(text);
+      assert.strictEqual(resultV3.weightedLength, 12, name);
+      resultV3.free();
+
+      const resultDefault = wasm.parseTweet(text);
+      assert.strictEqual(resultDefault.weightedLength, 12, name);
+      resultDefault.free();
+    }
+    configV4.free();
+    parserV4.free();
+    configV3.free();
+    parserV3.free();
+  });
+
   test("emoji counting with v3 config", () => {
     const config = wasm.TwitterTextConfiguration.configV3();
     const parser = new wasm.TwitterTextParser(config);

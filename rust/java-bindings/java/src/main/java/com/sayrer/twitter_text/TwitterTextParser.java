@@ -41,8 +41,10 @@ public final class TwitterTextParser {
         TwitterTextConfiguration.configurationFromJson("v3.json", true);
 
     /**
-     * Opt-in configuration: v3 with the Runic block weighted like Latin rather
-     * than like a logographic script. The default configuration remains v3.
+     * Opt-in configuration: v3 with the alphabetic scripts encoded above U+10FF
+     * (Runic, Ethiopic, Khmer, the Latin and Greek extension blocks, and so on)
+     * weighted like Latin rather than like a logographic script. The default
+     * configuration remains v3.
      */
     public static final TwitterTextConfiguration TWITTER_TEXT_V4_CONFIG =
         TwitterTextConfiguration.configurationFromJson("v4.json", true);

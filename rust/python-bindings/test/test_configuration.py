@@ -104,11 +104,28 @@ def test_v4():
     assert config.get_version() == 4
     assert config.get_emoji_parsing_enabled() == True
     ranges = config.get_ranges()
-    assert len(ranges) == 5
-    # The Runic block, which v3 leaves at the default weight.
-    assert ranges[1].range.start == 5792
-    assert ranges[1].range.end == 5887
-    assert ranges[1].weight == 100
+    v3_ranges = twitter_text.TwitterTextConfiguration.config_v3().get_ranges()
+    # v4 is v3 plus the alphabetic scripts above U+10FF.
+    assert len(ranges) > len(v3_ranges)
+    for v3_range in v3_ranges:
+        assert any(r.range.start == v3_range.range.start
+                   and r.range.end == v3_range.range.end
+                   and r.weight == v3_range.weight for r in ranges)
+
+    def covers(start, end):
+        return any(r.range.start <= start and r.range.end >= end and r.weight == 100
+                   for r in ranges)
+
+    assert covers(0x16A0, 0x16FF)    # Runic
+    assert covers(0x1200, 0x137F)    # Ethiopic
+    assert covers(0x1780, 0x17FF)    # Khmer
+    assert covers(0x1E00, 0x1EFF)    # Latin Extended Additional
+    assert covers(0x1F00, 0x1FFF)    # Greek Extended
+    assert covers(0xFB50, 0xFDFF)    # Arabic Presentation Forms-A
+    assert covers(0x1E900, 0x1E95F)  # Adlam
+    assert not covers(0x4E00, 0x9FFF)    # CJK Unified Ideographs
+    assert not covers(0xAC00, 0xD7AF)    # Hangul Syllables
+    assert not covers(0x1D400, 0x1D7FF)  # Mathematical Alphanumeric Symbols
 
 
 def test_v3():

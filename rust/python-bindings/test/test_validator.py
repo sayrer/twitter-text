@@ -40,6 +40,34 @@ def test_runic_weighting():
     assert default.weighted_length == 12
 
 
+@pytest.mark.parametrize("name, text", [
+    ("Latin Extended Additional", "\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05"),
+    ("Greek Extended", "\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05"),
+    ("Ethiopic", "\u1200\u1208\u1210\u1218\u1220\u1228"),
+    ("Cherokee", "\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5"),
+    ("Khmer", "\u1780\u1781\u1782\u1783\u1784\u1785"),
+    ("Arabic Presentation Forms-A", "\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55"),
+    ("Adlam", "\U0001E900\U0001E901\U0001E902\U0001E903\U0001E904\U0001E905"),
+])
+def test_alphabetic_scripts_weigh_like_latin_in_v4(name, text):
+    # Six letters from an alphabetic block above U+10FF weigh six units under
+    # v4 and twelve under v3 and under the default.
+    assert len(text) == 6, name
+
+    v4 = twitter_text.TwitterTextParser.parse(
+        text, twitter_text.TwitterTextConfiguration.config_v4(), True)
+    assert v4.weighted_length == 6, name
+    assert v4.is_valid, name
+
+    v3 = twitter_text.TwitterTextParser.parse(
+        text, twitter_text.TwitterTextConfiguration.config_v3(), True)
+    assert v3.weighted_length == 12, name
+
+    default = twitter_text.TwitterTextParser.parse(
+        text, twitter_text.TwitterTextConfiguration(), True)
+    assert default.weighted_length == 12, name
+
+
 def test_yaml():
     validator = twitter_text.Validator()
 

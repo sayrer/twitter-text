@@ -196,4 +196,35 @@ TEST(ValidatorTest, RunicWeighting) {
   ASSERT_EQ(result_default.weighted_length, 12);
 }
 
+// Six letters from an alphabetic block above U+10FF weigh six units under v4
+// and twelve under v3 and under the default.
+TEST(ValidatorTest, AlphabeticScriptsWeighLikeLatinInV4) {
+  const std::pair<const char *, std::string> samples[] = {
+    {"Latin Extended Additional", u8"\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05"},
+    {"Greek Extended", u8"\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05"},
+    {"Ethiopic", u8"\u1200\u1208\u1210\u1218\u1220\u1228"},
+    {"Cherokee", u8"\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5"},
+    {"Khmer", u8"\u1780\u1781\u1782\u1783\u1784\u1785"},
+    {"Arabic Presentation Forms-A", u8"\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55"},
+    {"Adlam", u8"\U0001E900\U0001E901\U0001E902\U0001E903\U0001E904\U0001E905"},
+  };
+
+  auto config_v4 = TwitterTextConfiguration::configV4();
+  auto config_v3 = TwitterTextConfiguration::configV3();
+  TwitterTextConfiguration default_config;
+  for (const auto &sample : samples) {
+    auto result_v4 = TwitterTextParser::parse(sample.second, *config_v4, true);
+    ASSERT_EQ(result_v4.weighted_length, 6) << sample.first;
+    ASSERT_TRUE(result_v4.is_valid) << sample.first;
+
+    auto result_v3 = TwitterTextParser::parse(sample.second, *config_v3, true);
+    ASSERT_EQ(result_v3.weighted_length, 12) << sample.first;
+
+    auto result_default = TwitterTextParser::parse(sample.second, default_config, true);
+    ASSERT_EQ(result_default.weighted_length, 12) << sample.first;
+  }
+  delete config_v4;
+  delete config_v3;
+}
+
 } // twitter_text

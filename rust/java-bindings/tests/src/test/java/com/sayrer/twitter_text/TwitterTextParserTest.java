@@ -46,6 +46,37 @@ public class TwitterTextParserTest extends TestCase {
         TwitterTextParser.parseTweet(runes).weightedLength);
   }
 
+  public void testAlphabeticScriptsWeighLikeLatinInV4() {
+    // Six letters from an alphabetic block above U+10FF weigh six units under
+    // v4 and twelve under v3 and under the default.
+    final String[][] samples = {
+      {"Latin Extended Additional", "\u1E00\u1E01\u1E02\u1E03\u1E04\u1E05"},
+      {"Greek Extended", "\u1F00\u1F01\u1F02\u1F03\u1F04\u1F05"},
+      {"Ethiopic", "\u1200\u1208\u1210\u1218\u1220\u1228"},
+      {"Cherokee", "\u13A0\u13A1\u13A2\u13A3\u13A4\u13A5"},
+      {"Khmer", "\u1780\u1781\u1782\u1783\u1784\u1785"},
+      {"Arabic Presentation Forms-A", "\uFB50\uFB51\uFB52\uFB53\uFB54\uFB55"},
+      // Adlam is outside the BMP, so each letter is a surrogate pair in Java.
+      {"Adlam", "\uD83A\uDD00\uD83A\uDD01\uD83A\uDD02\uD83A\uDD03\uD83A\uDD04\uD83A\uDD05"},
+    };
+    for (String[] sample : samples) {
+      final String name = sample[0];
+      final String text = sample[1];
+      assertEquals(name + ": six code points", 6, text.codePointCount(0, text.length()));
+
+      ParseResults v4 = TwitterTextParser.parseTweet(text, TwitterTextParser.TWITTER_TEXT_V4_CONFIG);
+      assertEquals(name + ": V4 weighs one unit per letter", 6, v4.weightedLength);
+      assertTrue(name + ": V4 should be valid", v4.isValid);
+
+      ParseResults v3 =
+          TwitterTextParser.parseTweet(text, TwitterTextParser.TWITTER_TEXT_EMOJI_CHAR_COUNT_CONFIG);
+      assertEquals(name + ": V3 takes the default weight", 12, v3.weightedLength);
+
+      assertEquals(name + ": Default takes the default weight", 12,
+          TwitterTextParser.parseTweet(text).weightedLength);
+    }
+  }
+
   public void testWeightedLengthMixedUnicodeAndEmojiV2() {
     // Test case from conformance suite that requires v2 config
     // Text: "H🐱☺👨‍👩‍👧‍👦"
