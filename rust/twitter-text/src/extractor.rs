@@ -3156,4 +3156,30 @@ mod debug_tests {
             );
         }
     }
+
+    #[test]
+    fn test_unicode_domain_without_protocol_has_url_entity() {
+        let test_cases = [
+            ("foo München.xyz bar", "München.xyz"),
+            ("foo münchen.xyz bar", "münchen.xyz"),
+            ("foo München.公司 bar", "München.公司"),
+            ("foo münchen.公司 bar", "münchen.公司"),
+        ];
+
+        let mut failures = Vec::new();
+        for backend in [ParserBackend::External, ParserBackend::Pest, ParserBackend::Nom] {
+            let extractor = Extractor::with_parser_backend(backend);
+            for (text, expected) in test_cases {
+                let urls = extractor.extract_urls(text);
+                if urls != vec![expected] {
+                    failures.push(format!(
+                        "{:?} {:?}: expected [{:?}], got {:?}",
+                        backend, text, expected, urls
+                    ));
+                }
+            }
+        }
+
+        assert!(failures.is_empty(), "\n{}", failures.join("\n"));
+    }
 }
