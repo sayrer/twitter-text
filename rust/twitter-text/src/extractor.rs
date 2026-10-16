@@ -3167,7 +3167,11 @@ mod debug_tests {
         ];
 
         let mut failures = Vec::new();
-        for backend in [ParserBackend::External, ParserBackend::Pest, ParserBackend::Nom] {
+        for backend in [
+            ParserBackend::External,
+            ParserBackend::Pest,
+            ParserBackend::Nom,
+        ] {
             let extractor = Extractor::with_parser_backend(backend);
             for (text, expected) in test_cases {
                 let urls = extractor.extract_urls(text);
