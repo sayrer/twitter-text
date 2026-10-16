@@ -1,5 +1,5 @@
 #!/bin/bash
-# Insert generated TLD grammar into twitter_text.pest after the marker comment
+# Insert generated TLD grammar into a Pest grammar file after the marker comment
 set -e
 
 INPUT_PEST="$1"
@@ -26,8 +26,7 @@ cat "$GENERATED_TLD" >> "$OUTPUT_PEST"
 # Find where the old tld_list ends (look for the closing brace at the same indentation level)
 # We need to skip from "tld_list = _{" to the matching "}"
 START_SKIP=$((NEXT_LINE + 1))
-awk -v start="$START_SKIP" 'NR >= start && /^}/ {found=NR; exit} END {print found}' "$INPUT_PEST" > /tmp/end_line.txt
-END_LINE=$(cat /tmp/end_line.txt)
+END_LINE=$(awk -v start="$START_SKIP" 'NR >= start && /^}/ {found=NR; exit} END {print found}' "$INPUT_PEST")
 
 if [ -z "$END_LINE" ]; then
     echo "Error: Could not find end of tld_list rule" >&2

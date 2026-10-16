@@ -1829,6 +1829,10 @@ tests:
     text: https://twitter.webcam
     expected:
     - https://twitter.webcam
+  - description: web is a valid generic tld
+    text: https://twitter.web
+    expected:
+    - https://twitter.web
   - description: weatherchannel is a valid generic tld
     text: https://twitter.weatherchannel
     expected:
@@ -3593,6 +3597,10 @@ tests:
     text: https://twitter.merckmsd
     expected:
     - https://twitter.merckmsd
+  - description: merck is a valid generic tld
+    text: https://twitter.merck
+    expected:
+    - https://twitter.merck
   - description: meo is a valid generic tld
     text: https://twitter.meo
     expected:

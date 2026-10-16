@@ -171,15 +171,15 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
-# Insert generated TLD grammar into the parser file
+# Insert generated TLD grammar into the full-TLD Pest parser file
 genrule(
     name = "update_parser_with_tlds",
     srcs = [
-        "//rust/parser:src/twitter_text.pest",
+        "//rust/parser:src/twitter_text_full_tld.pest",
         ":generated_tld.pest",
     ],
     outs = ["twitter_text_with_tlds.pest"],
-    cmd = "$(location tests/insert_tld_grammar.sh) $(location //rust/parser:src/twitter_text.pest) $(location :generated_tld.pest) $@",
+    cmd = "$(location tests/insert_tld_grammar.sh) $(location //rust/parser:src/twitter_text_full_tld.pest) $(location :generated_tld.pest) $@",
     tools = ["tests/insert_tld_grammar.sh"],
     visibility = ["//visibility:public"],
 )
