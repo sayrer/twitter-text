@@ -11,7 +11,7 @@ name = "twittertext"
 crate-type = ["cdylib"]
 
 [dependencies]
-magnus = "0.8"
+magnus = "0.9"
 twitter_text = { path = "../twitter-text", version = "0.2.0", default-features = false }
 twitter_text_config = { path = "../config", version = "0.2.0" }
 twitter_text_parser = { path = "../parser", version = "0.2.0" }

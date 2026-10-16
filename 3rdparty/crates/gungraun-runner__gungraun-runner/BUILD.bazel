@@ -10,6 +10,6 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "gungraun-runner__gungraun-runner",
-    actual = "@twitter_text__gungraun-runner-0.19.4//:gungraun-runner__bin",
+    actual = "@twitter_text__gungraun-runner-0.20.0//:gungraun-runner__bin",
     tags = ["manual"],
 )

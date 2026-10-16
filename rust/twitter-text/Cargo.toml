@@ -12,11 +12,10 @@ edition = "2018"
 ffi = []
 
 [dependencies]
-cxx = "=1.0.197"
+cxx = "=1.0.205"
 unicode-normalization = "0.1.25"
 idna = "1.1.0"
-pest = "2.8.8"
-pest_derive = "2.8.8"
+pest_derive = "2.9.3"
 twitter_text_config = { path = "../config" , version = "0.2.0" }
 twitter_text_parser = { path = "../parser" , version = "0.2.0" }
 phf = { version = "0.14", features = ["macros", "unicase"] }
@@ -24,3 +23,11 @@ emojis = "0.9"
 memchr = "2.8"
 nom = "8"
 unicode_categories = "0.1"
+
+# pest's default `std` feature pulls in stacker/psm, whose build script needs a
+# C archiver that rules_rust cannot provide for wasm32.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pest = "2.9.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+pest = { version = "2.9.3", default-features = false, features = ["memchr"] }

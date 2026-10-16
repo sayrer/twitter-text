@@ -10,6 +10,6 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "clap__stdio-fixture",
-    actual = "@twitter_text__clap-4.6.4//:stdio-fixture__bin",
+    actual = "@twitter_text__clap-4.6.7//:stdio-fixture__bin",
     tags = ["manual"],
 )

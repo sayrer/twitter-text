@@ -10,6 +10,6 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "gungraun",
-    actual = "@twitter_text__gungraun-0.19.4//:gungraun",
+    actual = "@twitter_text__gungraun-0.20.0//:gungraun",
     tags = ["manual"],
 )

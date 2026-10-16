@@ -50,8 +50,8 @@ rust_library(
             "deref_mut",  # aarch64-unknown-linux-gnu
         ],
         "@rules_rust//rust/platform:aarch64-unknown-nixos-gnu": [
-            "deref",  # aarch64-unknown-nixos-gnu
-            "deref_mut",  # aarch64-unknown-nixos-gnu
+            "deref",  # aarch64-unknown-linux-gnu, aarch64-unknown-nixos-gnu
+            "deref_mut",  # aarch64-unknown-linux-gnu, aarch64-unknown-nixos-gnu
         ],
         "@rules_rust//rust/platform:arm-unknown-linux-gnueabi": [
             "deref",  # arm-unknown-linux-gnueabi
@@ -98,8 +98,8 @@ rust_library(
             "deref_mut",  # x86_64-unknown-linux-gnu
         ],
         "@rules_rust//rust/platform:x86_64-unknown-nixos-gnu": [
-            "deref",  # x86_64-unknown-nixos-gnu
-            "deref_mut",  # x86_64-unknown-nixos-gnu
+            "deref",  # x86_64-unknown-linux-gnu, x86_64-unknown-nixos-gnu
+            "deref_mut",  # x86_64-unknown-linux-gnu, x86_64-unknown-nixos-gnu
         ],
         "//conditions:default": [],
     }),

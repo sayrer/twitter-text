@@ -8,8 +8,15 @@ repository = "https://github.com/sayrer/twitter-text"
 edition = "2018"
 
 [dependencies]
-pest = "2.8.8"
-pest_derive = "2.8.8"
+pest_derive = "2.9.3"
+
+# pest's default `std` feature pulls in stacker/psm, whose build script needs a
+# C archiver that rules_rust cannot provide for wasm32.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pest = "2.9.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+pest = { version = "2.9.3", default-features = false, features = ["memchr"] }
 
 [lib]
 doctest = false
