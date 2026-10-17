@@ -17,7 +17,6 @@
 """
 
 load("@bazel_skylib//lib:selects.bzl", "selects")
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_rust//crate_universe:defs.bzl", "crates_vendor_remote_repository")
@@ -322,7 +321,7 @@ _NORMAL_DEPENDENCIES = {
         _COMMON_CONDITION: {
             "clap": Label("@twitter_text//clap-4.6.7"),
             "cxx": Label("@twitter_text//cxx-1.0.205"),
-            "emojis": Label("@twitter_text//emojis-0.9.0"),
+            "emojis": Label("@twitter_text//emojis-0.9.1"),
             "gungraun": Label("@twitter_text//gungraun-0.20.0"),
             "idna": Label("@twitter_text//idna-1.1.0"),
             "js-sys": Label("@twitter_text//js-sys-0.3.98"),
@@ -339,7 +338,7 @@ _NORMAL_DEPENDENCIES = {
             "serde": Label("@twitter_text//serde-1.0.229"),
             "serde_json": Label("@twitter_text//serde_json-1.0.154"),
             "serde_yaml_ng": Label("@twitter_text//serde_yaml_ng-0.10.0"),
-            "unicode-normalization": Label("@twitter_text//unicode-normalization-0.1.25"),
+            "unicode-normalization": Label("@twitter_text//unicode-normalization-0.1.26"),
             "unicode_categories": Label("@twitter_text//unicode_categories-0.1.1"),
             "wasm-bindgen": Label("@twitter_text//wasm-bindgen-0.2.121"),
         },
@@ -767,12 +766,13 @@ def crate_repositories():
     )
 
     maybe(
-        git_repository,
-        name = "twitter_text__emojis-0.9.0",
-        commit = "b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e",
-        init_submodules = True,
-        remote = "https://github.com/rossmacarthur/emojis",
-        build_file = Label("//3rdparty/crates:BUILD.emojis-0.9.0.bazel"),
+        http_archive,
+        name = "twitter_text__emojis-0.9.1",
+        sha256 = "589871e639330783bc20ad89d32ac1b049e02c273d96c907ca27478c8bc674a2",
+        type = "tar.gz",
+        urls = ["https://static.crates.io/crates/emojis/0.9.1/download"],
+        strip_prefix = "emojis-0.9.1",
+        build_file = Label("//3rdparty/crates:BUILD.emojis-0.9.1.bazel"),
     )
 
     maybe(
@@ -1847,12 +1847,12 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__unicode-normalization-0.1.25",
-        sha256 = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8",
+        name = "twitter_text__unicode-normalization-0.1.26",
+        sha256 = "75cd3fb03d5288b3ba9a1ee103ac7e9cbb59f0b03d64f8ddfcc04dd42758a85d",
         type = "tar.gz",
-        urls = ["https://static.crates.io/crates/unicode-normalization/0.1.25/download"],
-        strip_prefix = "unicode-normalization-0.1.25",
-        build_file = Label("//3rdparty/crates:BUILD.unicode-normalization-0.1.25.bazel"),
+        urls = ["https://static.crates.io/crates/unicode-normalization/0.1.26/download"],
+        strip_prefix = "unicode-normalization-0.1.26",
+        build_file = Label("//3rdparty/crates:BUILD.unicode-normalization-0.1.26.bazel"),
     )
 
     maybe(
@@ -2089,7 +2089,7 @@ def crate_repositories():
         struct(repo = "twitter_text", is_dev_dep = False),
         struct(repo = "twitter_text__clap-4.6.7", is_dev_dep = False),
         struct(repo = "twitter_text__cxx-1.0.205", is_dev_dep = False),
-        struct(repo = "twitter_text__emojis-0.9.0", is_dev_dep = False),
+        struct(repo = "twitter_text__emojis-0.9.1", is_dev_dep = False),
         struct(repo = "twitter_text__gungraun-0.20.0", is_dev_dep = False),
         struct(repo = "twitter_text__idna-1.1.0", is_dev_dep = False),
         struct(repo = "twitter_text__js-sys-0.3.98", is_dev_dep = False),
@@ -2109,7 +2109,7 @@ def crate_repositories():
         struct(repo = "twitter_text__serde_derive-1.0.229", is_dev_dep = False),
         struct(repo = "twitter_text__serde_json-1.0.154", is_dev_dep = False),
         struct(repo = "twitter_text__serde_yaml_ng-0.10.0", is_dev_dep = False),
-        struct(repo = "twitter_text__unicode-normalization-0.1.25", is_dev_dep = False),
+        struct(repo = "twitter_text__unicode-normalization-0.1.26", is_dev_dep = False),
         struct(repo = "twitter_text__unicode_categories-0.1.1", is_dev_dep = False),
         struct(repo = "twitter_text__wasm-bindgen-0.2.121", is_dev_dep = False),
     ]

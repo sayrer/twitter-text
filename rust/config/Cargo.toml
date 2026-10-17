@@ -1,8 +1,8 @@
 [package]
 name = "twitter_text_config"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
-readme = "README.md"
+readme = "../../config/README.md"
 description = "Configuration for twitter-text in Rust."
 license = "Apache-2.0"
 repository = "https://github.com/sayrer/twitter-text"
