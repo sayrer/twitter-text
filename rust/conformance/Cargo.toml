@@ -3,8 +3,9 @@ name = "twitter_text_conformance"
 version = "0.3.0"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
 edition = "2018"
-description = "An implementation of twitter-text in Rust."
+description = "Conformance tests for twitter-text in Rust."
 license = "Apache-2.0"
+repository = "https://github.com/sayrer/twitter-text"
 
 [dependencies]
 serde = "1.0.229"
