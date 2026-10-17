@@ -10,6 +10,6 @@ package(default_visibility = ["//visibility:public"])
 
 alias(
     name = "unicode-normalization",
-    actual = "@twitter_text__unicode-normalization-0.1.25//:unicode_normalization",
+    actual = "@twitter_text__unicode-normalization-0.1.26//:unicode_normalization",
     tags = ["manual"],
 )

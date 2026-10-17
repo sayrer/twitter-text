@@ -62,14 +62,14 @@ alias(
 )
 
 alias(
-    name = "emojis-0.9.0",
-    actual = "@twitter_text__emojis-0.9.0//:emojis",
+    name = "emojis-0.9.1",
+    actual = "@twitter_text__emojis-0.9.1//:emojis",
     tags = ["manual"],
 )
 
 alias(
     name = "emojis",
-    actual = "@twitter_text__emojis-0.9.0//:emojis",
+    actual = "@twitter_text__emojis-0.9.1//:emojis",
     tags = ["manual"],
 )
 
@@ -302,14 +302,14 @@ alias(
 )
 
 alias(
-    name = "unicode-normalization-0.1.25",
-    actual = "@twitter_text__unicode-normalization-0.1.25//:unicode_normalization",
+    name = "unicode-normalization-0.1.26",
+    actual = "@twitter_text__unicode-normalization-0.1.26//:unicode_normalization",
     tags = ["manual"],
 )
 
 alias(
     name = "unicode-normalization",
-    actual = "@twitter_text__unicode-normalization-0.1.25//:unicode_normalization",
+    actual = "@twitter_text__unicode-normalization-0.1.26//:unicode_normalization",
     tags = ["manual"],
 )
 

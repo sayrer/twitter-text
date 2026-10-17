@@ -1,6 +1,6 @@
 [package]
 name = "twitter-text"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
 readme = "README.md"
 description = "An implementation of twitter-text in Rust."
@@ -13,14 +13,13 @@ ffi = []
 
 [dependencies]
 cxx = "=1.0.205"
-unicode-normalization = "0.1.25"
+unicode-normalization = "0.1.26"
 idna = "1.1.0"
 pest_derive = "2.9.3"
-twitter_text_config = { path = "../config" , version = "0.2.0" }
-twitter_text_parser = { path = "../parser" , version = "0.2.0" }
+twitter_text_config = { path = "../config" , version = "0.3.0" }
+twitter_text_parser = { path = "../parser" , version = "0.3.0" }
 phf = { version = "0.14", features = ["macros", "unicase"] }
-# Unicode/Emoji 18.0 support is on trunk but not yet released.
-emojis = { git = "https://github.com/rossmacarthur/emojis", rev = "b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e" }
+emojis = "0.9.1"
 memchr = "2.8"
 nom = "8"
 unicode_categories = "0.1"

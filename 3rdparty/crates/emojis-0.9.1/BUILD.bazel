@@ -9,7 +9,7 @@
 package(default_visibility = ["//visibility:public"])
 
 alias(
-    name = "emojis-0.9.0",
-    actual = "@twitter_text__emojis-0.9.0//:emojis",
+    name = "emojis-0.9.1",
+    actual = "@twitter_text__emojis-0.9.1//:emojis",
     tags = ["manual"],
 )

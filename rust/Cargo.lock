@@ -136,8 +136,9 @@ dependencies = [
 
 [[package]]
 name = "emojis"
-version = "0.9.0"
-source = "git+https://github.com/rossmacarthur/emojis?rev=b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e#b2ccc65f43bf0a8d17a3ff681f7da4fb1387164e"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "589871e639330783bc20ad89d32ac1b049e02c273d96c907ca27478c8bc674a2"
 dependencies = [
  "phf 0.13.1",
 ]
@@ -642,7 +643,7 @@ checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
 
 [[package]]
 name = "twitter-text"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "cxx",
  "emojis",
@@ -660,7 +661,7 @@ dependencies = [
 
 [[package]]
 name = "twitter_text_config"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde",
  "serde_derive",
@@ -669,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "twitter_text_conformance"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "pest",
  "serde",
@@ -683,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "twitter_text_parser"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "pest",
  "pest_derive",
@@ -709,9 +710,9 @@ checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 
 [[package]]
 name = "unicode-normalization"
-version = "0.1.25"
+version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd4f6878c9cb28d874b009da9e8d183b5abc80117c40bbd187a1fde336be6e8"
+checksum = "75cd3fb03d5288b3ba9a1ee103ac7e9cbb59f0b03d64f8ddfcc04dd42758a85d"
 dependencies = [
  "tinyvec",
 ]
