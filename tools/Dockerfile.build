@@ -40,7 +40,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Ruby 3.4.1 from source to match rules_ruby toolchain version
-RUN curl -fsSL https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz | tar xz -C /tmp \
+# sha256 from https://github.com/ruby/www.ruby-lang.org/blob/master/_data/releases.yml
+RUN curl -fsSLo /tmp/ruby-3.4.1.tar.gz https://cache.ruby-lang.org/pub/ruby/3.4/ruby-3.4.1.tar.gz \
+    && echo "3d385e5d22d368b064c817a13ed8e3cc3f71a7705d7ed1bae78013c33aa7c87f  /tmp/ruby-3.4.1.tar.gz" | sha256sum -c - \
+    && tar xzf /tmp/ruby-3.4.1.tar.gz -C /tmp \
+    && rm /tmp/ruby-3.4.1.tar.gz \
     && cd /tmp/ruby-3.4.1 \
     && ./configure --prefix=/usr/local --disable-install-doc \
     && make -j$(nproc) \

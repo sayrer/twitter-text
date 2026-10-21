@@ -375,7 +375,7 @@
   "moduleExtensions": {
     "//:extensions.bzl%rust_deps": {
       "general": {
-        "bzlTransitiveDigest": "DaPK9cx5wZ6PFdwOnGTV0fnEPANi+rw6aee1TWAmsKQ=",
+        "bzlTransitiveDigest": "cKLx4E0exs4iWqpjQ0OFXgJmvyYz1pWRmh6IcPav70c=",
         "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_skylib bazel_skylib+",
@@ -2361,7 +2361,7 @@
     "//tools:jdk23_and_jextract.bzl%jdk23_ext": {
       "general": {
         "bzlTransitiveDigest": "oeNm4dHGeHV8Vi7bHUmBMD6SoFWSi8zj2WyG1JMf9DQ=",
-        "usagesDigest": "c1o69OlkYy9aOWHvJeOIJEXy+0eOHoXnH5Wj5T97VOg=",
+        "usagesDigest": "GlSZXa9JY5uIlew2zhDQrHqnQvIY2ksoTMwO3IxsMeY=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
@@ -2405,7 +2405,7 @@
               "urls": [
                 "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_macos-aarch64_bin.tar.gz"
               ],
-              "sha256": "",
+              "sha256": "3dd1dd1bde059d271739e2cc2290c64f93f85488c86c01e566c0e374eece798f",
               "strip_prefix": "jextract-25",
               "build_file_content": "\nload(\"@rules_shell//shell:sh_binary.bzl\", \"sh_binary\")\n\ngenrule(\n    name = \"jextract_wrapper_gen\",\n    outs = [\"jextract_wrapper.sh\"],\n    cmd = \"\"\"cat > $@ << 'EOF'\n#!/bin/bash\nset -e\n# Find the runfiles directory and JDK\nSCRIPT_DIR=\"$$(cd \"$$(dirname \"$$0\")\" && pwd)\"\nRUNFILES=\"$$SCRIPT_DIR/../..\"\necho \"DEBUG: SCRIPT_DIR=$$SCRIPT_DIR\" >&2\necho \"DEBUG: RUNFILES=$$RUNFILES\" >&2\necho \"DEBUG: Looking for JDK in $$RUNFILES\" >&2\nJDK_BIN=\"$$(find \"$$RUNFILES\" -path \"*jdk23_macos_arm64_repo/bin/java\" -o -path \"*jdk23_macos_arm64_repo/Contents/Home/bin/java\" 2>/dev/null | head -1)\"\nif [[ -z \"$$JDK_BIN\" ]]; then\n  echo \"Error: Could not find JDK java binary\" >&2\n  echo \"DEBUG: Contents of RUNFILES:\" >&2\n  ls -la \"$$RUNFILES\" >&2 || true\n  exit 1\nfi\nexport JAVA_HOME=\"$$(dirname \"$$(dirname \"$$JDK_BIN\")\")\"\necho \"DEBUG: JAVA_HOME=$$JAVA_HOME\" >&2\n# Look for jextract in the runfiles directory (platform-specific)\nJEXTRACT_BIN=\"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/bin/jextract\"\necho \"DEBUG: Looking for JEXTRACT_BIN at $$JEXTRACT_BIN\" >&2\nif [[ ! -f \"$$JEXTRACT_BIN\" ]]; then\n  echo \"Error: Could not find jextract binary at $$JEXTRACT_BIN\" >&2\n  echo \"DEBUG: Contents of jextract_bin.runfiles:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/\" 2>&1 | head -20 >&2 || true\n  echo \"DEBUG: Contents of jextract_macos_arm64_repo:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_macos_arm64_repo/\" 2>&1 | head -20 >&2 || true\n  exit 1\nfi\nexec \"$$JEXTRACT_BIN\" \"$$@\"\nEOF\nchmod +x $@\n\"\"\",\n)\n\nsh_binary(\n    name = \"jextract_bin\",\n    srcs = [\":jextract_wrapper.sh\"],\n    data = [\"@jdk23_macos_arm64_repo//:runtime\"] + glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n"
             }
@@ -2416,7 +2416,7 @@
               "urls": [
                 "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-x64_bin.tar.gz"
               ],
-              "sha256": "",
+              "sha256": "d0cc481abc1adb16fb9514e1c5e0bfc08d38c29228bece667fb5054ceaffaa42",
               "strip_prefix": "jextract-25",
               "build_file_content": "\nload(\"@rules_shell//shell:sh_binary.bzl\", \"sh_binary\")\n\ngenrule(\n    name = \"jextract_wrapper_gen\",\n    outs = [\"jextract_wrapper.sh\"],\n    cmd = \"\"\"cat > $@ << 'EOF'\n#!/bin/bash\nset -e\n# Find the runfiles directory and JDK\nSCRIPT_DIR=\"$$(cd \"$$(dirname \"$$0\")\" && pwd)\"\nRUNFILES=\"$$SCRIPT_DIR/../..\"\necho \"DEBUG: SCRIPT_DIR=$$SCRIPT_DIR\" >&2\necho \"DEBUG: RUNFILES=$$RUNFILES\" >&2\necho \"DEBUG: Looking for JDK in $$RUNFILES\" >&2\nJDK_BIN=\"$$(find \"$$RUNFILES\" -path \"*jdk23_linux_x86_64_repo/bin/java\" -o -path \"*jdk23_linux_x86_64_repo/Contents/Home/bin/java\" 2>/dev/null | head -1)\"\nif [[ -z \"$$JDK_BIN\" ]]; then\n  echo \"Error: Could not find JDK java binary\" >&2\n  echo \"DEBUG: Contents of RUNFILES:\" >&2\n  ls -la \"$$RUNFILES\" >&2 || true\n  exit 1\nfi\nexport JAVA_HOME=\"$$(dirname \"$$(dirname \"$$JDK_BIN\")\")\"\necho \"DEBUG: JAVA_HOME=$$JAVA_HOME\" >&2\n# Look for jextract in the runfiles directory (platform-specific)\nJEXTRACT_BIN=\"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_linux_x86_64_repo/bin/jextract\"\necho \"DEBUG: Looking for JEXTRACT_BIN at $$JEXTRACT_BIN\" >&2\nif [[ ! -f \"$$JEXTRACT_BIN\" ]]; then\n  echo \"Error: Could not find jextract binary at $$JEXTRACT_BIN\" >&2\n  echo \"DEBUG: Contents of jextract_bin.runfiles:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/\" 2>&1 | head -20 >&2 || true\n  echo \"DEBUG: Contents of jextract_linux_x86_64_repo:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_linux_x86_64_repo/\" 2>&1 | head -20 >&2 || true\n  exit 1\nfi\nexec \"$$JEXTRACT_BIN\" \"$$@\"\nEOF\nchmod +x $@\n\"\"\",\n)\n\nsh_binary(\n    name = \"jextract_bin\",\n    srcs = [\":jextract_wrapper.sh\"],\n    data = [\"@jdk23_linux_x86_64_repo//:runtime\"] + glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n"
             }
@@ -2427,7 +2427,7 @@
               "urls": [
                 "https://download.java.net/java/early_access/jextract/25/2/openjdk-25-jextract+2-4_linux-aarch64_bin.tar.gz"
               ],
-              "sha256": "",
+              "sha256": "0e25e6f6efa042f8758eaec65a873887fd2247fcf2e3e22dcfd7e4179fc8b0ae",
               "strip_prefix": "jextract-25",
               "build_file_content": "\nload(\"@rules_shell//shell:sh_binary.bzl\", \"sh_binary\")\n\ngenrule(\n    name = \"jextract_wrapper_gen\",\n    outs = [\"jextract_wrapper.sh\"],\n    cmd = \"\"\"cat > $@ << 'EOF'\n#!/bin/bash\nset -e\n# Find the runfiles directory and JDK\nSCRIPT_DIR=\"$$(cd \"$$(dirname \"$$0\")\" && pwd)\"\nRUNFILES=\"$$SCRIPT_DIR/../..\"\necho \"DEBUG: SCRIPT_DIR=$$SCRIPT_DIR\" >&2\necho \"DEBUG: RUNFILES=$$RUNFILES\" >&2\necho \"DEBUG: Looking for JDK in $$RUNFILES\" >&2\nJDK_BIN=\"$$(find \"$$RUNFILES\" -path \"*jdk23_linux_arm64_repo/bin/java\" -o -path \"*jdk23_linux_arm64_repo/Contents/Home/bin/java\" 2>/dev/null | head -1)\"\nif [[ -z \"$$JDK_BIN\" ]]; then\n  echo \"Error: Could not find JDK java binary\" >&2\n  echo \"DEBUG: Contents of RUNFILES:\" >&2\n  ls -la \"$$RUNFILES\" >&2 || true\n  exit 1\nfi\nexport JAVA_HOME=\"$$(dirname \"$$(dirname \"$$JDK_BIN\")\")\"\necho \"DEBUG: JAVA_HOME=$$JAVA_HOME\" >&2\n# Look for jextract in the runfiles directory (platform-specific)\nJEXTRACT_BIN=\"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_linux_arm64_repo/bin/jextract\"\necho \"DEBUG: Looking for JEXTRACT_BIN at $$JEXTRACT_BIN\" >&2\nif [[ ! -f \"$$JEXTRACT_BIN\" ]]; then\n  echo \"Error: Could not find jextract binary at $$JEXTRACT_BIN\" >&2\n  echo \"DEBUG: Contents of jextract_bin.runfiles:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/\" 2>&1 | head -20 >&2 || true\n  echo \"DEBUG: Contents of jextract_linux_arm64_repo:\" >&2\n  ls -la \"$$SCRIPT_DIR/jextract_bin.runfiles/+jdk23_ext+jextract_linux_arm64_repo/\" 2>&1 | head -20 >&2 || true\n  exit 1\nfi\nexec \"$$JEXTRACT_BIN\" \"$$@\"\nEOF\nchmod +x $@\n\"\"\",\n)\n\nsh_binary(\n    name = \"jextract_bin\",\n    srcs = [\":jextract_wrapper.sh\"],\n    data = [\"@jdk23_linux_arm64_repo//:runtime\"] + glob([\"**\"]),\n    visibility = [\"//visibility:public\"],\n)\n"
             }
