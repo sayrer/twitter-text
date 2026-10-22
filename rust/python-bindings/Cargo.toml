@@ -1,6 +1,6 @@
 [package]
 name = "twitter_text_py"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Robert Sayre <sayrer@gmail.com>"]
 description = "Python bindings for twitter-text using PyO3"
 license = "Apache-2.0"
@@ -13,6 +13,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.30", features = ["extension-module", "abi3-py312"] }
-twitter_text = { path = "../twitter-text", version = "0.3.0", default-features = false }
-twitter_text_config = { path = "../config", version = "0.3.0" }
-twitter_text_parser = { path = "../parser", version = "0.3.0" }
+twitter_text = { path = "../twitter-text", version = "0.3.1", default-features = false }
+twitter_text_config = { path = "../config", version = "0.3.1" }
+twitter_text_parser = { path = "../parser", version = "0.3.1" }

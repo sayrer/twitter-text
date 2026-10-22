@@ -1,6 +1,6 @@
 module(
     name = "twitter_text_rs",
-    version = "0.3.0",
+    version = "0.3.1",
 )
 
 # Check that Ruby 3.4.1+ is on PATH (required for rules_ruby with version="system")

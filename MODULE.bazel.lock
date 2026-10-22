@@ -376,7 +376,7 @@
     "//:extensions.bzl%rust_deps": {
       "general": {
         "bzlTransitiveDigest": "cKLx4E0exs4iWqpjQ0OFXgJmvyYz1pWRmh6IcPav70c=",
-        "usagesDigest": "M1LncysEbWvbACD/AsFU/lvSwJ3ThRjgikNX/e0LUic=",
+        "usagesDigest": "GNDGt00FtDmQ2G5rPvwzV7qbpnrH3DKyVEVdOOxORm4=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_skylib bazel_skylib+",
           "REPO_MAPPING:,bazel_tools bazel_tools",
@@ -2361,7 +2361,7 @@
     "//tools:jdk23_and_jextract.bzl%jdk23_ext": {
       "general": {
         "bzlTransitiveDigest": "oeNm4dHGeHV8Vi7bHUmBMD6SoFWSi8zj2WyG1JMf9DQ=",
-        "usagesDigest": "GlSZXa9JY5uIlew2zhDQrHqnQvIY2ksoTMwO3IxsMeY=",
+        "usagesDigest": "7g+gy+EcRYtYxVwmaWX9XlO5bpZ6b0wE5b4DMKLM2fI=",
         "recordedInputs": [
           "REPO_MAPPING:,bazel_tools bazel_tools"
         ],
@@ -2575,8 +2575,8 @@
     },
     "@@rules_rust+//crate_universe:extensions.bzl%crate": {
       "general": {
-        "bzlTransitiveDigest": "qwhyQSDTiu+yfqBpX0CqDFo3K/luXukXRURWFTA1Rrs=",
-        "usagesDigest": "7QTThtUDcroHuIP7YGR6scF2yVSY8foQKPPk6MJNNDw=",
+        "bzlTransitiveDigest": "1fvp9RvH5Os3WPzf1X3SL+i6A2Mdyh43asure3aN1IM=",
+        "usagesDigest": "8Yjgc3b+HdY9hPhe+J+5D6t4Lx39s9PYRrv5WEtWzYc=",
         "recordedInputs": [
           "ENV:CARGO_BAZEL_DEBUG \\0",
           "ENV:CARGO_BAZEL_GENERATOR_SHA256 \\0",
