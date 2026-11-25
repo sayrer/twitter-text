@@ -770,7 +770,7 @@ checksum = "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee"
 
 [[package]]
 name = "twitter-text"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "cxx",
  "emojis",
@@ -796,7 +796,7 @@ dependencies = [
 
 [[package]]
 name = "twitter_text_config"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "serde",
  "serde_derive",
@@ -805,7 +805,7 @@ dependencies = [
 
 [[package]]
 name = "twitter_text_parser"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "pest",
  "pest_derive",
