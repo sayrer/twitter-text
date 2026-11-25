@@ -1,0 +1,819 @@
+# Mastodon handle (@username@domain) validity cases.
+#
+# Each text is a complete string; valid is true only when the whole string is
+# one remote-account mention as recognized by Mastodon's Account::MENTION_RE:
+#
+#   USERNAME_RE = /[a-z0-9_]+([.-]+[a-z0-9_]+)*/i
+#   MENTION_RE  = %r{(?<![=/[:word:]])@((#{USERNAME_RE})(?:@[[:word:]]+([.-]+[[:word:]]+)*)?)}
+#
+# with the domain part required. Usernames are ASCII [A-Za-z0-9_] segments
+# joined by runs of '.' or '-'. Domains are Unicode word-character segments
+# joined by runs of '.' or '-', so some strings that are not valid DNS
+# hostnames (underscores, "example-.com", "example..com") are still valid
+# here; their descriptions say so. Remote usernames have no length limit.
+
+tests:
+  mastodon_ids:
+    # Basic forms
+    - description: "Simple handle"
+      text: "@user@example.com"
+      valid: true
+
+    - description: "Well-known instance"
+      text: "@Gargron@mastodon.social"
+      valid: true
+
+    - description: "Mixed case username and domain"
+      text: "@User@Example.COM"
+      valid: true
+
+    - description: "All-uppercase"
+      text: "@USER@EXAMPLE.COM"
+      valid: true
+
+    - description: "Single-character username and short domain"
+      text: "@a@b.co"
+      valid: true
+
+    - description: "Numeric username"
+      text: "@12345@example.com"
+      valid: true
+
+    - description: "Underscore-only username"
+      text: "@_@example.com"
+      valid: true
+
+    - description: "Leading underscore in username"
+      text: "@_user@example.com"
+      valid: true
+
+    - description: "Trailing underscore in username"
+      text: "@user_@example.com"
+      valid: true
+
+    - description: "Multiple underscores in username"
+      text: "@__user__name__@example.com"
+      valid: true
+
+    # Username separators (dots and hyphens between word segments)
+    - description: "Dot in username"
+      text: "@first.last@example.com"
+      valid: true
+
+    - description: "Hyphen in username"
+      text: "@first-last@example.com"
+      valid: true
+
+    - description: "Several dot-separated segments"
+      text: "@a.b.c.d@example.com"
+      valid: true
+
+    - description: "Consecutive dots inside username"
+      text: "@user..name@example.com"
+      valid: true
+
+    - description: "Consecutive hyphens inside username"
+      text: "@user--name@example.com"
+      valid: true
+
+    - description: "Mixed dot and hyphen run inside username"
+      text: "@user.-name@example.com"
+      valid: true
+
+    - description: "Underscore next to a dot"
+      text: "@user_.name@example.com"
+      valid: true
+
+    - description: "Digit segments around a hyphen"
+      text: "@123-456@example.com"
+      valid: true
+
+    - description: "Username starting with a dot"
+      text: "@.user@example.com"
+      valid: false
+
+    - description: "Username ending with a dot"
+      text: "@user.@example.com"
+      valid: false
+
+    - description: "Username starting with a hyphen"
+      text: "@-user@example.com"
+      valid: false
+
+    - description: "Username ending with a hyphen"
+      text: "@user-@example.com"
+      valid: false
+
+    - description: "Username that is only a dot"
+      text: "@.@example.com"
+      valid: false
+
+    - description: "Username that is only a hyphen"
+      text: "@-@example.com"
+      valid: false
+
+    - description: "Username that is only separators"
+      text: "@.-.@example.com"
+      valid: false
+
+    # Username length (no length limit applies to remote usernames)
+    - description: "30-character username (local account maximum)"
+      text: "@uuuuuuuuuuuuuuuuuuuuuuuuuuuuuu@example.com"
+      valid: true
+
+    - description: "31-character remote username"
+      text: "@uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu@example.com"
+      valid: true
+
+    - description: "64-character remote username"
+      text: "@uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu@example.com"
+      valid: true
+
+    # Username characters outside [A-Za-z0-9_]
+    - description: "Accented Latin letter in username"
+      text: "@josé@example.com"
+      valid: false
+
+    - description: "Japanese username"
+      text: "@ユーザー@example.com"
+      valid: false
+
+    - description: "Cyrillic username"
+      text: "@пользователь@example.com"
+      valid: false
+
+    - description: "Fullwidth Latin username"
+      text: "@ｕｓｅｒ@example.com"
+      valid: false
+
+    - description: "Emoji username"
+      text: "@😀@example.com"
+      valid: false
+
+    - description: "Plus sign (subaddressing) in username"
+      text: "@user+tag@example.com"
+      valid: false
+
+    - description: "Exclamation mark in username"
+      text: "@user!@example.com"
+      valid: false
+
+    - description: "Hash in username"
+      text: "@user#1@example.com"
+      valid: false
+
+    - description: "Dollar sign in username"
+      text: "@user$@example.com"
+      valid: false
+
+    - description: "Percent in username"
+      text: "@user%40@example.com"
+      valid: false
+
+    - description: "Ampersand in username"
+      text: "@user&co@example.com"
+      valid: false
+
+    - description: "Asterisk in username"
+      text: "@user*@example.com"
+      valid: false
+
+    - description: "Apostrophe in username"
+      text: "@o'brien@example.com"
+      valid: false
+
+    - description: "Slash in username"
+      text: "@user/list@example.com"
+      valid: false
+
+    - description: "Equals sign in username"
+      text: "@user=1@example.com"
+      valid: false
+
+    - description: "Question mark in username"
+      text: "@user?@example.com"
+      valid: false
+
+    - description: "Caret in username"
+      text: "@user^@example.com"
+      valid: false
+
+    - description: "Backtick in username"
+      text: "@user`@example.com"
+      valid: false
+
+    - description: "Braces in username"
+      text: "@{user}@example.com"
+      valid: false
+
+    - description: "Pipe in username"
+      text: "@user|name@example.com"
+      valid: false
+
+    - description: "Tilde in username"
+      text: "@~user@example.com"
+      valid: false
+
+    - description: "Parentheses in username"
+      text: "@user(1)@example.com"
+      valid: false
+
+    - description: "Comma in username"
+      text: "@user,name@example.com"
+      valid: false
+
+    - description: "Colon in username"
+      text: "@user:name@example.com"
+      valid: false
+
+    - description: "Semicolon in username"
+      text: "@user;name@example.com"
+      valid: false
+
+    - description: "Angle brackets in username"
+      text: "@<user>@example.com"
+      valid: false
+
+    - description: "Square brackets in username"
+      text: "@[user]@example.com"
+      valid: false
+
+    - description: "Backslash in username"
+      text: "@user\\name@example.com"
+      valid: false
+
+    - description: "Double quote in username"
+      text: "@\"user\"@example.com"
+      valid: false
+
+    - description: "Zero-width space in username"
+      text: "@us\u200ber@example.com"
+      valid: false
+
+    - description: "Zero-width joiner in username"
+      text: "@us\u200der@example.com"
+      valid: false
+
+    # Domains
+    - description: "Subdomain"
+      text: "@user@social.example.com"
+      valid: true
+
+    - description: "Multi-part public suffix"
+      text: "@user@social.example.co.uk"
+      valid: true
+
+    - description: "Deeply nested subdomains"
+      text: "@user@a.b.c.d.e.example.com"
+      valid: true
+
+    - description: "Hyphenated domain label"
+      text: "@user@my-instance.example"
+      valid: true
+
+    - description: "Punycode IDN domain"
+      text: "@user@xn--bcher-kva.example"
+      valid: true
+
+    - description: "Domain label starting with a digit"
+      text: "@user@1password.example"
+      valid: true
+
+    - description: "All-numeric domain labels (IPv4 address)"
+      text: "@user@192.168.1.1"
+      valid: true
+
+    - description: "Single-label domain"
+      text: "@user@localhost"
+      valid: true
+
+    - description: "Long generic TLD"
+      text: "@user@example.international"
+      valid: true
+
+    - description: "New gTLD"
+      text: "@user@example.social"
+      valid: true
+
+    - description: "Underscore in domain (word character; accepted by Mastodon, not a valid hostname)"
+      text: "@user@my_instance.example"
+      valid: true
+
+    - description: "Hyphen before dot in domain (accepted by Mastodon, not a valid hostname)"
+      text: "@user@example-.com"
+      valid: true
+
+    - description: "Consecutive dots inside domain (accepted by Mastodon, not a valid hostname)"
+      text: "@user@example..com"
+      valid: true
+
+    - description: "63-character domain label"
+      text: "@user@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.example"
+      valid: true
+
+    - description: "253-character domain"
+      text: "@user@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      valid: true
+
+    - description: "Domain starting with a dot"
+      text: "@user@.example.com"
+      valid: false
+
+    - description: "Domain ending with a dot (trailing root dot)"
+      text: "@user@example.com."
+      valid: false
+
+    - description: "Domain starting with a hyphen"
+      text: "@user@-example.com"
+      valid: false
+
+    - description: "Domain ending with a hyphen"
+      text: "@user@example.com-"
+      valid: false
+
+    - description: "Domain that is only a dot"
+      text: "@user@."
+      valid: false
+
+    - description: "Domain that is only a hyphen"
+      text: "@user@-"
+      valid: false
+
+    # Internationalized domains (Mastodon matches Unicode word characters in the domain)
+    - description: "Accented Latin domain"
+      text: "@user@mañana.example"
+      valid: true
+
+    - description: "Japanese domain"
+      text: "@user@例え.jp"
+      valid: true
+
+    - description: "Cyrillic domain and TLD"
+      text: "@user@пример.рф"
+      valid: true
+
+    - description: "Emoji domain"
+      text: "@user@😀.example"
+      valid: false
+
+    # Domain characters and URL syntax that do not belong in a handle
+    - description: "Port after domain"
+      text: "@user@example.com:8080"
+      valid: false
+
+    - description: "Path after domain"
+      text: "@user@example.com/path"
+      valid: false
+
+    - description: "Query after domain"
+      text: "@user@example.com?q=1"
+      valid: false
+
+    - description: "Fragment after domain"
+      text: "@user@example.com#frag"
+      valid: false
+
+    - description: "Bracketed IPv6 literal"
+      text: "@user@[::1]"
+      valid: false
+
+    - description: "Unbracketed IPv6 literal"
+      text: "@user@2001:db8::1"
+      valid: false
+
+    - description: "Percent-encoded domain"
+      text: "@user@exa%6Dple.com"
+      valid: false
+
+    - description: "Comma in domain"
+      text: "@user@example,com"
+      valid: false
+
+    - description: "Apostrophe in domain"
+      text: "@user@example's.com"
+      valid: false
+
+    - description: "Plus sign in domain"
+      text: "@user@exam+ple.com"
+      valid: false
+
+    - description: "Scheme as domain"
+      text: "@user@https://example.com"
+      valid: false
+
+    - description: "Fullwidth full stop in domain"
+      text: "@user@example．com"
+      valid: false
+
+    # At signs
+    - description: "Empty string"
+      text: ""
+      valid: false
+
+    - description: "Lone at sign"
+      text: "@"
+      valid: false
+
+    - description: "Two at signs"
+      text: "@@"
+      valid: false
+
+    - description: "Local mention without domain"
+      text: "@user"
+      valid: false
+
+    - description: "Missing leading at sign (bare email form)"
+      text: "user@example.com"
+      valid: false
+
+    - description: "Empty username"
+      text: "@@example.com"
+      valid: false
+
+    - description: "Empty domain"
+      text: "@user@"
+      valid: false
+
+    - description: "Doubled leading at sign"
+      text: "@@user@example.com"
+      valid: false
+
+    - description: "Doubled middle at sign"
+      text: "@user@@example.com"
+      valid: false
+
+    - description: "Third at sign and second domain"
+      text: "@user@example.com@other.example"
+      valid: false
+
+    - description: "Trailing at sign"
+      text: "@user@example.com@"
+      valid: false
+
+    - description: "Fullwidth leading at sign"
+      text: "＠user@example.com"
+      valid: false
+
+    - description: "Fullwidth middle at sign"
+      text: "@user＠example.com"
+      valid: false
+
+    - description: "Small commercial at (U+FE6B) as leading at sign"
+      text: "﹫user@example.com"
+      valid: false
+
+    # Whitespace and surrounding text
+    - description: "Space before domain"
+      text: "@user @example.com"
+      valid: false
+
+    - description: "Space after middle at sign"
+      text: "@user@ example.com"
+      valid: false
+
+    - description: "Space after leading at sign"
+      text: "@ user@example.com"
+      valid: false
+
+    - description: "Leading space"
+      text: " @user@example.com"
+      valid: false
+
+    - description: "Trailing space"
+      text: "@user@example.com "
+      valid: false
+
+    - description: "Tab inside"
+      text: "@user@\texample.com"
+      valid: false
+
+    - description: "Newline inside"
+      text: "@user@example\n.com"
+      valid: false
+
+    - description: "No-break space inside"
+      text: "@user@example\u00a0.com"
+      valid: false
+
+    - description: "Trailing sentence period"
+      text: "@user@example.com."
+      valid: false
+
+    - description: "Trailing comma"
+      text: "@user@example.com,"
+      valid: false
+
+    - description: "Wrapped in parentheses"
+      text: "(@user@example.com)"
+      valid: false
+
+    # Other address forms that are not handles
+    - description: "acct: URI"
+      text: "acct:user@example.com"
+      valid: false
+
+    - description: "Profile URL"
+      text: "https://example.com/@user"
+      valid: false
+
+    - description: "Profile URL without scheme"
+      text: "example.com/@user"
+      valid: false
+
+    - description: "Mailto URI"
+      text: "mailto:user@example.com"
+      valid: false
+
+
+  # Mentions in running text. expected lists the federated mentions extracted,
+  # applying Mastodon's lookbehind: no mention directly after a Unicode word
+  # character, '=', or '/'.
+  mastodon_mentions:
+    # Allowed before the @ (not a word character, '=', or '/')
+    - description: "Start of text"
+      text: "@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a space"
+      text: "Hi @user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a newline"
+      text: "Hi\n@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an ideographic space"
+      text: "\u3000@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an opening parenthesis"
+      text: "(@user@example.com)"
+      expected: ["@user@example.com"]
+
+    - description: "After an opening bracket"
+      text: "[@user@example.com]"
+      expected: ["@user@example.com"]
+
+    - description: "After a double quote"
+      text: "\"@user@example.com\""
+      expected: ["@user@example.com"]
+
+    - description: "After an apostrophe"
+      text: "'@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a period"
+      text: ".@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a comma"
+      text: "a,@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a colon"
+      text: "cc:@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a semicolon"
+      text: ";@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a hyphen"
+      text: "-@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an exclamation mark"
+      text: "!@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a question mark"
+      text: "?@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a hash"
+      text: "#@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a dollar sign"
+      text: "$@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a percent sign"
+      text: "%@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an ampersand"
+      text: "&@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an asterisk"
+      text: "*@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a plus sign"
+      text: "+@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a tilde"
+      text: "~@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After another at sign"
+      text: "@@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a fullwidth at sign"
+      text: "＠@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a zero-width space"
+      text: "\u200b@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After an emoji"
+      text: "😀@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a flag emoji"
+      text: "🇺🇸@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After a ZWJ emoji sequence"
+      text: "👨\u200d👩@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After \"RT \""
+      text: "RT @user@example.com: hi"
+      expected: ["@user@example.com"]
+
+    - description: "After \"RT:\""
+      text: "RT:@user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "After \"RT: \""
+      text: "RT: @user@example.com"
+      expected: ["@user@example.com"]
+
+    # Disallowed before the @ (word character, '=', or '/')
+    - description: "After an ASCII lowercase letter"
+      text: "a@user@example.com"
+      expected: []
+
+    - description: "After an ASCII uppercase letter"
+      text: "Z@user@example.com"
+      expected: []
+
+    - description: "After an ASCII digit"
+      text: "1@user@example.com"
+      expected: []
+
+    - description: "After an underscore"
+      text: "_@user@example.com"
+      expected: []
+
+    - description: "After an accented letter"
+      text: "é@user@example.com"
+      expected: []
+
+    - description: "After a combining mark"
+      text: "é@user@example.com"
+      expected: []
+
+    - description: "After a CJK ideograph"
+      text: "日@user@example.com"
+      expected: []
+
+    - description: "After an Arabic-Indic digit"
+      text: "٣@user@example.com"
+      expected: []
+
+    - description: "After a letter number (Roman numeral seven)"
+      text: "Ⅶ@user@example.com"
+      expected: []
+
+    - description: "After connector punctuation (undertie)"
+      text: "‿@user@example.com"
+      expected: []
+
+    - description: "After a fullwidth low line"
+      text: "＿@user@example.com"
+      expected: []
+
+    - description: "After an equals sign"
+      text: "=@user@example.com"
+      expected: []
+
+    - description: "After an equals sign in a key=value pair"
+      text: "a=@user@example.com"
+      expected: []
+
+    - description: "After a slash"
+      text: "/@user@example.com"
+      expected: []
+
+    - description: "Inside a URL path"
+      text: "https://x.com/@user@example.com"
+      expected: []
+
+    - description: "After a domain"
+      text: "x.com@user@example.com"
+      expected: []
+
+    - description: "After an email-style local part"
+      text: "me@user@example.com"
+      expected: []
+
+    - description: "After \"RT\" at the start (T is a word character)"
+      text: "RT@user@example.com"
+      expected: []
+
+    - description: "After lowercase \"rt\" at the start"
+      text: "rt@user@example.com"
+      expected: []
+
+    - description: "After \"RT\" inside a word"
+      text: "xRT@user@example.com"
+      expected: []
+
+    - description: "After \"RT\" following a space"
+      text: " RT@user@example.com"
+      expected: []
+
+    - description: "Directly after a hashtag"
+      text: "#tag@user@example.com"
+      expected: []
+
+    - description: "Directly after a cashtag"
+      text: "$CASH@user@example.com"
+      expected: []
+
+    # Several mentions
+    - description: "Two mentions separated by a space"
+      text: "@a@x.com @b@y.com"
+      expected: ["@a@x.com", "@b@y.com"]
+
+    - description: "Two mentions separated by a comma"
+      text: "@a@x.com,@b@y.com"
+      expected: ["@a@x.com", "@b@y.com"]
+
+    - description: "Second mention glued to the first"
+      text: "@a@x.com@b@y.com"
+      expected: ["@a@x.com"]
+
+    - description: "Third at sign after a single-label domain"
+      text: "@a@b@c.com"
+      expected: ["@a@b"]
+
+    - description: "Local mention is not a federated mention"
+      text: "@local and @user@example.com"
+      expected: ["@user@example.com"]
+
+    - description: "Mention after a hashtag and a space"
+      text: "#tag @user@example.com"
+      expected: ["@user@example.com"]
+
+    # What follows the domain
+    - description: "Sentence period"
+      text: "@user@example.com."
+      expected: ["@user@example.com"]
+
+    - description: "Exclamation mark"
+      text: "Hi, @user@example.com!"
+      expected: ["@user@example.com"]
+
+    - description: "Question mark"
+      text: "@user@example.com?"
+      expected: ["@user@example.com"]
+
+    - description: "Possessive"
+      text: "@user@example.com's post"
+      expected: ["@user@example.com"]
+
+    - description: "Slash"
+      text: "@user@example.com/list"
+      expected: ["@user@example.com"]
+
+    - description: "Colon"
+      text: "@user@example.com: hello"
+      expected: ["@user@example.com"]
+
+    - description: "Trailing hyphen"
+      text: "@user@example.com-"
+      expected: ["@user@example.com"]
+
+    - description: "Hyphen run then text"
+      text: "@user@example.com--"
+      expected: ["@user@example.com"]
+
+    # Domains and prefixes in running text
+    - description: "Unicode domain"
+      text: "Follow @user@mañana.example!"
+      expected: ["@user@mañana.example"]
+
+    - description: "Unicode domain after a disallowed prefix"
+      text: "日@user@例え.jp"
+      expected: []
+
+    - description: "Fullwidth at sign prefix"
+      text: "Hi ＠user@example.com"
+      expected: []

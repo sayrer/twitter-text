@@ -35,7 +35,8 @@ cashtag_text = _{ ASCII_ALPHA{1,6} ~ (("." | "_")? ~ ASCII_ALPHA{1,2})? ~ !(ASCI
 cashtag_token = _{ cashtag_prefix ~ cashtag_text }
 cashtag = { cashtag_token }
 invalid_cashtag_start = _{ (!space ~ text) ~ cashtag_token | cashtag_prefix ~ protocol ~ subdomain_char* }
-possible_cashtag = _{ invalid_cashtag_start | (cashtag ~ cashtag_token*) }
+// A federated mention directly after a cashtag fails Mastodon's lookbehind; consume it silently.
+possible_cashtag = _{ invalid_cashtag_start | (cashtag ~ cashtag_token* ~ federated_mention_text?) }
 
 
 //
@@ -57,7 +58,8 @@ invalid_hashtag_start = _{
     (("&" | hashtag_letter_or_mark) ~ hashtag_prefix ~ &hashtag_text) |
     hashtag_prefix ~ protocol ~ subdomain_char*
 }
-possible_hashtag = _{ "\u{fe0e}" | "\u{fe0f}" ~ hashtag | invalid_hashtag_start | hashtag }
+// A federated mention directly after a hashtag fails Mastodon's lookbehind; consume it silently.
+possible_hashtag = _{ "\u{fe0e}" | "\u{fe0f}" ~ hashtag ~ federated_mention_text? | invalid_hashtag_start | hashtag ~ federated_mention_text? }
 
 
 //
@@ -92,15 +94,39 @@ federated_username_char = _{ ASCII_ALPHANUMERIC | "_" }
 federated_username_segment = _{ federated_username_char+ }
 federated_username = _{ federated_username_segment ~ (("." | "-")+ ~ federated_username_segment)* }
 // Domain part: word characters with optional .-separated segments
-federated_domain_char = _{ ASCII_ALPHANUMERIC | "_" }
+// Ruby's [[:word:]], which Mastodon's MENTION_RE uses for the domain and the lookbehind
+federated_word_char = _{ LETTER | MARK | NUMBER | CONNECTOR_PUNCTUATION }
+federated_domain_char = _{ federated_word_char }
 federated_domain_segment = _{ federated_domain_char+ }
 federated_domain = _{ federated_domain_segment ~ (("." | "-")+ ~ federated_domain_segment)* }
-// Full federated mention: @username@domain (must not be preceded by word char, =, or /)
-federated_mention_invalid_prefix = _{ ASCII_ALPHANUMERIC | "_" | "=" | "/" }
-federated_mention = { user_prefix ~ federated_username ~ "@" ~ federated_domain }
+// Mastodon only recognizes the ASCII "@", not the fullwidth "＠" that Twitter mentions allow.
+federated_mention_text = _{ "@" ~ federated_username ~ "@" ~ federated_domain }
+federated_mention = { federated_mention_text }
+// Text glued to the end of a federated mention ("@a@x.com@b@y.com", "@a@b@c.com") follows a
+// word character, so Mastodon matches nothing there; consume it silently.
+federated_mention_trailer = _{ ("@" ~ federated_username ~ ("@" ~ federated_domain)?)* }
+// Mastodon's lookbehind (?<![=/[:word:]]): no federated mention directly after these.
+federated_mention_invalid_prefix = _{ federated_word_char | "=" | "/" }
 valid_federated_mention = { SOI ~ federated_mention ~ EOI }
-// Possible federated mention: handles invalid prefix cases
-possible_federated_mention = _{ federated_mention_invalid_prefix ~ federated_mention | federated_mention }
+// Possible federated mention. Pest has no lookbehind, so the character before the "@" is
+// matched here, ahead of the Twitter mention rules (whose invalid prefixes and RT
+// exception differ from Mastodon's):
+// - after an invalid prefix, the whole mention-shaped text is consumed and nothing is
+//   extracted, as in Mastodon;
+// - after any other character, that character is consumed and the mention is extracted;
+//   invalid_char is excluded so the validator still sees it;
+// - "RT@" at the start is rejected ("T" is a word character) and "RT:@" is accepted,
+//   since possible_mention's rt_prefix would otherwise claim both.
+// The &(ANY ~ "@") guard keeps the Unicode lookups off positions not right before an "@".
+possible_federated_mention = _{
+    SOI ~ ^"rt" ~ federated_mention_text |
+    SOI ~ ^"rt" ~ ":" ~ federated_mention ~ federated_mention_trailer |
+    &(ANY ~ "@") ~ (
+        federated_mention_invalid_prefix ~ federated_mention_text |
+        !(federated_mention_invalid_prefix | invalid_char) ~ ANY ~ federated_mention ~ federated_mention_trailer
+    ) |
+    federated_mention ~ federated_mention_trailer
+}
 
 //
 // LIST

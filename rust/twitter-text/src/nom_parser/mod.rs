@@ -810,6 +810,27 @@ fn try_parse_entity<'a>(
     match first_char {
         // @ or fullwidth @
         '@' | '\u{ff20}' => {
+            // Federated mentions follow Mastodon's MENTION_RE rather than the Twitter
+            // mention rules below: any predecessor is fine except a Unicode word
+            // character, '=', or '/', and there is no RT exception. When the text has
+            // federated-mention shape but that lookbehind fails, nothing is extracted
+            // here, as in Mastodon.
+            if first_char == '@' {
+                if let Ok((_, matched)) = mention::parse_federated_mention(input) {
+                    if prev_char.is_some_and(mention::invalid_federated_predecessor) {
+                        return None;
+                    }
+                    let consumed = matched.len();
+                    let entity = NomEntity::new(
+                        NomEntityType::FederatedMention,
+                        matched,
+                        offset,
+                        offset + consumed,
+                    );
+                    return Some((entity, consumed));
+                }
+            }
+
             // Check for invalid prefix - mentions shouldn't be preceded by alphanumeric, @, or certain punctuation
             // EXCEPT for the special "RT" prefix case (legacy retweet syntax)
             // Also check for = and / which are invalid for federated mentions
@@ -1105,9 +1126,12 @@ fn is_rt_prefix_before(full_input: &str, offset: usize) -> bool {
     let before = &full_input[..offset];
 
     // Check for "RT:" immediately before
+    // Compare bytes rather than slicing `before`: the bytes before the '@' may be
+    // part of a multibyte char, and an ASCII "RT" match guarantees char boundaries.
+    let bytes = before.as_bytes();
     if before.ends_with(':') && before.len() >= 3 {
-        let rt_check = &before[before.len() - 3..before.len() - 1];
-        if rt_check.eq_ignore_ascii_case("RT") {
+        let rt_check = &bytes[bytes.len() - 3..bytes.len() - 1];
+        if rt_check.eq_ignore_ascii_case(b"RT") {
             // Check if RT is at start or preceded by space
             if before.len() == 3 {
                 return true; // "RT:" at start
@@ -1120,8 +1144,8 @@ fn is_rt_prefix_before(full_input: &str, offset: usize) -> bool {
     }
 
     // Check for "RT" immediately before (no colon)
-    let rt_check = &before[before.len() - 2..];
-    if rt_check.eq_ignore_ascii_case("RT") {
+    let rt_check = &bytes[bytes.len() - 2..];
+    if rt_check.eq_ignore_ascii_case(b"RT") {
         // Check if RT is at start or preceded by space
         if before.len() == 2 {
             return true; // "RT" at start
@@ -1149,6 +1173,17 @@ mod tests {
     fn test_parse_no_entities() {
         let entities = parse_tweet("Hello world");
         assert!(entities.is_empty());
+    }
+
+    #[test]
+    fn test_mention_after_fullwidth_at_does_not_panic() {
+        // A fullwidth @ is an invalid mention prefix, so the RT-exception check runs
+        // with a multibyte char just before the '@'. It used to slice inside that
+        // char and panic.
+        for text in ["\u{ff20}@user", "x\u{ff20}@user", "RT\u{ff20}@user"] {
+            let entities = parse_tweet(text);
+            assert!(entities.is_empty(), "{:?} -> {:?}", text, entities);
+        }
     }
 
     #[test]

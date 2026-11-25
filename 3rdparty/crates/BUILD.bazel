@@ -314,18 +314,6 @@ alias(
 )
 
 alias(
-    name = "unicode_categories-0.1.1",
-    actual = "@twitter_text__unicode_categories-0.1.1//:unicode_categories",
-    tags = ["manual"],
-)
-
-alias(
-    name = "unicode_categories",
-    actual = "@twitter_text__unicode_categories-0.1.1//:unicode_categories",
-    tags = ["manual"],
-)
-
-alias(
     name = "wasm-bindgen-0.2.121",
     actual = "@twitter_text__wasm-bindgen-0.2.121//:wasm_bindgen",
     tags = ["manual"],

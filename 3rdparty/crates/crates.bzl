@@ -339,7 +339,6 @@ _NORMAL_DEPENDENCIES = {
             "serde_json": Label("@twitter_text//serde_json-1.0.154"),
             "serde_yaml_ng": Label("@twitter_text//serde_yaml_ng-0.10.0"),
             "unicode-normalization": Label("@twitter_text//unicode-normalization-0.1.26"),
-            "unicode_categories": Label("@twitter_text//unicode_categories-0.1.1"),
             "wasm-bindgen": Label("@twitter_text//wasm-bindgen-0.2.121"),
         },
     },
@@ -1867,16 +1866,6 @@ def crate_repositories():
 
     maybe(
         http_archive,
-        name = "twitter_text__unicode_categories-0.1.1",
-        sha256 = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e",
-        type = "tar.gz",
-        urls = ["https://static.crates.io/crates/unicode_categories/0.1.1/download"],
-        strip_prefix = "unicode_categories-0.1.1",
-        build_file = Label("//3rdparty/crates:BUILD.unicode_categories-0.1.1.bazel"),
-    )
-
-    maybe(
-        http_archive,
         name = "twitter_text__unsafe-libyaml-0.2.11",
         sha256 = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861",
         type = "tar.gz",
@@ -2110,6 +2099,5 @@ def crate_repositories():
         struct(repo = "twitter_text__serde_json-1.0.154", is_dev_dep = False),
         struct(repo = "twitter_text__serde_yaml_ng-0.10.0", is_dev_dep = False),
         struct(repo = "twitter_text__unicode-normalization-0.1.26", is_dev_dep = False),
-        struct(repo = "twitter_text__unicode_categories-0.1.1", is_dev_dep = False),
         struct(repo = "twitter_text__wasm-bindgen-0.2.121", is_dev_dep = False),
     ]

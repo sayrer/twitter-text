@@ -173,10 +173,55 @@ fn is_federated_separator_byte(b: u8) -> bool {
     b == b'.' || b == b'-'
 }
 
-/// Scan a federated name segment (username or domain): alphanumeric/underscore chars with dots/hyphens between segments.
-/// Returns the number of bytes consumed.
+/// Check if a char is a Unicode word character as Ruby's `[[:word:]]` defines it
+/// (Letter, Mark, Number, Connector_Punctuation). Mastodon's `Account::MENTION_RE`
+/// uses this class for the domain part and for the lookbehind before the `@`.
+///
+/// Uses pest's Unicode tables so the Nom backend classifies characters exactly as
+/// the `LETTER | MARK | NUMBER | CONNECTOR_PUNCTUATION` rules in the Pest grammars
+/// do. `pest::unicode` is doc-hidden, but `pest_derive` output calls these same
+/// functions, so they are stable for pest 2.x.
+#[inline(always)]
+pub fn is_mastodon_word_char(c: char) -> bool {
+    if c.is_ascii() {
+        return c.is_ascii_alphanumeric() || c == '_';
+    }
+    pest::unicode::LETTER(c)
+        || pest::unicode::MARK(c)
+        || pest::unicode::NUMBER(c)
+        || pest::unicode::CONNECTOR_PUNCTUATION(c)
+}
+
+/// Mastodon's `MENTION_RE` lookbehind `(?<![=/[:word:]])`: a federated mention
+/// may not directly follow a word character, `=`, or `/`.
 #[inline]
-fn scan_federated_segment(bytes: &[u8]) -> usize {
+pub fn invalid_federated_predecessor(c: char) -> bool {
+    c == '=' || c == '/' || is_mastodon_word_char(c)
+}
+
+/// Scan a federated domain: Unicode word-character segments joined by runs of
+/// dots/hyphens. Returns the number of bytes consumed.
+#[inline]
+fn scan_federated_domain(input: &str) -> usize {
+    // A trailing run of separators is scanned past but never counted, since
+    // end_pos only advances on a domain character.
+    let mut end_pos = 0;
+    for (i, c) in input.char_indices() {
+        if is_mastodon_word_char(c) {
+            end_pos = i + c.len_utf8();
+        } else if (c == '.' || c == '-') && end_pos > 0 {
+            continue;
+        } else {
+            break;
+        }
+    }
+    end_pos
+}
+
+/// Scan a federated username: ASCII alphanumeric/underscore segments joined by
+/// runs of dots/hyphens. Returns the number of bytes consumed.
+#[inline]
+fn scan_federated_username(bytes: &[u8]) -> usize {
     if bytes.is_empty() || !is_federated_char_byte(bytes[0]) {
         return 0;
     }
@@ -212,16 +257,15 @@ fn scan_federated_segment(bytes: &[u8]) -> usize {
     end_pos
 }
 
-/// Parse a federated mention (@username@domain) using direct byte scanning.
+/// Parse a federated mention (@username@domain).
 /// Returns the full matched string including both @ symbols.
+/// Only the ASCII `@` is accepted as the prefix, as in Mastodon.
 pub fn parse_federated_mention(input: &str) -> IResult<&str, &str> {
     let bytes = input.as_bytes();
 
     // Check for @ prefix
     let prefix_len = if bytes.first() == Some(&b'@') {
         1
-    } else if input.starts_with('\u{ff20}') {
-        '\u{ff20}'.len_utf8()
     } else {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
@@ -230,7 +274,7 @@ pub fn parse_federated_mention(input: &str) -> IResult<&str, &str> {
     };
 
     // Scan username
-    let username_len = scan_federated_segment(&bytes[prefix_len..]);
+    let username_len = scan_federated_username(&bytes[prefix_len..]);
     if username_len == 0 {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
@@ -249,7 +293,7 @@ pub fn parse_federated_mention(input: &str) -> IResult<&str, &str> {
 
     // Scan domain
     let domain_start = second_at_pos + 1;
-    let domain_len = scan_federated_segment(&bytes[domain_start..]);
+    let domain_len = scan_federated_domain(&input[domain_start..]);
     if domain_len == 0 {
         return Err(nom::Err::Error(nom::error::Error::new(
             input,
@@ -442,12 +486,18 @@ mod tests {
     }
 
     #[test]
-    fn test_federated_mention_fullwidth_at() {
-        let result = parse_federated_mention("\u{ff20}user@domain.com");
+    fn test_federated_mention_fullwidth_at_rejected() {
+        // Mastodon only recognizes the ASCII "@".
+        assert!(parse_federated_mention("\u{ff20}user@domain.com").is_err());
+    }
+
+    #[test]
+    fn test_federated_mention_unicode_domain() {
+        let result = parse_federated_mention("@user@ma\u{f1}ana.example!");
         assert!(result.is_ok());
         let (remaining, matched) = result.unwrap();
-        assert_eq!(matched, "\u{ff20}user@domain.com");
-        assert_eq!(remaining, "");
+        assert_eq!(matched, "@user@ma\u{f1}ana.example");
+        assert_eq!(remaining, "!");
     }
 
     #[test]

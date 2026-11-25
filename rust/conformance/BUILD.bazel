@@ -145,6 +145,25 @@ rust_test(
     edition = "2018",
 )
 
+rust_test(
+    name = "mastodon_ids_test",
+    srcs = [
+        "tests/mastodon_ids.rs",
+    ],
+    deps = [
+        "//rust/twitter-text:twitter_text_rlib",
+        "//3rdparty/crates:serde",
+        "//3rdparty/crates:serde_yaml_ng",
+    ],
+    proc_macro_deps = [
+        "//3rdparty/crates:serde_derive",
+    ],
+    compile_data = [
+        "tests/mastodon_ids.yml",
+    ],
+    edition = "2018",
+)
+
 filegroup(
     name = "yaml",
     srcs = glob(["tests/*.yml"], allow_empty = True)

@@ -38,7 +38,6 @@ twitter_text_deps = [
     "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",
-    "//3rdparty/crates:unicode_categories",
     "//3rdparty/crates:unicode-normalization",
 ]
 
@@ -52,7 +51,6 @@ twitter_text_wasm_deps = [
     "//3rdparty/crates:nom",
     "//3rdparty/crates:pest",
     "//3rdparty/crates:phf",
-    "//3rdparty/crates:unicode_categories",
     "//3rdparty/crates:unicode-normalization",
 ]
 
