@@ -37,17 +37,16 @@ pub fn is_hashtag_letter_or_mark(c: char) -> bool {
         }
     }
 
-    // Fall back to full Unicode category check for other ranges
-    use unicode_categories::UnicodeCategories;
-    c.is_letter() || c.is_mark()
+    // Fall back to full Unicode category check for other ranges, using pest's
+    // tables so this matches the Pest grammar's hashtag_letter_or_mark.
+    pest::unicode::LETTER(c) || pest::unicode::MARK(c)
 }
 
 /// Check if a character is a hashtag special character.
 /// These are allowed in hashtags but don't count as "letters".
 #[inline]
 fn is_hashtag_special(c: char) -> bool {
-    use unicode_categories::UnicodeCategories;
-    c.is_number_decimal_digit()
+    pest::unicode::DECIMAL_NUMBER(c)
         || c == '_'
         || matches!(
             c,

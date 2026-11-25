@@ -22,7 +22,6 @@ phf = { version = "0.14", features = ["macros", "unicase"] }
 emojis = "0.9.1"
 memchr = "2.8"
 nom = "8"
-unicode_categories = "0.1"
 
 # pest's default `std` feature pulls in stacker/psm, whose build script needs a
 # C archiver that rules_rust cannot provide for wasm32.

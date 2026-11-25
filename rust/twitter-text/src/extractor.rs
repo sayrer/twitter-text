@@ -327,9 +327,13 @@ pub trait Extract<'a> {
     /// Note: Lists (@user/list) are NOT included - Mastodon doesn't use Twitter-style lists.
     ///
     /// Federated mentions follow the format `@username@domain` where:
+    /// - Prefix: the ASCII `@` only (not the fullwidth `＠`)
     /// - Username: ASCII alphanumeric and underscore, with optional `.` or `-` separators
-    /// - Domain: ASCII alphanumeric and underscore, with optional `.` or `-` separators
-    /// - Max domain length: 253 characters (not enforced by grammar, checked post-extraction)
+    /// - Domain: Unicode word characters (Letter, Mark, Number, Connector_Punctuation),
+    ///   with optional `.` or `-` separators
+    ///
+    /// This mirrors Mastodon's `Account::MENTION_RE`; `conformance/mastodon_ids.yml`
+    /// holds the cases.
     fn extract_federated_mentions_with_indices(&self, s: &'a str) -> Self::T {
         // Early exit if no at sign present (ASCII @ or full-width ＠)
         if !s.contains('@') && !s.contains('＠') {
@@ -2275,10 +2279,11 @@ mod tests {
     fn test_federated_mention_fullwidth_at() {
         for validator in federated_mention_backends() {
             let extractor = Extractor::with_parser_backend(validator);
-            // Full-width @ (U+FF20) as prefix
+            // Mastodon only recognizes the ASCII "@", so a full-width @ (U+FF20)
+            // prefix does not start a federated mention.
             let extracted = extractor.extract_federated_mentions("＠user@domain.tld");
             assert_eq!(
-                vec!["＠user@domain.tld"],
+                Vec::<String>::new(),
                 extracted,
                 "Failed for {:?}",
                 validator
